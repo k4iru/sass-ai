@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-// TODO replace clerk with own authentication
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,10 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className="min-h-screen h-screen overflow-hidden flex flex-col">{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className="min-h-screen h-screen overflow-hidden flex flex-col">{children}</body>
+    </html>
   );
 }
