@@ -1,6 +1,6 @@
 import React from "react";
-import { hashPassword, verifyPassword } from "../utils/auth";
-import { generateAccessToken, generateRefreshToken, verifyToken } from "../utils/jwt";
+import { hashPassword, verifyPassword } from "../../utils/auth";
+import { generateAccessToken, generateRefreshToken, verifyToken } from "../../utils/jwt";
 
 let testUser = {
   id: "userId",
