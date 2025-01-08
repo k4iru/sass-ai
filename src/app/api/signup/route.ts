@@ -1,39 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import { usersTable } from "@/db/schema";
+import { response } from "@/lib/utils";
+
+interface SignupRequestBody {
+  name: string;
+  email: string;
+  password: string;
+}
+
+async function isExistingUser(email: string) {
+  const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email));
+  return existingUser.length > 0;
+}
 
 export async function POST(req: NextRequest) {
-  if (req.method !== "POST") {
-    return NextResponse.json({ error: "Method not allowed" }, { status: 400 });
-  }
-
   try {
-    const body = await req.json();
+    const body: SignupRequestBody = await req.json();
 
     // server side validation
+    // ensure all values are valid
     const validationResult = signupSchema.safeParse(body);
     if (!validationResult.success) {
       const errors = validationResult.error.errors.map((err) => err.message).join(", ");
-      return NextResponse.json({ message: errors }, { status: 409 });
+      return response(false, errors, 400);
     }
 
+    // check if user is already in db
+    if (await isExistingUser(body.email)) return response(false, "User already exists", 409);
+
+    // hash password
     const hashedPassword = await hashPassword(body.password);
 
+    // prep new user to insert into db
     const user: typeof usersTable.$inferInsert = {
       name: body.name,
       email: body.email,
       password: hashedPassword,
     };
 
-    const result = await db.insert(usersTable).values(user);
-    if (!result) return NextResponse.json({ message: "Database Error" }, { status: 409 });
+    // insert into db
+    let result = await db.insert(usersTable).values(user);
+    if (!result) {
+      throw new Error("Failed to insert user into the database");
+    }
   } catch (err) {
     // gracefully exit;
-    console.error("Error reading request: " + (err instanceof Error ? err.message : "Unknown error"));
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    console.error("Error during POST /signup:" + (err instanceof Error ? err.message : "Unknown error"));
+    return response(false, "Internal server error", 500);
   }
 
-  return NextResponse.json({ message: "Form submitted successfully!" }, { status: 200 });
+  return response(true, "Form submitted successfully!", 200);
 }
