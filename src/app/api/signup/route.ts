@@ -1,20 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { signupSchema } from "@/lib/validation/signupSchema";
 import { usersTable } from "@/db/schema";
-import { response } from "@/lib/utils";
+import { signupSchema } from "@/lib/validation/signupSchema";
+import { response, isExistingUser } from "@/lib/helper";
 
 interface SignupRequestBody {
   name: string;
   email: string;
   password: string;
-}
-
-async function isExistingUser(email: string) {
-  const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  return existingUser.length > 0;
 }
 
 export async function POST(req: NextRequest) {
