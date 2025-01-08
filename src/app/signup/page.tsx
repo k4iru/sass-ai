@@ -1,15 +1,15 @@
 "use client";
 
 import React, { FormEvent, useState } from "react";
-import Form from "next/form";
 import { signupSchema } from "@/lib/validation/signupSchema";
-import next from "next";
+import { redirect } from "next/navigation";
 
 function Signup() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
+    passwordVerification: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -17,17 +17,34 @@ function Signup() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log(formData.name);
-    console.log(formData.email);
-    console.log(formData.password);
   };
 
-  const testSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // TODO look up server actions vs restful API. leaning towards just implementing everything as restful api though.
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    // reset set up
     e.preventDefault();
-    console.log("test 3");
+    setLoading(true);
+    setMessage(null);
+
+    // check passwords match
+    if (formData.password !== formData.passwordVerification) {
+      setMessage("Passwords don't match");
+      setLoading(false);
+      return;
+    }
+
+    // Handle client validation use zod. Remember to also validate server side as well.
+    const validationResult = signupSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map((err) => err.message).join(", ");
+      setMessage(errors);
+      setLoading(false); // Stop loading if validation fails
+      return;
+    }
+
+    // handle post
     try {
-      console.log("test 4");
-      const response = await fetch("/api/form", {
+      const response = await fetch("/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -35,46 +52,31 @@ function Signup() {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        console.log("test1");
-      } else {
-        console.log("test 2");
+      // success!
+      if (!response.ok) {
+        setMessage("Something went wrong.");
+        setLoading(false);
+
+        return;
       }
     } catch (error) {
-      console.error(error);
-    }
-  };
+      setMessage("Error submitting form.");
+      setLoading(false);
 
-  // TODO look up server actions vs restful API. leaning towards just implementing everything as restful api though.
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    // set up
-    console.log("in submit");
-    e.preventDefault();
-    setLoading(true);
-    setMessage(null);
-    console.log("test");
-    console.log("in handleSubmit");
-
-    // Handle client validation use zod
-    const validationResult = signupSchema.safeParse(formData);
-    if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((err) => err.message).join(", ");
-      setMessage(errors);
-      setLoading(false); // Stop loading if validation fails
-      console.log(errors);
       return;
     }
 
-    setMessage("success");
-
-    // handle post
+    // since redirect throws an error this needs to be outside the try catch block.
+    setLoading(false);
+    redirect("/dashboard");
+    return;
 
     // handle message
   };
   return (
     <div className="signup-form max-w-3xl bg-gray-600 mx-auto my-auto p-8 flex flex-col">
       <h1 className="text-center pt-6">Sign Up</h1>
-      <form onSubmit={testSubmit}>
+      <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="name">Name:</label>
           <input
@@ -104,6 +106,17 @@ function Signup() {
             type="password"
             name="password"
             value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="passwordVerification">Verify Password:</label>
+          <input
+            className="bg-gray-400 rounded-md ml-2 mb-2"
+            type="password"
+            name="passwordVerification"
+            value={formData.passwordVerification}
             onChange={handleChange}
             required
           />
