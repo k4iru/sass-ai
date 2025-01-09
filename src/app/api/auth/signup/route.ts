@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { db, usersTable } from "@/db/schema";
+import { db, schema } from "@/db";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import { response, isExistingUser } from "@/lib/helper";
 
@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hashPassword(body.password);
 
     // prep new user to insert into db
-    const user: typeof usersTable.$inferInsert = {
+    const user: typeof schema.usersTable.$inferInsert = {
       name: body.name,
       email: body.email,
       password: hashedPassword,
     };
 
     // insert into db
-    let result = await db.insert(usersTable).values(user);
+    let result = await db.insert(schema.usersTable).values(user);
     if (!result) {
       throw new Error("Failed to insert user into the database");
     }

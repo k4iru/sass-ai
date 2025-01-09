@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { isExistingUser, getUser, response } from "@/lib/helper";
-import { db, tokensTable } from "@/db/schema";
+import { db, schema } from "@/db";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
@@ -24,5 +24,9 @@ export async function POST(req: NextRequest) {
   const refreshToken = generateRefreshToken(user);
   console.log(refreshToken);
 
-  await db.insert();
+  await db.insert(schema.tokensTable).values({
+    id: crypto.randomUUID,
+    userId: user.id,
+    refreshToken: refreshToken,
+  });
 }
