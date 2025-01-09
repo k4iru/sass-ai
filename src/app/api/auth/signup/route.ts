@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { db } from "@/db";
-import { usersTable } from "@/db/schema";
+import { db, usersTable } from "@/db/schema";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import { response, isExistingUser } from "@/lib/helper";
 
