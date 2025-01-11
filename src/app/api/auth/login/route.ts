@@ -1,9 +1,10 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
 import { isExistingUser, getUser, response } from "@/lib/helper";
 import { db, schema } from "@/db";
 
+// TODO error checking, refactor, robustness
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
   const user = await getUser(email);
@@ -24,9 +25,22 @@ export async function POST(req: NextRequest) {
   const refreshToken = generateRefreshToken(user);
   console.log(refreshToken);
 
-  await db.insert(schema.tokensTable).values({
-    id: crypto.randomUUID,
+  const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
+    id: crypto.randomUUID(),
     userId: user.id,
+    email: user.email,
     refreshToken: refreshToken,
+  };
+
+  const result = await db.insert(schema.refreshTokensTable).values(newRefreshTokenRow);
+
+  const res = NextResponse.json({ accessToken });
+  res.cookies.set("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
   });
+
+  return res;
 }
