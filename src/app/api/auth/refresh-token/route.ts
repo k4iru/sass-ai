@@ -2,14 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { response, generateNewTokens, deleteRefreshToken, insertRefreshToken } from "@/lib/helper";
 
+// TODO move session management to redis for speed
 export async function POST(req: NextRequest) {
+  console.log("accessed");
   const refreshToken = req.cookies.get("refreshToken");
-  if (!refreshToken) return response(false, "Refresh token missing", 401);
+  if (refreshToken === undefined) return response(false, "Refresh token missing", 401);
 
+  console.log(`refresh token API: ` + refreshToken.value);
+
+  console.log("right before new token generation");
   const newTokens = await generateNewTokens(refreshToken.value);
+  console.log("right after");
+  console.log(newTokens);
+
   if (newTokens === null) return response(false, "Invalid token", 401);
 
   const { newAccessToken, newRefreshToken } = newTokens;
+  console.log("new Access TOken: " + newAccessToken);
 
   const delToken = deleteRefreshToken(refreshToken.value);
   if (!delToken) return response(false, "Database Error", 401);
@@ -25,7 +34,7 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
 
-  return response;
+  return res;
 
-  // delete old refresh token
+  // TODO delete old refresh token for now have them stay for debugging
 }

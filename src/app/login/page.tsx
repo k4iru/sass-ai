@@ -3,8 +3,10 @@
 import React, { FormEvent, useState } from "react";
 // import { signupSchema } from "@/lib/validation/signupSchema";
 import { redirect } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 function Login() {
+  const { accessToken, login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -24,33 +26,11 @@ function Login() {
     setLoading(true);
     setMessage(null);
 
-    /*
-    // Handle client validation use zod. Remember to also validate server side as well.
-    const validationResult = signupSchema.safeParse(formData);
-    if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((err) => err.message).join(", ");
-      setMessage(errors);
-      setLoading(false); // Stop loading if validation fails
-      return;
-    } */
-
     // handle post
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      await login(formData.email, formData.password);
 
-      // success!
-      if (!response.ok) {
-        setMessage("Something went wrong.");
-        setLoading(false);
-
-        return;
-      }
+      console.log(`access token: ` + accessToken);
     } catch (error) {
       setMessage("Error submitting form.");
       setLoading(false);

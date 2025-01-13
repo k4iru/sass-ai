@@ -1,3 +1,4 @@
+"use server";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
@@ -20,10 +21,10 @@ export async function POST(req: NextRequest) {
 
   // Authenticated! create tokens and send
   const accessToken = generateAccessToken(user);
-  console.log(accessToken);
+  //console.log(accessToken);
 
   const refreshToken = generateRefreshToken(user);
-  console.log(refreshToken);
+  console.log(`login API refresh Token: ` + refreshToken);
 
   const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
     id: crypto.randomUUID(),
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
 
   const result = await db.insert(schema.refreshTokensTable).values(newRefreshTokenRow);
 
+  // return access token in json. refresh token in httpOnly cookie
   const res = NextResponse.json({ accessToken });
   res.cookies.set("refreshToken", refreshToken, {
     httpOnly: true,
