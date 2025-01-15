@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { generateAccessToken, generateRefreshToken, getUserEmailFromJWT } from "./jwt";
-import { refreshTokensTable } from "@/db/schema";
 
 type User = typeof schema.usersTable.$inferSelect;
 
@@ -26,15 +25,11 @@ export async function getUser(email: string): Promise<User | null> {
 // TODO validation based on things such as ip, user agent, etc
 export async function generateNewTokens(refreshToken: string): Promise<{ newAccessToken: string; newRefreshToken: string } | null> {
   // validate refresh token
-  console.log("right before validation of refresh token");
   const validRefreshToken = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.refreshToken, refreshToken));
   if (!validRefreshToken.length) return null;
 
-  console.log("after valid refresh token");
-
   // get user from db
   const user = await db.select().from(schema.usersTable).where(eq(schema.usersTable.id, validRefreshToken[0].userId));
-  console.log(`user: ` + user);
   if (!user.length) return null;
 
   const newAccessToken = generateAccessToken(user[0]);

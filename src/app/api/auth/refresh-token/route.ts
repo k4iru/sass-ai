@@ -4,21 +4,14 @@ import { response, generateNewTokens, deleteRefreshToken, insertRefreshToken } f
 
 // TODO move session management to redis for speed
 export async function POST(req: NextRequest) {
-  console.log("accessed");
   const refreshToken = req.cookies.get("refreshToken");
   if (refreshToken === undefined) return response(false, "Refresh token missing", 401);
 
-  console.log(`refresh token API: ` + refreshToken.value);
-
-  console.log("right before new token generation");
   const newTokens = await generateNewTokens(refreshToken.value);
-  console.log("right after");
-  console.log(newTokens);
 
   if (newTokens === null) return response(false, "Invalid token", 401);
 
   const { newAccessToken, newRefreshToken } = newTokens;
-  console.log("new Access TOken: " + newAccessToken);
 
   const delToken = deleteRefreshToken(refreshToken.value);
   if (!delToken) return response(false, "Database Error", 401);

@@ -21,10 +21,7 @@ export async function POST(req: NextRequest) {
 
   // Authenticated! create tokens and send
   const accessToken = generateAccessToken(user);
-  //console.log(accessToken);
-
   const refreshToken = generateRefreshToken(user);
-  console.log(`login API refresh Token: ` + refreshToken);
 
   const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
     id: crypto.randomUUID(),
