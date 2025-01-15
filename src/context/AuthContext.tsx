@@ -1,6 +1,8 @@
 "use client";
 import { createContext, useContext, useState } from "react";
 
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 type authContextType = {
   accessToken: string | null;
   login: (email: string, password: string) => void;
@@ -21,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [accessToken, setAccessToken] = useState(null);
 
   const login = async (email: string, password: string): Promise<void> => {
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(`${ApiUrl}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -38,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const refreshAccessToken = async () => {
-    const response = await fetch("/api/auth/refresh-token", {
+    const response = await fetch(`${ApiUrl}/api/auth/refresh-token`, {
       method: "POST",
       credentials: "include", // Include cookies in the request
     });
@@ -54,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", {
+    await fetch(`${ApiUrl}/api/auth/logout`, {
       method: "POST",
       credentials: "include", // Include cookies in the request
     });

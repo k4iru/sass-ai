@@ -3,6 +3,7 @@
 import React, { FormEvent, useState } from "react";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import { redirect } from "next/navigation";
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -44,7 +45,7 @@ function Signup() {
 
     // handle post
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(`${ApiUrl}/api/auth/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

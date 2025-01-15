@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const FormPage = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const FormPage = () => {
     console.log("in handle submit");
     try {
       console.log("in try clause");
-      const response = await fetch("/api/form", {
+      const response = await fetch(`${ApiUrl}/api/form`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
