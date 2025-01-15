@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export default async function POST(req: NextRequest, res: NextResponse) {
-  res.cookies.set("refreshToken", "");
-  res.status(200).json({ message: "Logged out" });
+export async function POST(req: NextRequest) {
+  const response = NextResponse.json({ message: "Logged out" });
+  response.cookies.set("refreshToken", "", { maxAge: 0, path: "/", httpOnly: true, secure: true });
+  return response;
 }
