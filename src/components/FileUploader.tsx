@@ -1,13 +1,20 @@
 "use client";
 import React, { useCallback } from "react";
 import Dropzone, { useDropzone } from "react-dropzone";
+import useUpload from "@/hooks/useUpload";
 import { CheckCircleIcon, CircleArrowDown, HammerIcon, RocketIcon, SaveIcon } from "lucide-react";
 
 function FileUploader() {
-  const { progress, status, fileId, handleUpload } = useUpload();
+  const { fileId, handleUpload } = useUpload();
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log("test on drop");
     // Do something with the files
     const file = acceptedFiles[0];
+    console.log("handle file upload");
+
+    handleUpload(file);
+    console.log("filed uploaded");
 
     if (file) {
     }
