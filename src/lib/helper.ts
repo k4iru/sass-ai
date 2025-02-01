@@ -78,15 +78,22 @@ export async function deleteRefreshToken(refreshToken: string): Promise<boolean>
   return true;
 }
 
-export async function insertRefreshToken(refreshToken: string, userId: string): Promise<boolean> {
+export async function insertRefreshToken(refreshToken: string, userId: string, accessToken: string, ip: string): Promise<boolean> {
   try {
-    const now = new Date();
-    const expiryDate = new Date();
-    expiryDate.setDate(now.getDate() + parseInt(REFRESH_TOKEN_EXPIRY));
+    console.log("in inserting refresh token");
+    const ms = new Date().getTime() + parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
+    const expiryDate = new Date(ms);
+
+    console.log("refreshtoken: ", refreshToken);
+    console.log("userId: ", userId);
+    console.log("accessToken: ", accessToken);
+    console.log("ip: ", ip);
 
     const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
       id: refreshToken,
       userId: userId,
+      accessToken: accessToken,
+      ipAddress: ip,
       expiryDate: expiryDate,
     };
 
@@ -94,7 +101,7 @@ export async function insertRefreshToken(refreshToken: string, userId: string): 
     if (!result) throw new Error("Error inserting new refresh token into table");
     return true;
   } catch (err) {
-    console.log("error inserting new refresh token: " + (err instanceof Error ? err.message : "Unknown error"));
+    console.log("database error: " + (err instanceof Error ? err.message : "Unknown error"));
     return false;
   }
 }

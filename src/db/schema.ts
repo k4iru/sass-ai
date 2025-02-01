@@ -15,6 +15,8 @@ export const refreshTokensTable = pgTable("refresh_tokens", {
   userId: uuid("user_id")
     .notNull()
     .references(() => usersTable.id), // Foreign key reference
+  accessToken: varchar("access_token", { length: 500 }).notNull(),
+  ipAddress: varchar("ip_address", { length: 255 }).notNull(),
   expiryDate: timestamp("expiry_date").notNull(), // Set expiry to 7 days from now
   createdAt: timestamp("created_at").defaultNow(),
 });
