@@ -12,7 +12,7 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY;
 // Generate access token
 export async function generateAccessToken(user: { id: string }): Promise<string> {
   console.log(user);
-  return jwt.sign({ iss: "https://sass-ai", aud: "https://sass-ai", sub: user.id }, `${JWT_SECRET}`, { expiresIn: JWT_EXPIRY });
+  return jwt.sign({ iss: "https://sass-ai", aud: "https://sass-ai", sub: user.id, jti: crypto.randomUUID() }, `${JWT_SECRET}`, { expiresIn: JWT_EXPIRY });
 }
 
 // Verify token
