@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getUserEmailFromJWT } from "@/lib/jwt";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -19,14 +18,8 @@ function useUpload() {
   const [fileId, setFileId] = useState<string | null>(null);
   //const [status, setStatus] = useState<Status | null>(null);
 
-  const { accessToken } = useAuth();
-
-  const userId = getUserEmailFromJWT(accessToken!);
-  console.log(userId);
-
-  // get user context
-
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, userId: string) => {
+    console.log("inside handleupload. userid: ", userId);
     if (!file) {
       return;
     }

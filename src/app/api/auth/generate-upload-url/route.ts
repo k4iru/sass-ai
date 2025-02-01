@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { userId, fileName, fileType } = body;
-    console.log(userId);
+    console.log("inside generate upload url", userId);
 
     console.log("in generate upload");
     if (!userId || !fileName || !fileType) {

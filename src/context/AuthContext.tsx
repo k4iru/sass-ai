@@ -5,6 +5,7 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 type authContextType = {
   accessToken: string | null;
+  userId: string | null;
   login: (email: string, password: string) => void;
   refreshAccessToken: () => void;
   logout: () => void;
@@ -12,6 +13,7 @@ type authContextType = {
 
 const defaultAuthContextType: authContextType = {
   accessToken: null,
+  userId: null,
   login: () => {},
   refreshAccessToken: () => {},
   logout: () => {},
@@ -21,6 +23,7 @@ const AuthContext = createContext<authContextType>(defaultAuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [accessToken, setAccessToken] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const login = async (email: string, password: string): Promise<void> => {
     const response = await fetch(`${ApiUrl}/api/auth/login`, {
@@ -32,6 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const data = await response.json();
     if (response.ok) {
       setAccessToken(data.accessToken);
+      setUserId(data.id);
     } else {
       throw new Error(data.error);
     }
@@ -50,6 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (response.ok) {
       console.log("set new access Token");
       setAccessToken(data.accessToken);
+      setUserId(data.id);
     } else {
       throw new Error(data.error);
     }
@@ -61,9 +66,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       credentials: "include", // Include cookies in the request
     });
     setAccessToken(null);
+    setUserId(null);
   };
 
-  return <AuthContext.Provider value={{ accessToken, login, refreshAccessToken, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ accessToken, userId, login, refreshAccessToken, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

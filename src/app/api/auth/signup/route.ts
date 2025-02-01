@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
     const user: typeof schema.usersTable.$inferInsert = {
       name: body.name,
       email: body.email,
+
       password: hashedPassword,
     };
 

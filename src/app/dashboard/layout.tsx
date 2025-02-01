@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 
 function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false);
-  const { accessToken, refreshAccessToken } = useAuth();
+  const { accessToken, refreshAccessToken, userId } = useAuth();
 
   useEffect(() => {
     // 1. check if accesstoken exists and is valid
@@ -26,7 +26,8 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 
     if (accessToken !== null) setAuthenticated(true);
     else setAuthenticated(false);
-  }, [accessToken]);
+    console.log("userId 2:", userId);
+  }, [accessToken, userId]);
 
   if (!authenticated)
     return (

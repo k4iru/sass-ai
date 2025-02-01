@@ -1,11 +1,24 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import Dropzone, { useDropzone } from "react-dropzone";
 import useUpload from "@/hooks/useUpload";
+import { useRouter } from "next/navigation";
 import { CheckCircleIcon, CircleArrowDown, HammerIcon, RocketIcon, SaveIcon } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 function FileUploader() {
   const { fileId, handleUpload } = useUpload();
+  const router = useRouter();
+  const { userId } = useAuth();
+
+  useEffect(() => {
+    if (fileId) {
+      //router.push(`/dashboard/files/${fileId}`);
+      console.log(fileId);
+    }
+
+    if (userId !== undefined) console.log("userid-fileuploader", userId);
+  }, [fileId, router, userId]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     console.log("test on drop");
@@ -13,7 +26,8 @@ function FileUploader() {
     const file = acceptedFiles[0];
     console.log("handle file upload");
 
-    handleUpload(file);
+    if (file && userId !== null && userId !== undefined) handleUpload(file, userId);
+
     console.log("filed uploaded");
 
     if (file) {

@@ -2,13 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import { generateAccessToken, generateRefreshToken } from "@/lib/jwt";
-import { isExistingUser, getUser, response } from "@/lib/helper";
+import { getUserFromEmail, insertRefreshToken, response } from "@/lib/helper";
 import { db, schema } from "@/db";
 
 // TODO error checking, refactor, robustness
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
-  const user = await getUser(email);
+  const user = await getUserFromEmail(email);
+  console.log(user.id);
 
   // check user exists
   if (user === null) {
@@ -20,20 +21,17 @@ export async function POST(req: NextRequest) {
   if (!valid) return response(false, "Invalid email or password", 401);
 
   // Authenticated! create tokens and send
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
+  // TODO more validation. these refresh token functions don't throw an error on fail
+  const accessToken = generateAccessToken({ sub: user.id });
+  const refreshToken = generateRefreshToken({ sub: user.id });
 
-  const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
-    id: crypto.randomUUID(),
-    userId: user.id,
-    email: user.email,
-    refreshToken: refreshToken,
-  };
+  console.log("generated tokens properly");
+  console.log(accessToken);
+  const result = await insertRefreshToken(refreshToken, user.id);
 
-  const result = await db.insert(schema.refreshTokensTable).values(newRefreshTokenRow);
-
+  if (!result) throw new Error("error logging in");
   // return access token in json. refresh token in httpOnly cookie
-  const res = NextResponse.json({ accessToken });
+  const res = NextResponse.json({ accessToken, id: user.id });
   res.cookies.set("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
