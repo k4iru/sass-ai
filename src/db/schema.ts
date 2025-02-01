@@ -11,12 +11,10 @@ export const usersTable = pgTable("users", {
 });
 
 export const refreshTokensTable = pgTable("refresh_tokens", {
-  id: uuid("id")
-    .default(sql`gen_random_uuid()`)
-    .primaryKey(), // Use SQL function explicitly
+  id: varchar({ length: 255 }).primaryKey().notNull(), // Use SQL function explicitly
   userId: uuid("user_id")
     .notNull()
     .references(() => usersTable.id), // Foreign key reference
-  refreshToken: varchar("refresh_token", { length: 255 }).notNull(),
+  expiryDate: timestamp("expiry_date").notNull(), // Set expiry to 7 days from now
   createdAt: timestamp("created_at").defaultNow(),
 });

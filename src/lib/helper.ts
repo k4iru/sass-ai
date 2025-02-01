@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { generateAccessToken, generateRefreshToken, getUserSubFromJWT } from "./jwt";
+import { generateAccessToken } from "./jwt";
+import { randomBytes } from "crypto";
 
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "";
 type User = typeof schema.usersTable.$inferSelect;
 
 export const response = (success: boolean, message: string, status: number): NextResponse => {
@@ -20,6 +22,21 @@ export async function getUserFromEmail(email: string): Promise<User | null> {
   if (!user.length) return null;
 
   return user[0];
+}
+
+export async function generateRefreshToken(): Promise<string> {
+  let newRefreshTokenId = `sessId__${randomBytes(32).toString("hex")}`;
+  const tokenExists = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
+
+  // conflict, retry once more.
+  if (tokenExists.length) {
+    newRefreshTokenId = `sessId__${randomBytes(32).toString("hex")}`;
+    const result = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
+
+    if (result.length) throw new Error("cannot generate new token");
+  }
+
+  return newRefreshTokenId;
 }
 
 // TODO validation based on things such as ip, user agent, etc
@@ -63,9 +80,14 @@ export async function deleteRefreshToken(refreshToken: string): Promise<boolean>
 
 export async function insertRefreshToken(refreshToken: string, userId: string): Promise<boolean> {
   try {
+    const now = new Date();
+    const expiryDate = new Date();
+    expiryDate.setDate(now.getDate() + parseInt(REFRESH_TOKEN_EXPIRY));
+
     const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
+      id: refreshToken,
       userId: userId,
-      refreshToken: refreshToken,
+      expiryDate: expiryDate,
     };
 
     const result = await db.insert(schema.refreshTokensTable).values(newRefreshTokenRow);

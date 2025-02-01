@@ -32,12 +32,13 @@ export async function POST(req: NextRequest) {
     const user: typeof schema.usersTable.$inferInsert = {
       name: body.name,
       email: body.email,
-
       password: hashedPassword,
     };
 
     // insert into db
     let result = await db.insert(schema.usersTable).values(user);
+
+    // TODO set refresh id, access token and redirect to dashboard.
     if (!result) {
       throw new Error("Failed to insert user into the database");
     }
