@@ -1,44 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
-import { response, generateNewTokens, deleteRefreshToken, insertRefreshToken } from "@/lib/helper";
-import { getUserSubFromJWT } from "@/lib/jwt";
+import { deleteRefreshToken, insertRefreshToken, generateRefreshToken, getRefreshToken, getClientIP } from "@/lib/helper";
+import { getUserSubFromJWT, generateAccessToken } from "@/lib/jwt";
+
+const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || "900");
+const REFRESH_TOKEN_EXPIRY = parseInt(process.env.REFRESH_TOKEN_EXPIRY || "604800");
 
 // TODO move session management to redis for speed
 export async function POST(req: NextRequest) {
-  // grab current refresh token
-  const refreshToken = req.cookies.get("refreshToken");
-  if (refreshToken === undefined) return response(false, "Refresh token missing", 401);
+  try {
+    if (isNaN(JWT_EXPIRY) || isNaN(REFRESH_TOKEN_EXPIRY)) throw new Error("Invalid token expiration configuration");
 
-  const userId = getUserSubFromJWT(refreshToken.value);
-  console.log("userId:", userId);
+    // grab current refresh token
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+    const accessToken = req.cookies.get("accessToken")?.value;
+    const redirectPath = req.nextUrl.searchParams.get("redirect") || "/dashboard";
+    const clientIP = getClientIP(req);
 
-  if (userId === null || userId === undefined) throw new Error("cant get user from token");
+    if (!refreshToken || !accessToken) {
+      throw new Error("invalid token");
+    }
 
-  console.log("test 1");
-  const newTokens = await generateNewTokens(refreshToken.value);
+    const userId = getUserSubFromJWT(accessToken);
+    if (userId === null || userId === "") throw new Error("cant get user from token");
 
-  if (newTokens === null) return response(false, "Invalid token", 401);
-  console.log("test 2");
+    // before generating new tokens validate that old refresh token is valid.
+    const query = await getRefreshToken(refreshToken);
 
-  const { newAccessToken, newRefreshToken } = newTokens;
+    if (!query || query.accessToken !== accessToken || query.userId !== userId || query.ipAddress !== clientIP || new Date(query.expiryDate) < new Date()) {
+      throw new Error("invalid token");
+    }
 
-  const delToken = deleteRefreshToken(refreshToken.value);
-  if (!delToken) return response(false, "Database Error", 401);
-  console.log("test 3");
+    // create new tokens
+    const [newAccessToken, newRefreshToken] = await Promise.all([generateAccessToken({ id: userId }), generateRefreshToken()]);
 
-  // insert new access token into db
-  await insertRefreshToken(newRefreshToken, userId);
-  console.log("test 4");
+    // delete old tokens, insert new ones
+    const [deleteResult, insertResult] = await Promise.all([deleteRefreshToken(refreshToken), insertRefreshToken(newRefreshToken, userId, newAccessToken, clientIP)]);
+    if (!deleteResult || !insertResult) {
+      throw new Error("database error");
+    }
 
-  const res = NextResponse.json({ accessToken: newAccessToken, id: userId });
-  res.cookies.set("refreshToken", newRefreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/",
-  });
-  console.log("test 5");
+    const res = NextResponse.redirect(new URL(redirectPath, req.url));
+    // Access token cookie
+    res.cookies.set({
+      name: "accessToken",
+      value: newAccessToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax", // More compatible than strict
+      path: "/",
+      maxAge: JWT_EXPIRY, // 15 minutes (matches access token expiry)
+    });
 
-  return res;
+    // Refresh token cookie
+    res.cookies.set({
+      name: "refreshToken",
+      value: newRefreshToken,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: REFRESH_TOKEN_EXPIRY, // 7 days (matches refresh token expiry)
+    });
 
-  // TODO delete old refresh token for now have them stay for debugging
+    return res;
+  } catch (err) {
+    console.error("token refresh failed", err);
+    const response = NextResponse.redirect(new URL("/login", req.url));
+    response.cookies.delete("accessToken");
+    response.cookies.delete("refreshToken");
+
+    return response;
+  }
 }

@@ -1,14 +1,14 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
-import { generateAccessToken } from "@/lib/jwt";
 import { getUserFromEmail, insertRefreshToken, generateRefreshToken, response } from "@/lib/helper";
-import { db, schema } from "@/db";
+import { generateAccessToken } from "@/lib/jwt";
+import { timeStringToSeconds } from "@/lib/helper";
 
-const JWT_EXPIRY = process.env.JWT_EXPIRY || "";
-const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "";
+const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "15m");
+const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(process.env.REFRESH_TOKEN_EXPIRY || "7d");
 
-// TODO error checking, refactor, robustness
+// sets cookies + adds session id into session db.
 export async function POST(req: NextRequest) {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0] || // Cloudflare/Proxy support
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax", // More compatible than strict
     path: "/",
-    maxAge: parseInt(JWT_EXPIRY), // 15 minutes (matches access token expiry)
+    maxAge: JWT_EXPIRY, // 15 minutes (matches access token expiry)
   });
 
   // Refresh token cookie
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: parseInt(REFRESH_TOKEN_EXPIRY), // 7 days (matches refresh token expiry)
+    maxAge: REFRESH_TOKEN_EXPIRY, // 7 days (matches refresh token expiry)
   });
 
   return res;

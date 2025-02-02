@@ -8,26 +8,7 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false);
   const { accessToken, refreshAccessToken, userId } = useAuth();
 
-  useEffect(() => {
-    // 1. check if accesstoken exists and is valid
-
-    // 2. if valid but expired try and refresh
-
-    // 3.
-
-    const fetchData = async () => {
-      try {
-        refreshAccessToken();
-      } catch (err) {
-        console.log(`error getting refresh token` + (err instanceof Error ? err.message : "unknown"));
-      }
-    };
-    fetchData();
-
-    if (accessToken !== null) setAuthenticated(true);
-    else setAuthenticated(false);
-    console.log("userId 2:", userId);
-  }, [accessToken, userId]);
+  useEffect(() => {}, [accessToken, userId]);
 
   if (!authenticated)
     return (
