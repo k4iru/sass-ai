@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/jwt";
 import { JWTExpired } from "jose/errors";
 
+const JWT_AUD = process.env.JWT_AUD || "";
+const JWT_ISS = process.env.JWT_ISS || "";
+
 export async function middleware(req: NextRequest) {
   console.log("in middleware");
   // get cookies
@@ -22,7 +25,7 @@ export async function middleware(req: NextRequest) {
     const decoded = await verifyToken(accessToken);
 
     // Optional: Add additional security checks
-    if (decoded.aud !== "https://sass-ai" || decoded.iss !== "https://sass-ai") {
+    if (decoded.aud !== JWT_AUD || decoded.iss !== JWT_ISS) {
       throw new Error("Invalid token claims");
     }
     return NextResponse.next();
@@ -39,6 +42,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // The above middleware would only run for the "/" path
   matcher: "/dashboard/:path*",
 };
