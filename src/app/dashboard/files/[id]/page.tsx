@@ -1,6 +1,7 @@
 import React from "react";
 
-function ChatToFile({ params: { id } }: { params: { id: string } }) {
+async function ChatToFile({ params: { id } }: { params: { id: string } }) {
+  await id;
   return <div>ChatToFile {id}</div>;
 }
 
