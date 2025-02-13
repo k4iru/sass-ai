@@ -1,29 +1,36 @@
 "use client";
-import { createContext, useContext, useState } from "react";
+import { getUserSubFromJWT } from "@/lib/jwt";
+import { createContext, useContext, useEffect, useState } from "react";
 
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+// type definitions
+
+interface User {
+  id: string;
+  email: string;
+  accessToken: string;
+}
 
 type authContextType = {
-  accessToken: string | null;
-  userId: string | null;
+  user: User | null;
   login: (email: string, password: string) => void;
-  refreshAccessToken: () => void;
+  setCurrUser: (user: User) => Promise<boolean>;
   logout: () => void;
 };
 
+// default object when context created.
 const defaultAuthContextType: authContextType = {
-  accessToken: null,
-  userId: null,
+  user: null,
   login: () => {},
-  refreshAccessToken: () => {},
+  setCurrUser: () => Promise.resolve(false),
   logout: () => {},
 };
 
 const AuthContext = createContext<authContextType>(defaultAuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [accessToken, setAccessToken] = useState(null);
-  const [userId, setUserId] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   const login = async (email: string, password: string): Promise<void> => {
     const response = await fetch(`${ApiUrl}/api/auth/login`, {
@@ -34,8 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const data = await response.json();
     if (response.ok) {
-      setAccessToken(data.accessToken);
-      setUserId(data.id);
+      console.log("logged in, setting access token/id");
     } else {
       throw new Error(data.error);
     }
@@ -43,20 +49,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // TODO error validation
   };
 
-  const refreshAccessToken = async () => {
-    const response = await fetch(`${ApiUrl}/api/auth/refresh-token`, {
-      method: "POST",
-      credentials: "include", // Include cookies in the request
-    });
-
-    console.log("in refresh access token");
-    const data = await response.json();
-    if (response.ok) {
-      console.log("set new access Token");
-      setAccessToken(data.accessToken);
-      setUserId(data.id);
-    } else {
-      throw new Error(data.error);
+  const setCurrUser = async (user: User): Promise<boolean> => {
+    try {
+      setUser(user);
+      return true;
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : "Unknown error");
+      return false;
     }
   };
 
@@ -65,11 +64,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       method: "POST",
       credentials: "include", // Include cookies in the request
     });
-    setAccessToken(null);
-    setUserId(null);
+    setUser(null);
   };
 
-  return <AuthContext.Provider value={{ accessToken, userId, login, refreshAccessToken, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, login, setCurrUser, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

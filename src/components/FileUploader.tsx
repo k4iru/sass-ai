@@ -9,32 +9,38 @@ import { useAuth } from "@/context/AuthContext";
 function FileUploader() {
   const { fileId, handleUpload } = useUpload();
   const router = useRouter();
-  const { userId } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (fileId) {
-      //router.push(`/dashboard/files/${fileId}`);
-      console.log(fileId);
+    if (!user) {
+      router.replace("/login");
+      return;
     }
-
-    if (userId !== undefined) console.log("userid-fileuploader", userId);
-  }, [fileId, router, userId]);
-
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    console.log("test on drop");
-    // Do something with the files
-    const file = acceptedFiles[0];
-    console.log("handle file upload");
-
-    if (file && userId !== null && userId !== undefined) handleUpload(file, userId);
-
-    console.log("filed uploaded");
-
-    if (file) {
+    if (fileId && user) {
+      router.replace(`/dashboard/files/${user.id}`);
+      return;
     }
-    console.log(acceptedFiles);
-  }, []);
-  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } = useDropzone({ onDrop, maxFiles: 1, accept: { "application/pdf": [".pdf"] } });
+  }, [fileId, router, user]);
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+
+      if (file && user) {
+        handleUpload(file, user.id);
+      }
+    },
+    [user, handleUpload]
+  );
+  const { getRootProps, getInputProps, isDragActive, isFocused, isDragAccept } = useDropzone({
+    onDrop,
+    maxFiles: 1,
+    accept: {
+      "application/pdf": [".pdf"],
+    },
+  });
+
+  if (!user) return <div>Unauthorized</div>;
   return (
     <div className="flex flex-col gap-4 items-center max-w-7xl mx-auto">
       <div
