@@ -1,7 +1,23 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  {
+    key: "Permissions-Policy",
+    value: "clipboard-write=(self)",
+  },
+];
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
+  productionBrowserSourceMaps: true, // Enables source maps for production
+
   images: {
     remotePatterns: [
       {
