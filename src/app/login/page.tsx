@@ -2,11 +2,12 @@
 
 import React, { FormEvent, useState } from "react";
 // import { signupSchema } from "@/lib/validation/signupSchema";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
 function Login() {
-  const { accessToken, login } = useAuth();
+  const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,8 +30,6 @@ function Login() {
     // handle post
     try {
       await login(formData.email, formData.password);
-
-      console.log(`access token: ` + accessToken);
     } catch (error) {
       setMessage("Error submitting form.");
       setLoading(false);
@@ -40,7 +39,7 @@ function Login() {
 
     // since redirect throws an error this needs to be outside the try catch block.
     setLoading(false);
-    redirect("/dashboard");
+    router.replace("/dashboard");
     return;
 
     // handle message

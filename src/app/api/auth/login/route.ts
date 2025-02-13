@@ -1,7 +1,7 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
-import { getUserFromEmail, insertRefreshToken, generateRefreshToken, response } from "@/lib/helper";
+import { getUserFromEmail, insertRefreshToken, generateRefreshToken, response, getClientIP } from "@/lib/helper";
 import { generateAccessToken } from "@/lib/jwt";
 import { timeStringToSeconds } from "@/lib/helper";
 
@@ -10,11 +10,7 @@ const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(process.env.REFRESH_TOKEN_EXPIR
 
 // sets cookies + adds session id into session db.
 export async function POST(req: NextRequest) {
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0] || // Cloudflare/Proxy support
-    req.headers.get("x-real-ip") || // Nginx support
-    req.headers.get("cf-connecting-ip") || // Cloudflare
-    "Unknown IP";
+  const ip = getClientIP(req);
   const { email, password } = await req.json();
   const user = await getUserFromEmail(email);
 
