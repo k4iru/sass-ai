@@ -43,7 +43,6 @@ export default function Home() {
         <div className="flex flex-col justify-center items-center mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w--2xl sm:text-center">
             <h2 className="text-base font-semibold leading-7 text-indigo-600">Your Interactive Document Companion</h2>
-
             <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-6xl">Transform Your PDFS into interactive Conversations</p>
             <p>
               Introducting <span className="font-bold text-indigo-600">Chat with PDF.</span>
