@@ -10,14 +10,16 @@ interface CustomJwtPayload extends JWTPayload {
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const JWT_EXPIRY = process.env.JWT_EXPIRY || "15m";
+const JWT_AUD = process.env.JWT_AUD || "";
+const JWT_ISS = process.env.JWT_ISS || "";
 
 const getJwtSecret = () => new TextEncoder().encode(JWT_SECRET);
 
 // Generate access token
 export async function generateAccessToken(user: { id: string }): Promise<string> {
   return new SignJWT({
-    iss: "https://sass-ai",
-    aud: "https://sass-ai",
+    iss: JWT_ISS,
+    aud: JWT_AUD,
     sub: user.id,
     jti: `${crypto.randomUUID()}`, // Edge-compatible
   })
