@@ -3,9 +3,11 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
+
 type User = typeof schema.usersTable.$inferSelect;
 type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 
+// TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0] || // Cloudflare/Proxy support
@@ -15,6 +17,7 @@ export function getClientIP(req: NextRequest): string {
   return ip;
 }
 
+// deprecated, check api routes and remove soon
 export const response = (success: boolean, message: string, status: number): NextResponse => {
   return NextResponse.json({ success, message }, { status });
 };
@@ -50,6 +53,14 @@ export async function isExistingUser(email: string): Promise<boolean> {
 
 export async function getUserFromEmail(email: string): Promise<User | null> {
   const user = await db.select().from(schema.usersTable).where(eq(schema.usersTable.email, email));
+
+  if (!user.length) return null;
+
+  return user[0];
+}
+
+export async function getUserFromSub(sub: string): Promise<User | null> {
+  const user = await db.select().from(schema.usersTable).where(eq(schema.usersTable.id, sub));
 
   if (!user.length) return null;
 
