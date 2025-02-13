@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -14,18 +13,20 @@ export enum StatusText {
 export type Status = StatusText[keyof StatusText];
 
 function useUpload() {
-  //const [progress, setProgress] = useState<number | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
-  //const [status, setStatus] = useState<Status | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleUpload = async (file: File, userId: string) => {
-    console.log("inside handleupload. userid: ", userId);
-    if (!file) {
-      return;
-    }
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch(`${ApiUrl}/api/auth/generate-upload-url`, {
+      if (!file?.type || !file?.name) {
+        throw new Error("Invalid file object");
+      }
+
+      const res = await fetch(`${ApiUrl}/api/auth/generate-upload-url`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,27 +39,39 @@ function useUpload() {
       });
 
       // wait for response
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "failed to get signed url");
-      console.log("fileurl", data);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to get upload URL");
+      }
+
+      const { signedUrl, fileUrl } = await res.json();
+
+      // Validate AWS response
+      if (!signedUrl || !fileUrl) {
+        throw new Error("Invalid server response");
+      }
 
       // upload to s3
-
-      await fetch(data.signedUrl, {
+      const awsRes = await fetch(signedUrl, {
         method: "PUT",
         body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
+        headers: { "Content-Type": file.type },
       });
 
-      setFileId(data.fileUrl);
-    } catch (error) {
-      console.error("upload error: ", error);
+      if (!awsRes.ok) {
+        throw new Error("S3 upload failed");
+      }
+
+      setFileId(fileUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+      throw err; // Re-throw for component handling
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return { fileId, handleUpload };
+  return { fileId, handleUpload, error, isLoading };
 }
 
 export default useUpload;
