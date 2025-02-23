@@ -28,6 +28,7 @@ function useUpload() {
 
       const res = await fetch(`${ApiUrl}/api/auth/generate-upload-url`, {
         method: "POST",
+        credentials: "include", // Include cookies in the request
         headers: {
           "Content-Type": "application/json",
         },

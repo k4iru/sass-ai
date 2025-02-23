@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { verifyToken } from "@/lib/jwt";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -10,13 +11,24 @@ const s3Client = new S3Client({
   },
 });
 
+const JWT_AUD = process.env.JWT_AUD || "";
+const JWT_ISS = process.env.JWT_ISS || "";
+
+// TODO move s3client to a separate helper file
+
 export async function POST(req: NextRequest) {
+  // add user authentication as well.
   try {
     const body = await req.json();
     const { userId, fileName, fileType } = body;
-    console.log("inside generate upload url", userId);
 
-    console.log("in generate upload");
+    const accessToken = req.cookies.get("accessToken")?.value;
+    if (!accessToken) return NextResponse.json({ error: "invalid credentials", message: "invalid token" }, { status: 401 });
+
+    // verify token first
+    const decoded = await verifyToken(accessToken);
+    if (decoded.aud !== JWT_AUD || decoded.iss !== JWT_ISS) throw new Error("Invalid token claims");
+
     if (!userId || !fileName || !fileType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
