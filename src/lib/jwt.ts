@@ -49,3 +49,11 @@ export function getUserSubFromJWT(token: string): string | null {
     return null;
   }
 }
+
+export const userVerified = async (accessToken?: string): Promise<boolean> => {
+  if (!accessToken) return false;
+
+  const decoded = await verifyToken(accessToken);
+  if (decoded.aud !== JWT_AUD || decoded.iss !== JWT_ISS) return false;
+  return true;
+};
