@@ -63,6 +63,8 @@ function useUpload() {
         throw new Error("S3 upload failed");
       }
 
+      // generate embeddings
+
       setFileId(fileUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");

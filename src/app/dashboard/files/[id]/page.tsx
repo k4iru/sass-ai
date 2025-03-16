@@ -5,6 +5,8 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function ChatToFile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+
+  console.log(`user id: ${id}`);
   useEffect(() => {
     const fetchData = async () => {
       const res = await fetch(`${ApiUrl}/api/auth/get-files`, {
