@@ -17,7 +17,7 @@ function FileUploader() {
       return;
     }
     if (fileId && user) {
-      router.replace(`/dashboard/files/${user.id}`);
+      router.replace(`/dashboard/files/${fileId}`);
       return;
     }
   }, [fileId, router, user]);

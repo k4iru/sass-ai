@@ -1,4 +1,5 @@
 "use client";
+import { generateEmbeddings } from "@/actions/generateEmbeddings";
 import { useState } from "react";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -45,10 +46,10 @@ function useUpload() {
         throw new Error(errorData.error || "Failed to get upload URL");
       }
 
-      const { signedUrl, fileUrl } = await res.json();
+      const { signedUrl, fileId, fileUrl } = await res.json();
 
       // Validate AWS response
-      if (!signedUrl || !fileUrl) {
+      if (!signedUrl || !fileUrl || !fileId) {
         throw new Error("Invalid server response");
       }
 
@@ -63,9 +64,10 @@ function useUpload() {
         throw new Error("S3 upload failed");
       }
 
+      const key = `${userId}/${fileId}`;
       // generate embeddings
-
-      setFileId(fileUrl);
+      await generateEmbeddings(key);
+      setFileId(fileId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
       throw err; // Re-throw for component handling

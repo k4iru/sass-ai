@@ -17,11 +17,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const key = `${userId}/${crypto.randomUUID()}-${fileName}`;
+    const fileId = crypto.randomUUID();
+    const key = `${userId}/${fileId}`;
     const signedUrl = await getAWSSignedUrl(key, fileType);
 
     return NextResponse.json({
       signedUrl,
+      fileId: fileId,
       fileUrl: getFileUrl(key),
     });
   } catch (err) {
