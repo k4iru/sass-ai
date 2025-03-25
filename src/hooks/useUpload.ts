@@ -65,7 +65,7 @@ function useUpload() {
       }
 
       const key = `${userId}/${fileId}`;
-      // generate embeddings
+      // generate embeddings server action
       await generateEmbeddings(key);
       setFileId(fileId);
     } catch (err) {

@@ -8,23 +8,31 @@ import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Loader2Icon, RotateCw, ZoomInIcon } from "lucide-react";
 import { downloadFileToBuffer } from "@/lib/s3";
+import { getFileBuffer } from "@/actions/getFileBuffer";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function PdfView({ userId, fileId }: { userId: string; fileId: string }) {
   const [numPages, setNumPages] = useState<number>();
   const [pageNumber, setPageNumber] = useState<number>(1);
-  const [file, setFile] = useState<Blob | null>();
+  const [file, setFile] = useState<Blob>();
   const [rotation, setRotation] = useState<number>(0);
   const [scale, setScale] = useState<number>(1);
 
   useEffect(() => {
-    const key = `${userId}/${fileId}`;
     const fetchFile = async () => {
-      const res = await downloadFileToBuffer(key);
-      const file = new Blob([res], { type: "application/pdf" });
-      setFile(file);
+      // get file via server action
+      if (userId && fileId) {
+        console.log("inside pdfviewer");
+        const key = `${userId}/${fileId}`;
+        console.log(key);
+
+        const file = await getFileBuffer(key);
+        setFile(file);
+      }
     };
+
+    fetchFile();
   }, [fileId, userId]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }): void => {

@@ -35,6 +35,8 @@ export const downloadFileToBuffer = async (key: string): Promise<Buffer> => {
   const command = new GetObjectCommand({ Bucket: AWS_BUCKET_NAME, Key: key });
   const response = await s3Client.send(command);
 
+  console.log(key);
+
   if (!response.Body) throw new Error("No data found in bucket");
 
   const chunks: Uint8Array[] = [];

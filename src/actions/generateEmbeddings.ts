@@ -3,7 +3,7 @@ import { authenticate } from "@/lib/auth";
 import { generateEmbeddingsInPineconeVectorStore } from "@/lib/langchain";
 import { revalidatePath } from "next/cache";
 
-export async function generateEmbeddings(docId: string) {
+export async function generateEmbeddings(docId: string): Promise<{}> {
   // check authentication
   authenticate();
 
