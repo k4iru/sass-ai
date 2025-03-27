@@ -39,19 +39,50 @@ function PdfView({ userId, fileId }: { userId: string; fileId: string }) {
     setNumPages(numPages);
   };
   return (
-    <div>
-      <Document
-        loading={null}
-        file={file}
-        rotate={rotation}
-        onLoadSuccess={onDocumentLoadSuccess}
-        className="m-4 overflow-scroll">
-        <Page
-          className="shadow-lg"
-          scale={scale}
-          pageNumber={pageNumber}
-        />
-      </Document>
+    <div className="flex flex-col justify-center items-center">
+      <div className="sticky top-0 z-99 bg-gray-100 p-2 rounded-b-lg">
+        <div className="max-w-6xl px-2 grid grid-cols-6 gap-2">
+          <Button
+            variant="outline"
+            disabled={pageNumber === 1}
+            onClick={() => {
+              if (pageNumber > 1) {
+                setPageNumber(pageNumber - 1);
+              }
+            }}>
+            Previous
+          </Button>
+          <p className="flex items-center justify-center">
+            {pageNumber} of {numPages}
+          </p>
+          <Button
+            variant="outline"
+            disabled={pageNumber === numPages}
+            onClick={() => {
+              if (pageNumber < numPages) {
+                setPageNumber(pageNumber + 1);
+              }
+            }}>
+            Next
+          </Button>
+        </div>
+      </div>
+      {!file ? (
+        <Loader2Icon className="animate-spin h-20 w-20 text-indigo-600 mt-20" />
+      ) : (
+        <Document
+          loading={null}
+          file={file}
+          rotate={rotation}
+          onLoadSuccess={onDocumentLoadSuccess}
+          className="m-4 overflow-scroll">
+          <Page
+            className="shadow-lg"
+            scale={scale}
+            pageNumber={pageNumber}
+          />
+        </Document>
+      )}
     </div>
   );
 }
