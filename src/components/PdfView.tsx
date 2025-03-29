@@ -12,8 +12,8 @@ import { getFileBuffer } from "@/actions/getFileBuffer";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-function PdfView({ userId, fileId }: { userId: string; fileId: string }) {
-  const [numPages, setNumPages] = useState<number>();
+function PdfView({ fileKey }: { fileKey: string }) {
+  const [numPages, setNumPages] = useState<number>(1);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [file, setFile] = useState<Blob>();
   const [rotation, setRotation] = useState<number>(0);
@@ -22,18 +22,14 @@ function PdfView({ userId, fileId }: { userId: string; fileId: string }) {
   useEffect(() => {
     const fetchFile = async () => {
       // get file via server action
-      if (userId && fileId) {
-        console.log("inside pdfviewer");
-        const key = `${userId}/${fileId}`;
-        console.log(key);
-
-        const file = await getFileBuffer(key);
+      if (fileKey) {
+        const file = await getFileBuffer(fileKey);
         setFile(file);
       }
     };
 
     fetchFile();
-  }, [fileId, userId]);
+  }, [fileKey]);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }): void => {
     setNumPages(numPages);

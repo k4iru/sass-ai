@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Loader2Icon } from "lucide-react";
 
-function Chat({ id }: { id: string }) {
+function Chat({fileKey }: { fileKey: string }) {
   return <div>Chat</div>;
 }
 
