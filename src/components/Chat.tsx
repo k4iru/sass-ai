@@ -41,7 +41,8 @@ function Chat({ fileKey }: { fileKey: string }) {
     ]);
 
     startTransition(async () => {
-      const { success, message } = await askQuestion(id, q);
+      //const { success, message } = await askQuestion(fileKey, q);
+      const { success, message } = { success: true, message: "Hello World!" }; // Mock response for testing
 
       if (!success) {
         setMessages((prev) =>
