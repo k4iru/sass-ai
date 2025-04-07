@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Loader2Icon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import useWebSocket from "@/hooks/useWebSocket";
 
 export type Message = {
   id?: string;
@@ -15,46 +16,49 @@ export type Message = {
 };
 
 function Chat({ fileKey }: { fileKey: string }) {
+  const { messages } = useWebSocket("ws://localhost:8080"); // Replace with actual WebSocket URL
   const { user } = useAuth();
   const router = useRouter();
   const [input, setInput] = useState<string>("");
   const [isPending, startTransition] = useTransition();
-  const [messages, setMessages] = useState<Message[]>([]);
+  // const [messages, setMessages] = useState<Message[]>([]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const q = input;
     setInput("");
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "human",
-        message: q,
-        createdAt: new Date(),
-      },
-      {
-        role: "ai",
-        message: "Thinking...",
-        createdAt: new Date(),
-      },
-    ]);
+    // setMessages((prev) => [
+    //   ...prev,
+    //   {
+    //     role: "human",
+    //     message: q,
+    //     createdAt: new Date(),
+    //   },
+    //   {
+    //     role: "ai",
+    //     message: "Thinking...",
+    //     createdAt: new Date(),
+    //   },
+    // ]);
+
+    // set up notify / listen in postgresql + websockets for tracking real time data changes in server
 
     startTransition(async () => {
       //const { success, message } = await askQuestion(fileKey, q);
       const { success, message } = { success: true, message: "Hello World!" }; // Mock response for testing
 
-      if (!success) {
-        setMessages((prev) =>
-          prev.slice(0, prev.length - 1).concat([
-            {
-              role: "ai",
-              message: `Whoops... ${message}`,
-              createdAt: new Date(),
-            },
-          ])
-        );
-      }
+      // if (!success) {
+      //   setMessages((prev) =>
+      //     prev.slice(0, prev.length - 1).concat([
+      //       {
+      //         role: "ai",
+      //         message: `Whoops... ${message}`,
+      //         createdAt: new Date(),
+      //       },
+      //     ])
+      //   );
+      // }
     });
   };
 
@@ -64,7 +68,14 @@ function Chat({ fileKey }: { fileKey: string }) {
   }
   return (
     <div className="flex flex-col h-full overflow-scroll">
-      <div className="flex-1 w-full"></div>
+      <div className="flex-1 w-full">
+        <ul>
+          {messages.map((msg, i) => (
+            <li key={i}>{msg.content}</li>
+          ))}
+          ;
+        </ul>
+      </div>
       <form
         onSubmit={handleSubmit}
         className="flex sticky bottom-0 space-x-2 p-5 bg-indigo-600/75">
