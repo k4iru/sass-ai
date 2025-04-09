@@ -70,10 +70,10 @@ function Chat({ fileKey }: { fileKey: string }) {
     <div className="flex flex-col h-full overflow-scroll">
       <div className="flex-1 w-full">
         <ul>
+          {console.log(messages)}
           {messages.map((msg, i) => (
             <li key={i}>{msg.content}</li>
           ))}
-          ;
         </ul>
       </div>
       <form

@@ -8,24 +8,34 @@ export type Message = {
   created_at: string;
 };
 
+let socket: WebSocket | null = null;
+
 function useWebSocket(url: string) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket(url);
-    setWs(socket);
+    if (!socket) {
+      socket = new WebSocket(url);
 
-    socket.onmessage = (event) => {
-      const newMessage = JSON.parse(event.data);
-      setMessages((prev) => [...prev, newMessage]);
-    };
+      socket.onmessage = (event) => {
+        const newMessage = JSON.parse(event.data);
+        setMessages((prev) => [...prev, newMessage]);
+      };
 
-    socket.onclose = () => {
-      console.log("WebSocket closed.");
-      return () => socket.close();
+      socket.onclose = () => {
+        console.log("WebSocket closed.");
+        socket = null; // Reset the socket
+      };
+    }
+
+    return () => {
+      if (socket) {
+        socket.close();
+        socket = null; // Reset the socket on cleanup
+      }
     };
   }, [url]);
+
   return { messages };
 }
 
