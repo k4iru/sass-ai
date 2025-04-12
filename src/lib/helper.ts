@@ -46,6 +46,28 @@ export function timeStringToSeconds(input: string): number {
   return value * conversionRates[unit];
 }
 
+export async function createChatRoom(userId: string, roomName: string): Promise<boolean> {
+  // check if chat room already exists
+  const existingChatRoom = await db.select().from(schema.chats).where(eq(schema.chats.id, roomName));
+
+  if (existingChatRoom.length) {
+    console.log("Chat room already exists.");
+    return false;
+  }
+
+  try {
+    const newChatRoom = await db.insert(schema.chats).values({
+      id: roomName,
+      userId: userId,
+    });
+
+    return true;
+  } catch (err) {
+    console.log(err instanceof Error ? err.message : "Unknown error");
+    return false;
+  }
+}
+
 export async function isExistingUser(email: string): Promise<boolean> {
   const existingUser = await db.select().from(schema.usersTable).where(eq(schema.usersTable.email, email));
   return existingUser.length > 0;

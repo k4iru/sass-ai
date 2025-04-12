@@ -15,17 +15,5 @@ const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
 
-// client.connect().then(() => {
-//   console.log("Connected to PostgreSQL for LISTEN/NOTIFY");
-// });
-
-// // Listen for PostgreSQL NOTIFY events
-// client.query("LISTEN new_message");
-
-// client.on("notification", (msg) => {
-//   console.log("New message notification received:", msg.payload);
-//   // You will need to broadcast this update via WebSockets
-// });
-
 export const db = drizzle({ client: pool }); // drizzle for updating / deleting / inserting data
 export { schema, client }; // client for LISTEN/NOTIFY

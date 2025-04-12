@@ -31,7 +31,7 @@ function ChatToFile() {
     <div className="grid lg:grid-cols-5 h-full overflow-hidden">
       {/*Right */}
       <div className="lg:col-span-2 overflow-y-auto">
-        <Chat fileKey={fileKey} />
+        <Chat fileKey={fileId} />
       </div>
       {/*left*/}
       <div className=" lg:col-span-3 bg-gray-100 border-r-2 lg:border-indigo-600 lg:-order-1 overflow-auto">

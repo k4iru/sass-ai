@@ -1,8 +1,13 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { client } from "@/db/index";
 import { config } from "dotenv";
+import { parse } from "url";
 
-const clients = new Set<WebSocket>();
+type ChatRooms = {
+  [key: string]: WebSocket;
+};
+
+const chatRooms: ChatRooms = {};
 
 // Load env based on environment
 const envFilePath = process.env.NODE_ENV === "production" ? ".env.production.local" : ".env.local";
@@ -13,16 +18,17 @@ async function listenForMessages(): Promise<void> {
   await client.connect();
   await client.query("LISTEN new_message");
 
+  // postgres client on notification
   client.on("notification", (msg: any) => {
     try {
       const newMessage = JSON.parse(msg.payload);
       console.log("📬 New message received:", newMessage);
 
-      clients.forEach((ws: WebSocket) => {
-        if (ws.readyState === ws.OPEN) {
-          ws.send(JSON.stringify(newMessage));
-        }
-      });
+      // look up chat room dictionary
+      const chatRoom: WebSocket = chatRooms[newMessage.chat_id];
+      if (chatRoom && chatRoom.readyState === chatRoom.OPEN) {
+        chatRoom.send(JSON.stringify(newMessage));
+      }
     } catch (err) {
       console.error("Error parsing message payload:", err);
     }
@@ -39,13 +45,26 @@ export function startWebSocketServer(): void {
   const port = Number(process.env.WS_PORT) || 8080;
   const wss = new WebSocketServer({ port });
 
-  wss.on("connection", (ws: WebSocket) => {
+  wss.on("connection", (ws: WebSocket, req) => {
     console.log("🟢 New client connected");
-    clients.add(ws);
+    const query = parse(req.url || "", true).query;
+    const chatroomId = query.chatroomId as string;
+
+    if (!chatroomId) {
+      ws.close(1008, "Chatroom ID is required");
+      return;
+    }
+
+    // Overwrite any existing WebSocket for the chatroom
+    if (chatRooms[chatroomId]) {
+      console.log(`Replacing existing WebSocket for chatroom: ${chatroomId}`);
+      chatRooms[chatroomId].close(); // Close the old connection
+    }
+    chatRooms[chatroomId] = ws;
 
     ws.on("close", () => {
       console.log("🔴 Client disconnected");
-      clients.delete(ws);
+      delete chatRooms[chatroomId];
     });
   });
 

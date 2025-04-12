@@ -22,7 +22,7 @@ export const refreshTokensTable = pgTable("refresh_tokens", {
 });
 
 export const chats = pgTable("chats", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: uuid("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
     .references(() => usersTable.id),
@@ -40,27 +40,3 @@ export const messages = pgTable("messages", {
   content: varchar("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
-
-export const up = async (db) => {
-  await db.execute(sql`
-    CREATE OR REPLACE FUNCTION notify_new_message()
-    RETURNS TRIGGER AS $$
-    BEGIN
-      PERFORM pg_notify('new_message', row_to_json(NEW)::text);
-      RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-  `);
-
-  await db.execute(sql`
-    CREATE TRIGGER message_insert_trigger
-    AFTER INSERT ON messages
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_new_message();
-  `);
-};
-
-export const down = async (db) => {
-  await db.execute(sql`DROP TRIGGER IF EXISTS message_insert_trigger ON messages;`);
-  await db.execute(sql`DROP FUNCTION IF EXISTS notify_new_message;`);
-};

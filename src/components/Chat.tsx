@@ -8,6 +8,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
 
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
 export type Message = {
   id?: string;
   role: "human" | "ai" | "placeholder";
@@ -16,12 +18,27 @@ export type Message = {
 };
 
 function Chat({ fileKey }: { fileKey: string }) {
-  const { messages } = useWebSocket("ws://localhost:8080"); // Replace with actual WebSocket URL
+  const { messages } = useWebSocket(`ws://localhost:8080?chatroomId=${fileKey}`); // Replace with actual WebSocket URL
   const { user } = useAuth();
   const router = useRouter();
   const [input, setInput] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   // const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    const createChatRoom = async () => {
+      const userId = user?.id;
+      await fetch(`${ApiUrl}/api/auth/create-chatroom`, {
+        method: "POST",
+        credentials: "include", // Include cookies in the request
+        body: JSON.stringify({ userId: userId, chatId: fileKey }),
+      });
+    };
+
+    if (user) {
+      createChatRoom();
+    }
+  }, [user]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -62,6 +79,8 @@ function Chat({ fileKey }: { fileKey: string }) {
     });
   };
 
+  console.log(messages);
+
   if (!user) {
     <div>Please log in to chat.</div>;
     return router.push("/login");
@@ -70,7 +89,6 @@ function Chat({ fileKey }: { fileKey: string }) {
     <div className="flex flex-col h-full overflow-scroll">
       <div className="flex-1 w-full">
         <ul>
-          {console.log(messages)}
           {messages.map((msg, i) => (
             <li key={i}>{msg.content}</li>
           ))}
