@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-
-export type Message = {
-  id: number;
-  chat_id: string;
-  user_id: string;
-  content: string;
-  created_at: string;
-};
+import { Message } from "@/types/Messages";
 
 let socket: WebSocket | null = null;
 
@@ -36,7 +29,16 @@ function useWebSocket(url: string) {
     };
   }, [url]);
 
-  return { messages };
+  const pushMessage = (message: Message): void => {
+    // UseEffect first parameter is prev messages
+    setMessages((prev) => [...prev, message]);
+  };
+
+  const popMessage = (): void => {
+    setMessages((prev) => prev.slice(0, -1));
+  };
+
+  return { messages, pushMessage, popMessage };
 }
 
 export default useWebSocket;

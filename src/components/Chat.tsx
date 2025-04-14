@@ -7,18 +7,12 @@ import { Loader2Icon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
+import { Message } from "@/types/Messages";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
-export type Message = {
-  id?: string;
-  role: "human" | "ai" | "placeholder";
-  message: string;
-  createdAt: Date;
-};
-
 function Chat({ fileKey }: { fileKey: string }) {
-  const { messages } = useWebSocket(`ws://localhost:8080?chatroomId=${fileKey}`); // Replace with actual WebSocket URL
+  const { messages, popMessage, pushMessage } = useWebSocket(`ws://localhost:8080?chatroomId=${fileKey}`); // Replace with actual WebSocket URL
   const { user } = useAuth();
   const router = useRouter();
   const [input, setInput] = useState<string>("");
@@ -45,21 +39,31 @@ function Chat({ fileKey }: { fileKey: string }) {
     const q = input;
     setInput("");
 
-    // setMessages((prev) => [
-    //   ...prev,
-    //   {
-    //     role: "human",
-    //     message: q,
-    //     createdAt: new Date(),
-    //   },
-    //   {
-    //     role: "ai",
-    //     message: "Thinking...",
-    //     createdAt: new Date(),
-    //   },
-    // ]);
+    if (!user || !fileKey) {
+      throw new Error("User or fileKey is not defined");
+    }
+    // send message to server.
+    // should also append to messages array, then pop message oncen response is receive
 
-    // set up notify / listen in postgresql + websockets for tracking real time data changes in server
+    let newMessageHuman: Message = {
+      role: "human",
+      chat_id: fileKey,
+      user_id: user?.id,
+      content: q,
+      created_at: new Date(),
+    };
+
+    let placeHolderMessage: Message = {
+      role: "placeholder",
+      chat_id: fileKey,
+      user_id: user?.id,
+      content: "Thinking...",
+      created_at: new Date(),
+    };
+    pushMessage(newMessageHuman);
+    pushMessage(placeHolderMessage);
+
+    /* PUSHED TO ARRAY now send to server for processing then pop both when message received*/
 
     startTransition(async () => {
       //const { success, message } = await askQuestion(fileKey, q);
