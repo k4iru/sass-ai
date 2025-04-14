@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { Message } from "@/types/Messages";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
@@ -44,6 +45,26 @@ export function timeStringToSeconds(input: string): number {
   }
 
   return value * conversionRates[unit];
+}
+
+export async function insertMessage(message: Message): Promise<boolean> {
+  // TODO implement this function
+  try {
+    const newMessageRow: typeof schema.messages.$inferInsert = {
+      role: message.role,
+      chatId: message.chat_id,
+      userId: message.user_id,
+      content: message.content,
+      createdAt: message.created_at,
+    };
+
+    const result = await db.insert(schema.messages).values(newMessageRow);
+    if (!result) throw new Error("Error inserting new message into table");
+  } catch (err) {
+    console.log("database error: " + (err instanceof Error ? err.message : "Unknown error"));
+    return false;
+  }
+  return true;
 }
 
 export async function createChatRoom(userId: string, roomName: string): Promise<boolean> {
