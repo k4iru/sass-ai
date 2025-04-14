@@ -31,6 +31,7 @@ export const chats = pgTable("chats", {
 
 export const messages = pgTable("messages", {
   id: serial(), // Use integer with autoIncrement
+  role: varchar("role", { length: 50 }).notNull(), // Use varchar for roles
   chatId: uuid("chat_id")
     .notNull()
     .references(() => chats.id, { onDelete: "cascade" }),
