@@ -1,3 +1,5 @@
+"use server";
+
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { db } from "@/db";
