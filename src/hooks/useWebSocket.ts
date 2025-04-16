@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Message } from "@/types/Messages";
+import { Message } from "@/types/types";
 
 let socket: WebSocket | null = null;
 
@@ -38,7 +38,11 @@ function useWebSocket(url: string) {
     setMessages((prev) => prev.slice(0, -1));
   };
 
-  return { messages, pushMessage, popMessage };
+  const initializeMessages = (initialMessages: Message[]): void => {
+    setMessages(initialMessages);
+  };
+
+  return { messages, pushMessage, popMessage, initializeMessages };
 }
 
 export default useWebSocket;

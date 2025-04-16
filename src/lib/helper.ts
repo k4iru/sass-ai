@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { Message } from "@/types/Messages";
+import { Message } from "@/types/types";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
@@ -52,10 +52,10 @@ export async function insertMessage(message: Message): Promise<boolean> {
   try {
     const newMessageRow: typeof schema.messages.$inferInsert = {
       role: message.role,
-      chatId: message.chat_id,
-      userId: message.user_id,
+      chatId: message.chatId,
+      userId: message.userId,
       content: message.content,
-      createdAt: message.created_at,
+      createdAt: message.createdAt,
     };
 
     const result = await db.insert(schema.messages).values(newMessageRow);
@@ -65,6 +65,27 @@ export async function insertMessage(message: Message): Promise<boolean> {
     return false;
   }
   return true;
+}
+
+export async function getMessages(userId: string, chatId: string): Promise<Message[]> {
+  try {
+    const messages = await db
+      .select()
+      .from(schema.messages)
+      .where(and(eq(schema.messages.chatId, chatId), eq(schema.messages.userId, userId)))
+      .orderBy(desc(schema.messages.createdAt));
+
+    return messages.map((row) => ({
+      role: row.role as "human" | "ai" | "placeholder",
+      chatId: row.chatId,
+      userId: row.userId,
+      content: row.content,
+      createdAt: row.createdAt as Date,
+    }));
+  } catch (err) {
+    console.error("database error: " + (err instanceof Error ? err.message : "Unknown error"));
+    return [];
+  }
 }
 
 export async function createChatRoom(userId: string, roomName: string): Promise<boolean> {
