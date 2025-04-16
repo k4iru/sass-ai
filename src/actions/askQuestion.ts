@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { authenticate } from "@/lib/auth";
-import { Message } from "@/types/Messages";
+import { Message } from "@/types/types";
 import { insertMessage } from "@/lib/helper";
 
 // implemented as server action

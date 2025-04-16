@@ -1,9 +1,9 @@
 export type Message = {
   role: "human" | "ai" | "placeholder";
-  chat_id: string;
-  user_id: string;
+  chatId: string;
+  userId: string;
   content: string;
-  created_at: Date;
+  createdAt: Date;
 };
 export type MessageResponse = {
   success: boolean;
