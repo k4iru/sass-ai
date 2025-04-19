@@ -81,3 +81,5 @@ export async function generateEmbeddingsInPineconeVectorStore(docId: string) {
 
 	return pineconeVectoreStore;
 }
+
+const generateLangchainCompletion = async();
