@@ -72,7 +72,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 		const newMessageHuman: Message = {
 			role: "human",
 			chatId: fileKey,
-			userId: user?.id,
+			userId: user?.id || "",
 			content: q,
 			createdAt: new Date(),
 		};
@@ -80,7 +80,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 		const placeHolderMessage: Message = {
 			role: "placeholder",
 			chatId: fileKey,
-			userId: user?.id,
+			userId: user?.id || "",
 			content: "Thinking...",
 			createdAt: new Date(),
 		};
@@ -109,7 +109,8 @@ function Chat({ fileKey }: { fileKey: string }) {
 
 	if (!user || !fileKey) {
 		<div>Please log in to chat.</div>;
-		return router.push("/login");
+		router.push("/login");
+		return null;
 	}
 	return (
 		<div className="flex flex-col h-full overflow-scroll">
