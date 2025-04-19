@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { eq, and, desc } from "drizzle-orm";
 import { db, schema } from "@/db";
-import { Message } from "@/types/types";
+import type { Message } from "@/types/types";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
@@ -10,185 +10,246 @@ type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0] || // Cloudflare/Proxy support
-    req.headers.get("x-real-ip") || // Nginx support
-    req.headers.get("cf-connecting-ip") || // Cloudflare
-    "Unknown IP";
-  return ip;
+	const ip =
+		req.headers.get("x-forwarded-for")?.split(",")[0] || // Cloudflare/Proxy support
+		req.headers.get("x-real-ip") || // Nginx support
+		req.headers.get("cf-connecting-ip") || // Cloudflare
+		"Unknown IP";
+	return ip;
 }
 
 // deprecated, check api routes and remove soon
-export const response = (success: boolean, message: string, status: number): NextResponse => {
-  return NextResponse.json({ success, message }, { status });
+export const response = (
+	success: boolean,
+	message: string,
+	status: number,
+): NextResponse => {
+	return NextResponse.json({ success, message }, { status });
 };
 
 export function timeStringToSeconds(input: string): number {
-  const timeMatch = input.match(/^(\d+)([smhd])$/);
+	const timeMatch = input.match(/^(\d+)([smhd])$/);
 
-  if (!timeMatch) {
-    throw new Error(`Invalid time format: ${input}. Use format like "15m" or "7d"`);
-  }
+	if (!timeMatch) {
+		throw new Error(
+			`Invalid time format: ${input}. Use format like "15m" or "7d"`,
+		);
+	}
 
-  const value = parseInt(timeMatch[1]);
-  const unit = timeMatch[2];
+	const value = Number.parseInt(timeMatch[1]);
+	const unit = timeMatch[2];
 
-  const conversionRates: { [key: string]: number } = {
-    s: 1, // seconds
-    m: 60, // minutes → seconds
-    h: 60 * 60, // hours → seconds
-    d: 24 * 60 * 60, // days → seconds
-  };
+	const conversionRates: { [key: string]: number } = {
+		s: 1, // seconds
+		m: 60, // minutes → seconds
+		h: 60 * 60, // hours → seconds
+		d: 24 * 60 * 60, // days → seconds
+	};
 
-  if (!conversionRates[unit]) {
-    throw new Error(`Invalid time unit: ${unit}. Use s/m/h/d`);
-  }
+	if (!conversionRates[unit]) {
+		throw new Error(`Invalid time unit: ${unit}. Use s/m/h/d`);
+	}
 
-  return value * conversionRates[unit];
+	return value * conversionRates[unit];
 }
 
 export async function insertMessage(message: Message): Promise<boolean> {
-  // TODO implement this function
-  try {
-    const newMessageRow: typeof schema.messages.$inferInsert = {
-      role: message.role,
-      chatId: message.chatId,
-      userId: message.userId,
-      content: message.content,
-      createdAt: message.createdAt,
-    };
+	// TODO implement this function
+	try {
+		const newMessageRow: typeof schema.messages.$inferInsert = {
+			role: message.role,
+			chatId: message.chatId,
+			userId: message.userId,
+			content: message.content,
+			createdAt: message.createdAt,
+		};
 
-    const result = await db.insert(schema.messages).values(newMessageRow);
-    if (!result) throw new Error("Error inserting new message into table");
-  } catch (err) {
-    console.log("database error: " + (err instanceof Error ? err.message : "Unknown error"));
-    return false;
-  }
-  return true;
+		const result = await db.insert(schema.messages).values(newMessageRow);
+		if (!result) throw new Error("Error inserting new message into table");
+	} catch (err) {
+		console.log(
+			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return false;
+	}
+	return true;
 }
 
-export async function getMessages(userId: string, chatId: string): Promise<Message[]> {
-  try {
-    const messages = await db
-      .select()
-      .from(schema.messages)
-      .where(and(eq(schema.messages.chatId, chatId), eq(schema.messages.userId, userId)))
-      .orderBy(desc(schema.messages.createdAt));
+export async function getMessages(
+	userId: string,
+	chatId: string,
+): Promise<Message[]> {
+	try {
+		const messages = await db
+			.select()
+			.from(schema.messages)
+			.where(
+				and(
+					eq(schema.messages.chatId, chatId),
+					eq(schema.messages.userId, userId),
+				),
+			)
+			.orderBy(desc(schema.messages.createdAt));
 
-    return messages.map((row) => ({
-      role: row.role as "human" | "ai" | "placeholder",
-      chatId: row.chatId,
-      userId: row.userId,
-      content: row.content,
-      createdAt: row.createdAt as Date,
-    }));
-  } catch (err) {
-    console.error("database error: " + (err instanceof Error ? err.message : "Unknown error"));
-    return [];
-  }
+		return messages.map((row) => ({
+			role: row.role as "human" | "ai" | "placeholder",
+			chatId: row.chatId,
+			userId: row.userId,
+			content: row.content,
+			createdAt: row.createdAt as Date,
+		}));
+	} catch (err) {
+		console.error(
+			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return [];
+	}
 }
 
-export async function createChatRoom(userId: string, roomName: string): Promise<boolean> {
-  // check if chat room already exists
-  const existingChatRoom = await db.select().from(schema.chats).where(eq(schema.chats.id, roomName));
+export async function createChatRoom(
+	userId: string,
+	roomName: string,
+): Promise<boolean> {
+	// check if chat room already exists
+	const existingChatRoom = await db
+		.select()
+		.from(schema.chats)
+		.where(eq(schema.chats.id, roomName));
 
-  if (existingChatRoom.length) {
-    console.log("Chat room already exists.");
-    return false;
-  }
+	if (existingChatRoom.length) {
+		console.log("Chat room already exists.");
+		return false;
+	}
 
-  try {
-    const newChatRoom = await db.insert(schema.chats).values({
-      id: roomName,
-      userId: userId,
-    });
+	try {
+		const newChatRoom = await db.insert(schema.chats).values({
+			id: roomName,
+			userId: userId,
+		});
 
-    return true;
-  } catch (err) {
-    console.log(err instanceof Error ? err.message : "Unknown error");
-    return false;
-  }
+		return true;
+	} catch (err) {
+		console.log(err instanceof Error ? err.message : "Unknown error");
+		return false;
+	}
 }
 
 export async function isExistingUser(email: string): Promise<boolean> {
-  const existingUser = await db.select().from(schema.usersTable).where(eq(schema.usersTable.email, email));
-  return existingUser.length > 0;
+	const existingUser = await db
+		.select()
+		.from(schema.usersTable)
+		.where(eq(schema.usersTable.email, email));
+	return existingUser.length > 0;
 }
 
 export async function getUserFromEmail(email: string): Promise<User | null> {
-  const user = await db.select().from(schema.usersTable).where(eq(schema.usersTable.email, email));
+	const user = await db
+		.select()
+		.from(schema.usersTable)
+		.where(eq(schema.usersTable.email, email));
 
-  if (!user.length) return null;
+	if (!user.length) return null;
 
-  return user[0];
+	return user[0];
 }
 
 export async function getUserFromSub(sub: string): Promise<User | null> {
-  const user = await db.select().from(schema.usersTable).where(eq(schema.usersTable.id, sub));
+	const user = await db
+		.select()
+		.from(schema.usersTable)
+		.where(eq(schema.usersTable.id, sub));
 
-  if (!user.length) return null;
+	if (!user.length) return null;
 
-  return user[0];
+	return user[0];
 }
 
 export async function generateRefreshToken(): Promise<string> {
-  let newRefreshTokenId = `sessId__${crypto.randomUUID()}`;
-  const tokenExists = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
+	let newRefreshTokenId = `sessId__${crypto.randomUUID()}`;
+	const tokenExists = await db
+		.select()
+		.from(schema.refreshTokensTable)
+		.where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
 
-  // conflict, retry once more.
-  if (tokenExists.length) {
-    newRefreshTokenId = `sessId__${crypto.randomUUID()}`;
-    const result = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
+	// conflict, retry once more.
+	if (tokenExists.length) {
+		newRefreshTokenId = `sessId__${crypto.randomUUID()}`;
+		const result = await db
+			.select()
+			.from(schema.refreshTokensTable)
+			.where(eq(schema.refreshTokensTable.id, newRefreshTokenId));
 
-    if (result.length) throw new Error("cannot generate new token");
-  }
+		if (result.length) throw new Error("cannot generate new token");
+	}
 
-  return newRefreshTokenId;
+	return newRefreshTokenId;
 }
 
-export async function getRefreshToken(refreshToken: string): Promise<RefreshToken> {
-  const query = await db.select().from(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, refreshToken));
+export async function getRefreshToken(
+	refreshToken: string,
+): Promise<RefreshToken> {
+	const query = await db
+		.select()
+		.from(schema.refreshTokensTable)
+		.where(eq(schema.refreshTokensTable.id, refreshToken));
 
-  // token doesn't exist
-  if (!query.length) throw new Error("Couldn't find refresh token");
-  return query[0];
+	// token doesn't exist
+	if (!query.length) throw new Error("Couldn't find refresh token");
+	return query[0];
 }
 
-export async function deleteRefreshToken(refreshToken: string): Promise<boolean> {
-  try {
-    const result = await db.delete(schema.refreshTokensTable).where(eq(schema.refreshTokensTable.id, refreshToken));
+export async function deleteRefreshToken(
+	refreshToken: string,
+): Promise<boolean> {
+	try {
+		const result = await db
+			.delete(schema.refreshTokensTable)
+			.where(eq(schema.refreshTokensTable.id, refreshToken));
 
-    // explicity throw an error
-    if (!result.rowCount) {
-      throw new Error("failed to delete from database");
-    }
-  } catch (err) {
-    console.log("error deleting refresh token" + (err instanceof Error ? err.message : "Unknown error"));
-    return false;
-  }
+		// explicity throw an error
+		if (!result.rowCount) {
+			throw new Error("failed to delete from database");
+		}
+	} catch (err) {
+		console.log(
+			`error deleting refresh token: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return false;
+	}
 
-  return true;
+	return true;
 }
 
-export async function insertRefreshToken(refreshToken: string, userId: string, accessToken: string, ip: string): Promise<boolean> {
-  try {
-    console.log("in inserting refresh token");
-    const ms = new Date().getTime() + parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
-    const expiryDate = new Date(ms);
+export async function insertRefreshToken(
+	refreshToken: string,
+	userId: string,
+	accessToken: string,
+	ip: string,
+): Promise<boolean> {
+	try {
+		console.log("in inserting refresh token");
+		const ms =
+			new Date().getTime() + Number.parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
+		const expiryDate = new Date(ms);
 
-    const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
-      id: refreshToken,
-      userId: userId,
-      accessToken: accessToken,
-      ipAddress: ip,
-      expiryDate: expiryDate,
-    };
+		const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {
+			id: refreshToken,
+			userId: userId,
+			accessToken: accessToken,
+			ipAddress: ip,
+			expiryDate: expiryDate,
+		};
 
-    const result = await db.insert(schema.refreshTokensTable).values(newRefreshTokenRow);
-    if (!result) throw new Error("Error inserting new refresh token into table");
-    return true;
-  } catch (err) {
-    console.log("database error: " + (err instanceof Error ? err.message : "Unknown error"));
-    return false;
-  }
+		const result = await db
+			.insert(schema.refreshTokensTable)
+			.values(newRefreshTokenRow);
+		if (!result)
+			throw new Error("Error inserting new refresh token into table");
+		return true;
+	} catch (err) {
+		console.log(
+			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return false;
+	}
 }
