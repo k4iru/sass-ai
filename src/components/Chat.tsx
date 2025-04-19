@@ -18,9 +18,9 @@ import { askQuestion } from "@/actions/askQuestion";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
-function Chat({ fileKey }: { fileKey: string }) {
+function Chat({ fileId }: { fileId: string }) {
 	const { messages, popMessage, pushMessage, initializeMessages } =
-		useWebSocket(`ws://localhost:8080?chatroomId=${fileKey}`); // Replace with actual WebSocket URL
+		useWebSocket(`ws://localhost:8080?chatroomId=${fileId}`); // Replace with actual WebSocket URL
 	const { user } = useAuth();
 	const router = useRouter();
 	const [input, setInput] = useState<string>("");
@@ -29,11 +29,11 @@ function Chat({ fileKey }: { fileKey: string }) {
 	useEffect(() => {
 		// TODO also have the user load previous messages from the server
 		const fetchMessages = async () => {
-			if (!user || !fileKey) throw new Error("User or fileKey is not defined");
+			if (!user || !fileId) throw new Error("User or fileKey is not defined");
 			const resp = await fetch(`${ApiUrl}/api/auth/get-messages`, {
 				method: "POST",
 				credentials: "include",
-				body: JSON.stringify({ userId: user.id, chatId: fileKey }),
+				body: JSON.stringify({ userId: user.id, chatId: fileId }),
 			});
 
 			const data = await resp.json();
@@ -53,14 +53,14 @@ function Chat({ fileKey }: { fileKey: string }) {
 			await fetch(`${ApiUrl}/api/auth/create-chatroom`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
-				body: JSON.stringify({ userId: userId, chatId: fileKey }),
+				body: JSON.stringify({ userId: userId, chatId: fileId }),
 			});
 		};
 
 		if (user) {
 			fetchMessages();
 		}
-	}, [user, fileKey, initializeMessages]);
+	}, [user, fileId, initializeMessages]);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
@@ -72,7 +72,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 
 		const newMessageHuman: Message = {
 			role: "human",
-			chatId: fileKey,
+			chatId: fileId,
 			userId: user?.id || "",
 			content: q,
 			createdAt: new Date(),
@@ -80,7 +80,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 
 		const placeHolderMessage: Message = {
 			role: "placeholder",
-			chatId: fileKey,
+			chatId: fileId,
 			userId: user?.id || "",
 			content: "Thinking...",
 			createdAt: new Date(),
@@ -91,6 +91,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 		/* PUSHED TO ARRAY now send to server for processing then pop both when message received*/
 
 		startTransition(async () => {
+			const fileKey = `${user?.id}/${fileId}`;
 			const { success, message } = await askQuestion(newMessageHuman);
 
 			if (!success) {
@@ -99,7 +100,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 
 				const errorMessage: Message = {
 					role: "ai",
-					chatId: fileKey,
+					chatId: fileId,
 					userId: user?.id || "",
 					content: `error processing message: ${message}`,
 					createdAt: new Date(),
@@ -110,7 +111,7 @@ function Chat({ fileKey }: { fileKey: string }) {
 		});
 	};
 
-	if (!user || !fileKey) {
+	if (!user || !fileId) {
 		<div>Please log in to chat.</div>;
 		router.push("/login");
 		return null;
