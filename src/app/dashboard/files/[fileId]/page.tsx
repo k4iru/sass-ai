@@ -2,11 +2,8 @@
 import PdfView from "@/components/PdfView";
 import { useAuth } from "@/context/AuthContext";
 import { useParams } from "next/navigation";
-import { getFileUrl } from "@/lib/s3";
-import React, { useEffect, use, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Chat from "@/components/Chat";
-
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function ChatToFile() {
 	const [fileKey, setFileKey] = useState<string>();
@@ -31,7 +28,7 @@ function ChatToFile() {
 		<div className="grid lg:grid-cols-5 h-full overflow-hidden">
 			{/*Right */}
 			<div className="lg:col-span-2 overflow-y-auto">
-				<Chat fileKey={fileId} />
+				<Chat fileId={fileId} />
 			</div>
 			{/*left*/}
 			<div className=" lg:col-span-3 bg-gray-100 border-r-2 lg:border-indigo-600 lg:-order-1 overflow-auto">
