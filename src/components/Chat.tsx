@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
 import type { Message } from "@/types/types";
+import { askQuestion } from "@/actions/askQuestion";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -90,20 +91,22 @@ function Chat({ fileKey }: { fileKey: string }) {
 		/* PUSHED TO ARRAY now send to server for processing then pop both when message received*/
 
 		startTransition(async () => {
-			//const { success, message } = await askQuestion(fileKey, q);
-			const { success, message } = { success: true, message: "Hello World!" }; // Mock response for testing
+			const { success, message } = await askQuestion(newMessageHuman);
 
-			// if (!success) {
-			//   setMessages((prev) =>
-			//     prev.slice(0, prev.length - 1).concat([
-			//       {
-			//         role: "ai",
-			//         message: `Whoops... ${message}`,
-			//         createdAt: new Date(),
-			//       },
-			//     ])
-			//   );
-			// }
+			if (!success) {
+				// pop placeholder message and replace with error message
+				popMessage();
+
+				const errorMessage: Message = {
+					role: "ai",
+					chatId: fileKey,
+					userId: user?.id || "",
+					content: `error processing message: ${message}`,
+					createdAt: new Date(),
+				};
+
+				pushMessage(errorMessage);
+			}
 		});
 	};
 
