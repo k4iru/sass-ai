@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import type { Message } from "@/types/types";
 
 let socket: WebSocket | null = null;
@@ -38,9 +38,10 @@ function useWebSocket(url: string) {
 		setMessages((prev) => prev.slice(0, -1));
 	};
 
-	const initializeMessages = (initialMessages: Message[]): void => {
+	// memoize to avoid rerenders
+	const initializeMessages = useCallback((initialMessages: Message[]) => {
 		setMessages(initialMessages);
-	};
+	}, []);
 
 	return { messages, pushMessage, popMessage, initializeMessages };
 }
