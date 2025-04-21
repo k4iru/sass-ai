@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { authenticate } from "@/lib/auth";
 import type { Message } from "@/types/types";
 import { insertMessage } from "@/lib/helper";
+import { generateLangchainCompletion } from "@/lib/langchain";
 
 const FREE_LIMT = 3;
 const PRO_LIMIT = 100;
@@ -11,15 +12,22 @@ const PRO_LIMIT = 100;
 // implemented as server action
 export async function askQuestion(message: Message) {
 	// verify user authentication from cookies
-	authenticate();
-	const { user } = useAuth();
-
-	if (!user) {
-		throw new Error("User not authenticated");
+	try {
+		authenticate();
+	} catch (err) {
+		return { success: false, message: "Unauthorized" };
 	}
 
 	// generate AI reply
-	const reply = await generateLangchainCompletion(message.content);
+	const reply = await generateLangchainCompletion(
+		message.userId,
+		message.chatId,
+		message.content,
+	);
+
+	if (reply == null) {
+		return { success: false, message: "Error generating reply" };
+	}
 
 	const aiMessage: Message = {
 		role: "ai",
@@ -32,9 +40,9 @@ export async function askQuestion(message: Message) {
 	// insert into db
 	const success = await insertMessage(aiMessage);
 
-	if (success) {
-		return { success: true, message: null };
+	if (!success) {
+		return { success: false, message: "unsuccessful" };
 	}
 
-	// send message to api for response and insert into db
+	return { success: true, message: null }; // return success message
 }
