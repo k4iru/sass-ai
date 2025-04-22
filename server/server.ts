@@ -2,7 +2,6 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { client } from "@/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
-import type { Message } from "@/types/types";
 import type { Notification } from "pg";
 
 type ChatRooms = {

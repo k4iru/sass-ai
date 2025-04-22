@@ -25,7 +25,9 @@ function Chat({ fileId }: { fileId: string }) {
 		pushMessage,
 		initializeMessages,
 		removePlaceholderMessages,
-	} = useWebSocket(`ws://localhost:8080?chatroomId=${fileId}`); // Replace with actual WebSocket URL
+	} = useWebSocket(
+		`ws://${process.env.NEXT_PUBLIC_API_URL}/ws?chatroomId=${fileId}`,
+	); // Replace with actual WebSocket URL
 	const { user } = useAuth();
 	const router = useRouter();
 	const [input, setInput] = useState<string>("");
