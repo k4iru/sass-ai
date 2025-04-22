@@ -43,7 +43,19 @@ function useWebSocket(url: string) {
 		setMessages(initialMessages);
 	}, []);
 
-	return { messages, pushMessage, popMessage, initializeMessages };
+	const removePlaceholderMessages = (): void => {
+		setMessages((prev) =>
+			prev.filter((message) => !message.role.includes("placeholder")),
+		);
+	};
+
+	return {
+		messages,
+		pushMessage,
+		popMessage,
+		initializeMessages,
+		removePlaceholderMessages,
+	};
 }
 
 export default useWebSocket;

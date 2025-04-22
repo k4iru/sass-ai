@@ -1,6 +1,5 @@
 "use server";
 
-import { useAuth } from "@/context/AuthContext";
 import { authenticate } from "@/lib/auth";
 import type { Message } from "@/types/types";
 import { insertMessage } from "@/lib/helper";

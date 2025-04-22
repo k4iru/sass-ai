@@ -19,8 +19,13 @@ import { askQuestion } from "@/actions/askQuestion";
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function Chat({ fileId }: { fileId: string }) {
-	const { messages, popMessage, pushMessage, initializeMessages } =
-		useWebSocket(`ws://localhost:8080?chatroomId=${fileId}`); // Replace with actual WebSocket URL
+	const {
+		messages,
+		popMessage,
+		pushMessage,
+		initializeMessages,
+		removePlaceholderMessages,
+	} = useWebSocket(`ws://localhost:8080?chatroomId=${fileId}`); // Replace with actual WebSocket URL
 	const { user } = useAuth();
 	const router = useRouter();
 	const [input, setInput] = useState<string>("");
@@ -91,7 +96,7 @@ function Chat({ fileId }: { fileId: string }) {
 		/* PUSHED TO ARRAY now send to server for processing then pop both when message received*/
 
 		startTransition(async () => {
-			const fileKey = `${user?.id}/${fileId}`;
+			// const fileKey = `${user?.id}/${fileId}`;
 			const { success, message } = await askQuestion(newMessageHuman);
 
 			if (!success) {
@@ -108,6 +113,8 @@ function Chat({ fileId }: { fileId: string }) {
 
 				pushMessage(errorMessage);
 			}
+
+			removePlaceholderMessages();
 		});
 	};
 
