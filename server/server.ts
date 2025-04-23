@@ -1,5 +1,5 @@
 import { WebSocketServer, type WebSocket } from "ws";
-import { client } from "@/db/index";
+import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
 import type { Notification } from "pg";
