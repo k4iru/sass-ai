@@ -12,6 +12,7 @@
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"outDir": "./dist",
+		"noEmit": false,
 		"rootDir": "./",
 		"incremental": true,
 		"plugins": [
