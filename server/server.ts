@@ -79,7 +79,7 @@ export function startWebSocketServer(): void {
 		});
 	});
 
-	console.log(`🚀 WebSocket server running on ws://localhost: ${port}`);
+	console.log(`🚀 WebSocket server running on wss://localhost: ${port}`);
 	listenForMessages();
 }
 
