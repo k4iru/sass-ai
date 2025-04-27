@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Message } from "@/types/types";
 
 let socket: WebSocket | null = null;
@@ -31,6 +31,7 @@ function useWebSocket(url: string) {
 
 	const pushMessage = (message: Message): void => {
 		// UseEffect first parameter is prev messages
+		// need to also push message to server
 		setMessages((prev) => [...prev, message]);
 	};
 
