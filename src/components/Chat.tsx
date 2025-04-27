@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
 import type { Message } from "@/types/types";
 import { askQuestion } from "@/actions/askQuestion";
+import ChatMessage from "./ui/chatMessage";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -128,7 +129,11 @@ function Chat({ fileId }: { fileId: string }) {
 			<div className="flex-1 w-full">
 				<ul>
 					{messages.map((msg, i) => (
-						<li key={`${i}-${msg.chatId}`}>{msg.content}</li>
+						<ChatMessage
+							key={`${i}-${msg.chatId}`}
+							role={msg.role}
+							content={msg.content}
+						/>
 					))}
 				</ul>
 			</div>
