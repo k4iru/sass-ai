@@ -31,9 +31,6 @@ export async function generateAccessToken(user: {
 		.sign(getJwtSecret());
 }
 
-// Verify token with proper typing
-export async function verifyToken(token: string): Promise<CustomJwtPayload> {}
-
 export function getUserSubFromJWT(token: string): string | null {
 	try {
 		const decoded = decodeJwt(token) as CustomJwtPayload;

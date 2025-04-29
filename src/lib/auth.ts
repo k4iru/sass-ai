@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { validateToken } from "./jwt";
 import { getRefreshToken } from "./helper";
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -45,10 +45,11 @@ export async function authenticate(req: NextRequest): Promise<void> {
 		const verified = await validateToken(accessToken);
 		// add additional verification for checking refresh token. since this allows anyone with any access token to run.
 
-		const refreshTokenExists = getRefreshToken(refreshToken);
+		const refreshTokenExists = await getRefreshToken(refreshToken);
 
 		if (!verified || !refreshTokenExists) throw new Error("Unauthorized");
 	} catch (err) {
 		console.log(err);
+		throw new Error("Unauthorized");
 	}
 }

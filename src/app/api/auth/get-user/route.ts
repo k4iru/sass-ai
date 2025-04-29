@@ -1,32 +1,36 @@
 import { getUserFromSub } from "@/lib/helper";
-import { verifyToken } from "@/lib/jwt";
-import { NextRequest, NextResponse } from "next/server";
-
-const JWT_AUD = process.env.JWT_AUD || "";
-const JWT_ISS = process.env.JWT_ISS || "";
+import { getUserSubFromJWT, validateToken } from "@/lib/jwt";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  try {
-    const accessToken = req.cookies.get("accessToken")?.value;
-    if (!accessToken) return NextResponse.json({ error: "invalid credentials", message: "invalid token" }, { status: 401 });
+	try {
+		const accessToken = req.cookies.get("accessToken")?.value;
+		if (!accessToken)
+			return NextResponse.json(
+				{ error: "invalid credentials", message: "invalid token" },
+				{ status: 401 },
+			);
 
-    // verify token first
-    const decoded = await verifyToken(accessToken);
-    if (decoded.aud !== JWT_AUD || decoded.iss !== JWT_ISS) throw new Error("Invalid token claims");
+		// verify token first
+		const validToken = await validateToken(accessToken);
+		if (!validToken) throw new Error("Invalid token claims");
 
-    const userObject = await getUserFromSub(decoded.sub);
+		const sub = getUserSubFromJWT(accessToken);
+		if (!sub) throw new Error("Invalid token claims");
 
-    if (!userObject) throw new Error("Invalid");
+		const userObject = await getUserFromSub(sub);
 
-    const user = {
-      id: userObject.id,
-      email: userObject.email,
-      accessToken: accessToken,
-    };
+		if (!userObject) throw new Error("Invalid");
 
-    return NextResponse.json({ user }, { status: 200 });
-  } catch (err) {
-    console.error(err instanceof Error ? err.message : "Unknown Error");
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+		const user = {
+			id: userObject.id,
+			email: userObject.email,
+			accessToken: accessToken,
+		};
+
+		return NextResponse.json({ user }, { status: 200 });
+	} catch (err) {
+		console.error(err instanceof Error ? err.message : "Unknown Error");
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+	}
 }
