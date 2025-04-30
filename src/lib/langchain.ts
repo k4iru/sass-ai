@@ -117,7 +117,6 @@ const generateLangchainCompletion = async (
 	const retriever = pineconeVectorStore.asRetriever();
 
 	const chatHistory = await fetchMessagesFromDb(userId, chatId);
-	console.log(chatHistory);
 
 	const historyAwarePrompt = ChatPromptTemplate.fromMessages([
 		...chatHistory,
@@ -127,9 +126,6 @@ const generateLangchainCompletion = async (
 			"Given the above conversation, generate a search query to look up in order to get relevant information to the conversation",
 		],
 	]);
-
-	console.log("chat history", chatHistory);
-	console.log(historyAwarePrompt);
 
 	const historyAwareRetrieverChain = await createHistoryAwareRetriever({
 		llm: model,
@@ -163,7 +159,6 @@ const generateLangchainCompletion = async (
 		input: question,
 	});
 
-	console.log(reply);
 	return reply.answer;
 };
 

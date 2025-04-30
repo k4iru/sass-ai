@@ -44,8 +44,6 @@ function Chat({ fileId }: { fileId: string }) {
 
 			const data = await resp.json();
 
-			console.log(data);
-
 			// empty chat room
 			if (data.length === 0) {
 				createChatRoom();

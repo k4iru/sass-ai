@@ -56,12 +56,13 @@ export function timeStringToSeconds(input: string): number {
 export async function insertMessage(message: Message): Promise<boolean> {
 	// TODO implement this function
 	try {
+		const parsedDate = new Date(message.createdAt);
 		const newMessageRow: typeof schema.messages.$inferInsert = {
 			role: message.role,
 			chatId: message.chatId,
 			userId: message.userId,
 			content: message.content,
-			createdAt: message.createdAt,
+			createdAt: parsedDate,
 		};
 
 		const result = await db.insert(schema.messages).values(newMessageRow);

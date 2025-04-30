@@ -32,7 +32,14 @@ function useWebSocket(url: string) {
 	const pushMessage = (message: Message): void => {
 		// UseEffect first parameter is prev messages
 		// need to also push message to server
-		setMessages((prev) => [...prev, message]);
+		//setMessages((prev) => [...prev, message]);
+		fetch("/api/auth/push-message", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(message),
+		});
 	};
 
 	const popMessage = (): void => {
