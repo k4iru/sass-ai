@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
 import type { Message } from "@/types/types";
 import { askQuestion } from "@/actions/askQuestion";
-import ChatMessage from "./ui/chatMessage";
+import ChatMessage from "@/components/ChatMessage";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -31,6 +31,7 @@ function Chat({ fileId }: { fileId: string }) {
 	const router = useRouter();
 	const [input, setInput] = useState<string>("");
 	const [isPending, startTransition] = useTransition();
+	const bottomRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		// TODO also have the user load previous messages from the server
@@ -64,6 +65,8 @@ function Chat({ fileId }: { fileId: string }) {
 		if (user) {
 			fetchMessages();
 		}
+
+		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [user, fileId, initializeMessages]);
 
 	const handleSubmit = async (e: FormEvent) => {
@@ -133,6 +136,7 @@ function Chat({ fileId }: { fileId: string }) {
 							content={msg.content}
 						/>
 					))}
+					<div ref={bottomRef} />
 				</ul>
 			</div>
 			<form
