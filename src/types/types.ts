@@ -10,3 +10,8 @@ export type MessageResponse = {
 	success: boolean;
 	message: string;
 };
+
+export type Theme = {
+	theme: "light" | "dark";
+	toggleTheme: () => void;
+};
