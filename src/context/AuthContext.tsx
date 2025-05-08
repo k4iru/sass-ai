@@ -1,5 +1,4 @@
 "use client";
-import { getUserSubFromJWT } from "@/lib/jwt";
 import { createContext, useContext, useEffect, useState } from "react";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -7,67 +6,71 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 // type definitions
 
 interface User {
-  id: string;
-  email: string;
-  accessToken: string;
+	id: string;
+	email: string;
+	accessToken: string;
 }
 
 type authContextType = {
-  user: User | null;
-  login: (email: string, password: string) => void;
-  setCurrUser: (user: User) => Promise<boolean>;
-  logout: () => void;
+	user: User | null;
+	login: (email: string, password: string) => void;
+	setCurrUser: (user: User) => Promise<boolean>;
+	logout: () => void;
 };
 
 // default object when context created.
 const defaultAuthContextType: authContextType = {
-  user: null,
-  login: () => {},
-  setCurrUser: () => Promise.resolve(false),
-  logout: () => {},
+	user: null,
+	login: () => {},
+	setCurrUser: () => Promise.resolve(false),
+	logout: () => {},
 };
 
 const AuthContext = createContext<authContextType>(defaultAuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<User | null>(null);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    const response = await fetch(`${ApiUrl}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+	const login = async (email: string, password: string): Promise<void> => {
+		const response = await fetch(`${ApiUrl}/api/auth/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ email, password }),
+		});
 
-    const data = await response.json();
-    if (response.ok) {
-      console.log("logged in, setting access token/id");
-    } else {
-      throw new Error(data.error);
-    }
+		const data = await response.json();
+		if (response.ok) {
+			console.log("logged in, setting access token/id");
+		} else {
+			throw new Error(data.error);
+		}
 
-    // TODO error validation
-  };
+		// TODO error validation
+	};
 
-  const setCurrUser = async (user: User): Promise<boolean> => {
-    try {
-      setUser(user);
-      return true;
-    } catch (err) {
-      console.error(err instanceof Error ? err.message : "Unknown error");
-      return false;
-    }
-  };
+	const setCurrUser = async (user: User): Promise<boolean> => {
+		try {
+			setUser(user);
+			return true;
+		} catch (err) {
+			console.error(err instanceof Error ? err.message : "Unknown error");
+			return false;
+		}
+	};
 
-  const logout = async () => {
-    await fetch(`${ApiUrl}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include", // Include cookies in the request
-    });
-    setUser(null);
-  };
+	const logout = async () => {
+		await fetch(`${ApiUrl}/api/auth/logout`, {
+			method: "POST",
+			credentials: "include", // Include cookies in the request
+		});
+		setUser(null);
+	};
 
-  return <AuthContext.Provider value={{ user, login, setCurrUser, logout }}>{children}</AuthContext.Provider>;
+	return (
+		<AuthContext.Provider value={{ user, login, setCurrUser, logout }}>
+			{children}
+		</AuthContext.Provider>
+	);
 };
 
 export const useAuth = () => useContext(AuthContext);
