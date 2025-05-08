@@ -1,9 +1,17 @@
+@use './variables' as *;
+@use './mixins' as *;
+@use './reset' as *;
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: $color-background;
+  color: $color-text;
+  font-family: $font-base;
+  font-size: $font-size-base;
+  line-height: 1.6;
 }
 
 @layer base {
