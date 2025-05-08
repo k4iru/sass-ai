@@ -6,13 +6,26 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: $color-background;
-  color: $color-text;
-  font-family: $font-base;
-  font-size: $font-size-base;
-  line-height: 1.6;
+/* globals.scss */
+:root {
+  --bg-color-light: white;
+  --text-color-light: black;
+  
+  --bg-color-dark: #111;
+  --text-color-dark: white;
 }
+
+body {
+  background-color: var(--bg-color-light);
+  color: var(--text-color-light);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark {
+  background-color: var(--bg-color-dark);
+  color: var(--text-color-dark);
+}
+
 
 @layer base {
   :root {
