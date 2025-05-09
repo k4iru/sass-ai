@@ -2,12 +2,22 @@
 
 import { useTheme } from "@/context/ThemeContext";
 import styles from "./ThemeToggle.module.scss";
+import { Moon, Sun } from "lucide-react";
 
 export default function ThemeToggle() {
 	const { theme, toggleTheme } = useTheme();
 	return (
-		<button onClick={toggleTheme} type="button" className={styles.toggleButton}>
-			{theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-		</button>
+		<>
+			<label className={styles.switch}>
+				<input
+					type="checkbox"
+					onChange={toggleTheme}
+					checked={theme === "dark"}
+				/>
+				<span className={styles.slider} />
+				<Moon className={styles.moon} />
+				<Sun className={styles.sun} />
+			</label>
+		</>
 	);
 }
