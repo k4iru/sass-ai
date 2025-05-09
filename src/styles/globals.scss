@@ -7,23 +7,37 @@
 @tailwind utilities;
 
 /* globals.scss */
+// update these with variables later
 :root {
-  --bg-color-light: white;
-  --text-color-light: black;
-  
-  --bg-color-dark: #111;
-  --text-color-dark: white;
+  --bg-color: #ffffff;
+  --text-color: #111111;
+  --bg-color-secondary: #f3f4f6; // Optional, for use in light mode
+
+  --border-color: #e0e0e0;
+  --button-bg: #0070f3;
+  --button-text: #ffffff;
+  --button-hover-bg: #0051aa;
+
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+html.dark {
+  --bg-color: #111111;
+  --bg-color-secondary: #4a4e69;
+  --text-color: #f5f5f5;
+
+  --border-color: #333333;
+  --button-bg: #1a73e8;
+  --button-text: #ffffff;
+  --button-hover-bg: #135dc0;
+
+  --card-shadow: 0 2px 6px rgba(255, 255, 255, 0.08);
 }
 
 body {
-  background-color: var(--bg-color-light);
-  color: var(--text-color-light);
+  background-color: var(--bg-color);
+  color: var(--text-color);
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.dark {
-  background-color: var(--bg-color-dark);
-  color: var(--text-color-dark);
 }
 
 

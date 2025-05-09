@@ -1,0 +1,18 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 1.25rem; /* 5 * 0.25rem = 1.25rem */
+  background-color: var(--bg-color-secondary); /* Tailwind's bg-gray-100 */
+  justify-content: center;
+  gap: 1.25rem; /* 5 * 0.25rem = 1.25rem */
+  max-width: 80rem; /* Tailwind's max-w-7xl (80rem) */
+  margin-left: auto;
+  margin-right: auto;
+
+  /* Responsive styles for large screens */
+  @media (min-width: 1024px) { /* Tailwind lg breakpoint */
+    justify-content: flex-start;
+  }
+
+  border-radius: 0.125rem; /* Tailwind's rounded-sm */
+}

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import React from "react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { FilePlus2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import ThemeToggle from "./ThemeToggle/ThemeToggle";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
+import styles from "./Header.module.scss";
 
 function Header() {
 	const { logout } = useAuth();
@@ -11,7 +12,7 @@ function Header() {
 		logout();
 	};
 	return (
-		<div className="flex justify-between bg-white shadow-sm p-5 border-b">
+		<div className={styles.header}>
 			<Link href="/dashboard" className="text-2xl">
 				Chat to <span className="text-indigo-600">PDF</span>
 			</Link>
@@ -23,16 +24,6 @@ function Header() {
 					</Button>
 
 					<ThemeToggle />
-
-					<Button asChild variant="outline">
-						<Link href="/dashboard">My Documents</Link>
-					</Button>
-
-					<Button asChild variant="outline">
-						<Link href="/dashboard/upload">
-							<FilePlus2 className="text-indigo-600" />
-						</Link>
-					</Button>
 
 					<Button asChild onClick={handleClick}>
 						<p>Logout</p>

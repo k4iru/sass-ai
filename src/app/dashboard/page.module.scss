@@ -1,0 +1,16 @@
+.container {
+  height: 100%;
+  max-width: 80rem;  // 7xl in Tailwind = 1280px = 80rem
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.title {
+  color: var(--text-color);           // Tailwind's indigo-600
+  font-weight: 200;         // extra-light
+  background-color: var(--bg-color-secondary); // Tailwind's gray-100
+  font-size: 1.875rem;      // text-3xl = 30px (1.875rem)
+  line-height: 2.25rem;     // 36px
+  text-align: center;
+  padding-top: 2rem;        // pt-8 = 32px = 2rem
+}

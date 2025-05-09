@@ -1,0 +1,12 @@
+.header {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+:global(html.dark) .header {
+  border-bottom: 1px solid var(--border-color);
+}
