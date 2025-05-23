@@ -1,5 +1,9 @@
-.header {
 
+.header {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--color-white);
+    transition: background-color 0.3s ease; // <-- add this line
 }
 
 .profileLink {
@@ -7,6 +11,9 @@
 }
 
 .profileIcon {
-  background-color: var(--color-red);
 
+}
+
+:global(.dark) .header {
+  background-color: var(--color-black);
 }
