@@ -1,39 +1,19 @@
 import Link from "next/link";
-import React from "react";
-import { Button } from "../ui/button";
-import { FilePlus2 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./Header.module.scss";
+import Image from "next/image";
+import { UserRound } from "lucide-react";
+import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
 
-function Header() {
-	const { logout } = useAuth();
-	const handleClick = () => {
-		logout();
-	};
+export const Header = () => {
 	return (
-		<div className={styles.header}>
-			<Link href="/dashboard" className="text-2xl">
-				Chat to <span className="text-indigo-600">PDF</span>
+		<header className={styles.header}>
+			<Image src="/logo.png" alt="Logo" width={100} height={100} />
+			<ThemeToggle />
+			<Link href="/profile" className={styles.profileLink}>
+				<UserRound className={styles.profileIcon} />
 			</Link>
-
-			<div>
-				<div className="flex items-center space-x-2">
-					<Button asChild variant="link" className="hidden md:flex">
-						<Link href="/dashboard/upgrade">Pricing</Link>
-					</Button>
-
-					<ThemeToggle />
-
-					<Button asChild onClick={handleClick}>
-						<p>Logout</p>
-					</Button>
-
-					{/* User Button */}
-				</div>
-			</div>
-		</div>
+			<SettingsMenu />
+		</header>
 	);
-}
-
-export default Header;
+};
