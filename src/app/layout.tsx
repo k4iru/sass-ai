@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.scss";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { roboto, firaSans } from "@/app/fonts/_fonts";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -14,8 +15,8 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" suppressHydrationWarning>
-			<body className="min-h-screen h-screen overflow-hidden flex flex-col">
+		<html lang="en" className={`${roboto.variable} ${firaSans.variable}`}>
+			<body className="">
 				<AuthProvider>
 					<ThemeProvider>{children}</ThemeProvider>
 				</AuthProvider>
