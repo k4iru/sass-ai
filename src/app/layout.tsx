@@ -15,25 +15,13 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" className={`${roboto.variable} ${firaSans.variable}`}>
+		<html
+			lang="en"
+			className={`${roboto.variable} ${firaSans.variable}`}
+			suppressHydrationWarning
+		>
 			<head>
-				<script
-					dangerouslySetInnerHTML={{
-						__html: `
-              (function() {
-                try {
-                  const theme = localStorage.getItem('theme');
-                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  if (theme === 'dark' || (!theme && prefersDark)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch(e) {}
-              })();
-            `,
-					}}
-				/>
+				<script src="/scripts/set-theme.js" />
 			</head>
 			<body className="">
 				<AuthProvider>
