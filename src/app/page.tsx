@@ -17,6 +17,7 @@ export default function Home() {
 			<Header />
 			<main className="">
 				<p>Main content</p>
+				<div className="shim" />
 			</main>
 		</>
 	);
