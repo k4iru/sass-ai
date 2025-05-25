@@ -15,8 +15,8 @@
   transition: background-color 0.3s ease;
   position: sticky;
   z-index: 1000;
-  height: 75px;
-  padding: 8px;
+  height: 4rem;
+  padding: var(--spacing-md) var(--spacing-md);
   top: 0;
   box-shadow: 4px 4px 4px 0px #00000033;  align-items: center;
 }
@@ -24,8 +24,7 @@
 .logo {
   display: flex;
   align-items: center;
-  height: 40px;
-  margin-right: 16px;
+  height: 3.5rem;
 }
 
 .spacer {
@@ -35,5 +34,5 @@
 .profileIcon {
   color: var(--icon-color);      // used by SVG as `currentColor`
   stroke: currentColor;
-  margin-right: 12px;
+  margin-right: var(--spacing-md);
 }
