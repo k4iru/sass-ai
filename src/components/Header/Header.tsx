@@ -11,7 +11,7 @@ export const Header = () => {
 			<Image
 				src="/images/logo.png"
 				alt="Logo"
-				width={100}
+				width={150}
 				height={75}
 				className={styles.logo}
 			/>
