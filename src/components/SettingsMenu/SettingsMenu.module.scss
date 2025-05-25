@@ -6,6 +6,18 @@
   --settings-icon-color: var(--color-white);
 }
 
+.container {
+  display: flex;
+  position: relative;
+}
+
+.popupMenu {
+  color: var(--color-white);
+  position: absolute;
+  top: 2rem;
+  right: 0;
+}
+
 .settingsButton {
   display: flex;
   height: fit-content;
