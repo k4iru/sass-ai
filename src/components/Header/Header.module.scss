@@ -1,19 +1,39 @@
+:root {
+  --header-bg: var(--color-white);
+  --icon-color: var(--color-black);
+}
+
+:global(.dark) {
+  --header-bg: var(--color-black);
+  --icon-color: var(--color-white);
+}
 
 .header {
   display: flex;
   flex-direction: row;
-  background-color: var(--color-white);
-    transition: background-color 0.3s ease; // <-- add this line
+  background-color: var(--header-bg);
+  transition: background-color 0.3s ease;
+  position: sticky;
+  z-index: 1000;
+  height: 75px;
+  padding: 8px;
+  top: 0;
+  box-shadow: 4px 4px 4px 0px #00000033;  align-items: center;
 }
 
-.profileLink {
+.logo {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-right: 16px;
+}
 
+.spacer {
+  flex-grow: 1;
 }
 
 .profileIcon {
-
-}
-
-:global(.dark) .header {
-  background-color: var(--color-black);
+  color: var(--icon-color);      // used by SVG as `currentColor`
+  stroke: currentColor;
+  margin-right: 12px;
 }
