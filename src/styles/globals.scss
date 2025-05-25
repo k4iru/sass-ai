@@ -2,19 +2,29 @@
 @use './mixins' as *;
 @use './reset' as *;
 
-/* globals.scss */
-// update these with variables later
 :root {
-  --color-brand: #4ec1a6;
-  --color-red: #e71d36;
-  --color-white: #ced4da;
-  --color-black: #212529;
+
+  // scss variables are source of truth. css variables for use with css modules
+  // color palette
+
+  @each $name, $value in $colors {
+    --color-#{$name}: #{$value};
+  }
+
+  @each $name, $value in $font-size {
+    --font-size-#{$name}: #{$value};
+  }
+
+  @each $name, $value in $spacing {
+    --spacing-#{$name}: #{$value};
+  }
+
   --color-primary: var(--color-white);
-  --color-secondary: #495057;
-  --color-secondary-accent: #6c757d;
+  --color-secondary: var(--color-gray-dark);
+  --color-secondary-accent: var(--color-gray);
 }
 
-html.dark {
+:root.dark {
     --color-primary: var(--color-black);
 }
 
