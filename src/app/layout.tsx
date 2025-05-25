@@ -3,6 +3,7 @@ import "@/styles/globals.scss";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { roboto, firaSans } from "@/app/fonts/_fonts";
+import { AuthHydrator } from "@/components/AuthHydrator/AuthHydrator";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -25,7 +26,9 @@ export default function RootLayout({
 			</head>
 			<body className="">
 				<AuthProvider>
-					<ThemeProvider>{children}</ThemeProvider>
+					<AuthHydrator>
+						<ThemeProvider>{children}</ThemeProvider>
+					</AuthHydrator>
 				</AuthProvider>
 			</body>
 		</html>
