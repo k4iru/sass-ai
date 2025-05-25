@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
 		const validToken = await validateToken(accessToken);
 		if (!validToken) throw new Error("Invalid token claims");
 
+		// TODO need additional validation to ensure that user owns this token. check refresh token as well
 		const sub = getUserSubFromJWT(accessToken);
 		if (!sub) throw new Error("Invalid token claims");
 
