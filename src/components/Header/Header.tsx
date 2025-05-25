@@ -8,10 +8,17 @@ import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
 export const Header = () => {
 	return (
 		<header className={styles.header}>
-			<Image src="/images/logo.png" alt="Logo" width={100} height={100} />
+			<Image
+				src="/images/logo.png"
+				alt="Logo"
+				width={100}
+				height={75}
+				className={styles.logo}
+			/>
+			<span className={styles.spacer} />
 			<ThemeToggle />
 			<Link href="/profile" className={styles.profileLink}>
-				<UserRound className={styles.profileIcon} />
+				<UserRound className={styles.profileIcon} stroke="currentColor" />
 			</Link>
 			<SettingsMenu />
 		</header>
