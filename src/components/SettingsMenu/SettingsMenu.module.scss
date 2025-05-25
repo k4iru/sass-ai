@@ -1,0 +1,19 @@
+:root {
+  --settings-icon-color: var(--color-black);
+}
+
+:global(.dark) {
+  --settings-icon-color: var(--color-white);
+}
+
+.settingsButton {
+  display: flex;
+  height: fit-content;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.settingsIcon {
+  color: var(--settings-icon-color);
+}

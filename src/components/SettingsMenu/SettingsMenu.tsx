@@ -1,7 +1,10 @@
+import { Settings } from "lucide-react";
+import styles from "./SettingsMenu.module.scss";
+
 export const SettingsMenu = () => {
 	return (
-		<div>
-			<h1>Settings Menu</h1>
-		</div>
+		<button type="button" className={styles.settingsButton}>
+			<Settings className={styles.settingsIcon} />
+		</button>
 	);
 };
