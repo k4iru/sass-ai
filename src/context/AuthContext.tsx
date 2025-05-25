@@ -31,6 +31,8 @@ const AuthContext = createContext<authContextType>(defaultAuthContextType);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);
 
+	// TODO this login function only sets access token / refresh token in cookies.
+	// should also return user object to set in context.
 	const login = async (email: string, password: string): Promise<void> => {
 		const response = await fetch(`${ApiUrl}/api/auth/login`, {
 			method: "POST",
@@ -44,8 +46,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 		} else {
 			throw new Error(data.error);
 		}
-
-		// TODO error validation
 	};
 
 	const setCurrUser = async (user: User): Promise<boolean> => {
