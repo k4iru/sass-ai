@@ -30,7 +30,7 @@
 
 body {
   font-family: var(--font-fira-sans), sans-serif;
-  font-size: $font-size-base;
+  font-size: var(--font-size-base);
   line-height: 1.2rem;
   color: var(--color-black);
   background-color: var(--color-primary);
