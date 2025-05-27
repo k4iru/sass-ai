@@ -12,10 +12,16 @@
 }
 
 .popupMenu {
+  border-radius: 4px;
+  border: 1px solid var(--color-gray);
+  color: var(--color-white);
+  list-style: none;
   color: var(--color-white);
   position: absolute;
   top: 2rem;
   right: 0;
+  background-color: var(--color-black)
+
 }
 
 .settingsButton {
