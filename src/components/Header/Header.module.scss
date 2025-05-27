@@ -1,11 +1,13 @@
 :root {
   --header-bg: var(--color-white);
   --icon-color: var(--color-black);
+  --text-color: var(--color-black);
 }
 
 :global(.dark) {
   --header-bg: var(--color-black);
   --icon-color: var(--color-white);
+  --text-color: var(--color-white);
 }
 
 .header {
@@ -14,11 +16,99 @@
   background-color: var(--header-bg);
   transition: background-color 0.3s ease;
   position: sticky;
-  z-index: 1000;
+  z-index: 999;
   height: 4rem;
   padding: var(--spacing-md) var(--spacing-md);
   top: 0;
-  box-shadow: 4px 4px 4px 0px #00000033;  align-items: center;
+  box-shadow: 4px 4px 4px 0px #00000033;  
+  align-items: center;
+
+  .desktopHeader {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center;
+
+        @media screen and (max-width: 768px) {
+          display: none;
+  }
+  }
+
+  .mobileHeader {
+    display: none;
+
+    .mobileCloseButton {
+      display: flex;
+      justify-content: flex-end;
+
+      .closeButton {
+        background-color: transparent;
+        border: none;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+
+      }
+
+      .closeIcon {
+        color: var(--icon-color);  // used by SVG as `currentColor`
+        stroke: currentColor;
+        height: 2rem;
+        width: 2rem;
+        cursor: pointer;
+      }
+    }
+    .mobileMenu {
+      background-color: transparent;
+      border: none;
+      position: relative;
+    }
+
+    .mobileProfileLink{
+      color: var(--text-color)
+    }
+
+    .mobilePopupMenu {
+      color: var(--text-color);
+      top:0;
+      left:0;
+      background-color: var(--header-bg);
+      position: absolute;
+      height: 100vh;
+      width: 60%;
+      display: none;
+      flex-direction: column;
+      padding: var(--spacing-md);
+      z-index: 1000;
+      box-shadow: 4px 4px 4px 0px #00000033;  
+
+      &.open {
+        display: flex;
+      }
+
+      
+    }
+
+    .menuIcon {
+      color: var(--icon-color);  // used by SVG as `currentColor`
+      stroke: currentColor;
+      margin-right: var(--spacing-md);
+      margin: 0;
+      height: 2rem;
+      width: 2rem;
+      cursor: pointer;
+
+    }
+
+    @media screen and (max-width: 768px) {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      align-items: center;
+  }
+}
 }
 
 .logo {
