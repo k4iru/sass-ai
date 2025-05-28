@@ -18,26 +18,80 @@
   position: sticky;
   z-index: 999;
   height: 4rem;
-  padding: var(--spacing-md) var(--spacing-md);
   top: 0;
-  box-shadow: 4px 4px 4px 0px #00000033;  
+  box-shadow: 4px 4px 4px 0px #00000033;
   align-items: center;
 
-  .desktopHeader {
+  .wrapper {
     display: flex;
     flex-direction: row;
+    position: relative;
     width: 100%;
-    align-items: center;
+    padding: var(--spacing-md) var(--spacing-md);
 
-        @media screen and (max-width: 768px) {
-          display: none;
+    .menu {
+      background-color: transparent;
+      border: none;
+      position: relative;
+      color: var(--icon-color);
+      padding-right: var(--spacing-md);
+
+      .menuIcon {
+        color: var(--icon-color); // used by SVG as `currentColor`
+        stroke: currentColor;
+        margin-right: var(--spacing-md);
+        margin: 0;
+        height: 2rem;
+        width: 2rem;
+        cursor: pointer;
+      }
+    }
+
+    // desktop
+    .desktopHeader {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      align-items: center;
+
+      @media screen and (max-width: 768px) {
+        display: none;
+      }
+    }
+
+    .mobileProfileLink {
+      color: var(--text-color);
+    }
   }
-  }
 
-  .mobileHeader {
-    display: none;
+  // popup menu
+  .popupMenu {
+    color: var(--text-color);
+    top: 0;
+    left: 0;
+    background-color: var(--header-bg);
+    position: absolute;
+    height: 100vh;
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    z-index: 1000;
+    box-shadow: 4px 4px 4px 0px #00000033;
+    transition:
+      transform 0.5s ease,
+      opacity 0.2s ease;
+    transform: translateX(-100%); // start off-screen left
+    opacity: 0;
+    pointer-events: none;
 
-    .mobileCloseButton {
+    &.open {
+      transform: translateX(0); // slide into view
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .closeButton {
       display: flex;
       justify-content: flex-end;
 
@@ -49,80 +103,31 @@
         justify-content: center;
         align-items: center;
         padding: 0;
-
       }
 
       .closeIcon {
-        color: var(--icon-color);  // used by SVG as `currentColor`
+        color: var(--icon-color); // used by SVG as `currentColor`
         stroke: currentColor;
         height: 2rem;
         width: 2rem;
         cursor: pointer;
       }
     }
-    .mobileMenu {
-      background-color: transparent;
-      border: none;
-      position: relative;
-    }
-
-    .mobileProfileLink{
-      color: var(--text-color)
-    }
-
-    .mobilePopupMenu {
-      color: var(--text-color);
-      top:0;
-      left:0;
-      background-color: var(--header-bg);
-      position: absolute;
-      height: 100vh;
-      width: 60%;
-      display: none;
-      flex-direction: column;
-      padding: var(--spacing-md);
-      z-index: 1000;
-      box-shadow: 4px 4px 4px 0px #00000033;  
-
-      &.open {
-        display: flex;
-      }
-
-      
-    }
-
-    .menuIcon {
-      color: var(--icon-color);  // used by SVG as `currentColor`
-      stroke: currentColor;
-      margin-right: var(--spacing-md);
-      margin: 0;
-      height: 2rem;
-      width: 2rem;
-      cursor: pointer;
-
-    }
-
-    @media screen and (max-width: 768px) {
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      align-items: center;
   }
-}
-}
 
-.logo {
-  display: flex;
-  align-items: center;
-  height: 3.5rem;
-}
+  .logo {
+    display: flex;
+    align-items: center;
+    height: 2.5rem;
+  }
 
-.spacer {
-  flex-grow: 1;
-}
+  .spacer {
+    flex-grow: 1;
+  }
 
-.profileIcon {
-  color: var(--icon-color);      // used by SVG as `currentColor`
-  stroke: currentColor;
-  margin-right: var(--spacing-md);
+  .profileIcon {
+    color: var(--icon-color); // used by SVG as `currentColor`
+    stroke: currentColor;
+    margin-right: var(--spacing-md);
+  }
 }

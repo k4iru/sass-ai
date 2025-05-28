@@ -9,49 +9,40 @@ import { UserRound, Menu, ArrowLeftToLine } from "lucide-react";
 import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
 
 export const Header = () => {
-	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const handleOpenMenu = () => {
-		setIsMobileMenuOpen(true);
+		setIsMenuOpen(true);
 	};
 
 	const handleCloseMenu = () => {
-		setIsMobileMenuOpen(false);
+		setIsMenuOpen(false);
 	};
 	return (
 		<header className={styles.header}>
-			<div className={styles.desktopHeader}>
-				<div className={styles.logoContainer}>
-					<Image
-						src="/images/logo.png"
-						alt="Logo"
-						width={150}
-						height={75}
-						className={styles.logo}
-					/>
-				</div>
-				<span className={styles.spacer} />
-				<ThemeToggle />
-				<Link href="/profile" className={styles.profileLink}>
-					<UserRound className={styles.profileIcon} stroke="currentColor" />
-				</Link>
-				<SettingsMenu />
-			</div>
-			<div className={styles.mobileHeader}>
-				<button
-					type="button"
-					className={styles.mobileMenu}
-					onClick={handleOpenMenu}
-				>
+			<div className={styles.wrapper}>
+				<button type="button" className={styles.menu} onClick={handleOpenMenu}>
 					<Menu className={styles.menuIcon} stroke="currentColor" />
 				</button>
-				<div
-					className={clsx(
-						styles.mobilePopupMenu,
-						isMobileMenuOpen && styles.open,
-					)}
-				>
-					<div className={styles.mobileCloseButton}>
+				<div className={styles.desktopHeader}>
+					<div className={styles.logoContainer}>
+						<Image
+							src="/images/logo.png"
+							alt="Logo"
+							width={150}
+							height={50}
+							className={styles.logo}
+						/>
+					</div>
+					<span className={styles.spacer} />
+					<ThemeToggle />
+					<Link href="/profile" className={styles.profileLink}>
+						<UserRound className={styles.profileIcon} stroke="currentColor" />
+					</Link>
+					<SettingsMenu />
+				</div>
+				<div className={clsx(styles.popupMenu, isMenuOpen && styles.open)}>
+					<div className={styles.closeButton}>
 						<button
 							type="button"
 							onClick={handleCloseMenu}
@@ -63,13 +54,13 @@ export const Header = () => {
 							/>
 						</button>
 					</div>
-					<Link href="/profile" className={styles.mobileProfileLink}>
+					<Link href="/profile" className={styles.link}>
 						Link 1
 					</Link>
-					<Link href="/profile" className={styles.mobileProfileLink}>
+					<Link href="/profile" className={styles.link}>
 						Link 2
 					</Link>
-					<Link href="/profile" className={styles.mobileProfileLink}>
+					<Link href="/profile" className={styles.link}>
 						Link 3
 					</Link>
 				</div>
