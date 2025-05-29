@@ -1,0 +1,36 @@
+:root {
+  --benefit-header-color: var(--color-black);
+}
+
+:global(.dark) {
+  --benefit-header-color: var(--color-white);
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: 340px;
+
+  .header {
+    color: var(--benefit-header-color);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .icon {
+    color: var(--color-brand);
+  }
+
+  .description {
+    font-size: var(--font-size-md);
+    color: var(--color-gray);
+    line-height: 2;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .offset {
+    position: relative;
+    left: -5px;
+  }
+}
