@@ -1,4 +1,6 @@
+// globals.scss
 @use "./tokens" as *;
+@use "./typography" as *;
 @use "./mixins" as *;
 @use "./reset" as *;
 
@@ -34,7 +36,6 @@ html {
 body {
   font-family: var(--font-fira-sans), sans-serif;
   font-size: var(--font-size-base);
-  line-height: 1.2rem;
   color: var(--color-black);
   background-color: var(--color-primary);
   max-width: 1920px;
@@ -49,26 +50,6 @@ body {
 
 :root.dark body {
   background-color: var(--color-black);
-  color: var(--color-white);
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-roboto), sans-serif;
-  font-weight: 600;
-  color: var(--color-black);
-}
-
-:root.dark h1,
-:root.dark h2,
-:root.dark h3,
-:root.dark h4,
-:root.dark h5,
-:root.dark h6 {
   color: var(--color-white);
 }
 

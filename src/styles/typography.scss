@@ -1,0 +1,43 @@
+// typography.scss
+@use "./tokens" as *;
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-roboto), sans-serif;
+  font-weight: $font-weight-bold;
+  color: var(--color-black);
+}
+
+h1 {
+  font-size: var(--font-size-xxl);
+  line-height: 1.1;
+}
+
+// main headings
+:root.dark {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--color-white);
+  }
+}
+
+:root.dark {
+  .heading-1 {
+    color: var(--color-white);
+  }
+}
+
+.body-xl {
+  font-family: var(--font-fira-sans), sans-serif;
+  font-size: var(--font-size-xl);
+  font-weight: $font-weight-light;
+  color: var(--color-gray);
+}
