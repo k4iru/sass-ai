@@ -29,8 +29,8 @@ export const Header = () => {
 						<Image
 							src="/images/logo.png"
 							alt="Logo"
-							width={150}
-							height={50}
+							width={120}
+							height={40}
 							className={styles.logo}
 						/>
 					</div>
@@ -42,18 +42,29 @@ export const Header = () => {
 					<SettingsMenu />
 				</div>
 				<div className={clsx(styles.popupMenu, isMenuOpen && styles.open)}>
-					<div className={styles.closeButton}>
-						<button
-							type="button"
-							onClick={handleCloseMenu}
-							className={styles.closeButton}
-						>
-							<ArrowLeftToLine
-								className={styles.closeIcon}
-								stroke="currentColor"
-							/>
-						</button>
+					<div className={styles.popupWrapper}>
+						<div className={styles.btnContainer}>
+							<button
+								type="button"
+								onClick={handleCloseMenu}
+								className={styles.closeButton}
+							>
+								<ArrowLeftToLine
+									className={styles.closeIcon}
+									stroke="currentColor"
+								/>
+							</button>
+						</div>
+
+						<Image
+							src="/images/logo.png"
+							alt="Logo"
+							width={120}
+							height={40}
+							className={styles.logo}
+						/>
 					</div>
+					{/* chat links */}
 					<Link href="/profile" className={styles.link}>
 						Link 1
 					</Link>
@@ -64,6 +75,7 @@ export const Header = () => {
 						Link 3
 					</Link>
 				</div>
+				<div className={clsx(styles.overlay, isMenuOpen && styles.open)} />
 			</div>
 		</header>
 	);
