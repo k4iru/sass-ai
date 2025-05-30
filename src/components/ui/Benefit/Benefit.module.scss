@@ -1,3 +1,5 @@
+@use "@/styles/tokens" as *;
+
 :root {
   --benefit-header-color: var(--color-black);
 }
@@ -11,11 +13,21 @@
   flex-direction: column;
   max-width: 340px;
 
+  @media screen and (max-width: $breakpoint-desktop) {
+    max-width: 280px;
+  }
+
   .header {
     color: var(--benefit-header-color);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-bold);
     margin-bottom: var(--spacing-sm);
+
+    @media screen and (max-width: $breakpoint-desktop) {
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-bold);
+      margin-bottom: var(--spacing-sm);
+    }
   }
 
   .icon {
@@ -23,7 +35,7 @@
   }
 
   .description {
-    font-size: var(--font-size-md);
+    font-size: var(--font-size-base);
     color: var(--color-gray);
     line-height: 2;
     margin-bottom: var(--spacing-md);
