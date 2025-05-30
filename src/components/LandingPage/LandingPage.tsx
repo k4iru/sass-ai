@@ -3,6 +3,7 @@ import styles from "./LandingPage.module.scss";
 import { Button } from "@/components/ui/Button/Button";
 import { Benefit } from "@/components/ui/Benefit/Benefit";
 import { ArrowLeftRight, Target, DollarSign } from "lucide-react";
+import Link from "next/link";
 
 export const LandingPage = () => {
 	return (
@@ -21,9 +22,11 @@ export const LandingPage = () => {
 					you're testing models or crafting prompts, Keppel makes it effortless.
 				</p>
 			</div>
-			<Button size="large" variant="primary" className={styles.cta}>
-				Try for free
-			</Button>
+			<Link href="/chat">
+				<Button size="large" variant="primary" className={styles.cta}>
+					Try for free
+				</Button>
+			</Link>
 
 			<div className={styles.benefitsContainer}>
 				<Benefit
