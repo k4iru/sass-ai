@@ -4,6 +4,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { roboto, firaSans } from "@/app/fonts/_fonts";
 import { AuthHydrator } from "@/components/AuthHydrator/AuthHydrator";
+import { Header } from "@/components/Header/Header";
 
 export const metadata: Metadata = {
 	title: "Create Next App",
@@ -25,6 +26,8 @@ export default function RootLayout({
 				<script src="/scripts/set-theme.js" />
 			</head>
 			<body className="">
+				<Header />
+
 				<AuthProvider>
 					<AuthHydrator>
 						<ThemeProvider>{children}</ThemeProvider>
