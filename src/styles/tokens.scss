@@ -18,9 +18,11 @@ $colors: (
 $font-size: (
   "base": 16px,
   "sm": 0.875rem,
+  "md": 1.25rem,
   "lg": 1.5rem,
   "xl": 2.25rem,
-  "xxl": 4.5rem,
+  "xxl": 3rem,
+  "xxxl": 4.5rem,
 );
 
 $spacing: (
@@ -38,7 +40,7 @@ $spacing: (
 );
 
 // Breakpoints
-$breakpoint-sm: 480px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 1024px;
-$breakpoint-xl: 1280px;
+$breakpoint-phone: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-desktop-xl: 1280px;
