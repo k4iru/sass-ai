@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.scss";
 import { AuthProvider } from "../context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { roboto, firaSans } from "@/app/fonts/_fonts";
+import { roboto, firaSans } from "@/fonts/_fonts";
 import { AuthHydrator } from "@/components/AuthHydrator/AuthHydrator";
 import { Header } from "@/components/Header/Header";
 
