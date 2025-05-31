@@ -10,3 +10,11 @@ pm2 to auto start
 
 * fix styling so that all page declarations are the same arrow functions i.e. const Home = () => {} export default Home;
 * overhaul authentication
+* switch to npm-run-all from concurrently
+* update langchain logic
+
+## websocket
+* heartbeat/ping implementation to detect dropped connections
+* support multiple clients
+* auth check
+* error handling
