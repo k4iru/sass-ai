@@ -26,8 +26,6 @@ export default function RootLayout({
 				<script src="/scripts/set-theme.js" />
 			</head>
 			<body className="">
-				<Header />
-
 				<AuthProvider>
 					<AuthHydrator>
 						<ThemeProvider>{children}</ThemeProvider>
