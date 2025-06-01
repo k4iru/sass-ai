@@ -27,6 +27,7 @@
   transition: all 0.3s ease;
   border-right: 1px solid var(--sidebar-border-color-accent);
   padding: var(--spacing-md) 0;
+  overflow-y: auto;
 
   .searchInput {
     width: 0;
@@ -43,6 +44,7 @@
     width: 2rem;
     background-color: transparent;
     border: none;
+    cursor: pointer;
     .closeIcon {
       background-color: transparent;
       color: var(--sidebar-icon-color);
@@ -58,6 +60,8 @@
     width: 2rem;
     background-color: transparent;
     border: none;
+    cursor: pointer;
+
     .openIcon {
       background-color: transparent;
       color: var(--sidebar-icon-color);
