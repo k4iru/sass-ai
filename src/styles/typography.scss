@@ -1,4 +1,5 @@
 // typography.scss
+@use "sass:map";
 @use "./tokens" as *;
 
 h1,
@@ -8,7 +9,7 @@ h4,
 h5,
 h6 {
   font-family: var(--font-roboto), sans-serif;
-  font-weight: $font-weight-bold;
+  font-weight: map.get($font-weight, "bold");
   color: var(--color-black);
 }
 
@@ -38,6 +39,6 @@ h1 {
 .body-xl {
   font-family: var(--font-fira-sans), sans-serif;
   font-size: var(--font-size-xl);
-  font-weight: $font-weight-light;
+  font-weight: map.get($font-weight, "light");
   color: var(--color-gray);
 }

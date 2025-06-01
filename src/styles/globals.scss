@@ -20,6 +20,10 @@
     --spacing-#{$name}: #{$value};
   }
 
+  @each $name, $value in $font-weight {
+    --font-weight-#{$name}: #{$value};
+  }
+
   --color-primary: var(--color-white);
   --color-secondary: var(--color-gray-dark);
   --color-secondary-accent: var(--color-gray);
