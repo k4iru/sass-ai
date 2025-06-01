@@ -1,0 +1,45 @@
+@use "@/styles/tokens" as *;
+
+:root {
+  --chatbox-bg: var(--color-white);
+  --chatbox-bg-border: var(--color-gray-dark);
+  --chatbox-text-color: var(--color-black);
+}
+
+:global(.dark) {
+  --chatbox-bg: var(--color-black);
+  --chatbox-bg-border: var(--color-gray-dark);
+  --chatbox-text-color: var(--color-white);
+}
+
+.chatbox {
+  border: 1px solid var(--chatbox-bg-border);
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  min-height: 100px;
+  border-radius: var(--spacing-sm);
+  justify-content: space-between;
+
+  .input {
+    textarea {
+      resize: none;
+      overflow: hidden;
+      border: none;
+      outline: none;
+      overflow-y: auto;
+      width: 100%;
+      max-height: 10rem;
+      color: var(--chatbox-text-color);
+    }
+  }
+
+  .bottom {
+    display: flex;
+    flex-direction: row;
+
+    .spacer {
+      flex-grow: 1;
+    }
+  }
+}
