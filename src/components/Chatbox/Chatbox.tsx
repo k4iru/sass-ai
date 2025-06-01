@@ -7,6 +7,8 @@ import { FilePlus, ArrowBigRight } from "lucide-react";
 export const Chatbox = () => {
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+	// resize the textarea based on its content
+	// and limit its height to a maximum of 160px / 10rem
 	const resizeTextarea = useCallback(() => {
 		const el = textareaRef.current;
 		if (!el) return;

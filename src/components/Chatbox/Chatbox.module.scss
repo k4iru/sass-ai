@@ -17,9 +17,11 @@
   display: flex;
   flex-direction: column;
   max-width: 500px;
-  min-height: 100px;
+  width: 100%;
   border-radius: var(--spacing-sm);
   justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+  flex: 0 0 auto;
 
   .input {
     textarea {

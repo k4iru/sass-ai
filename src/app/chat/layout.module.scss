@@ -1,8 +1,13 @@
 .layout {
   display: flex;
-  height: 100vh;
+  flex: 1 1 auto;
+  height: calc(100vh - 4rem); // Adjust for header height
 
   .main {
     padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 }
