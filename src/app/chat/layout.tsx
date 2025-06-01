@@ -1,6 +1,8 @@
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Header } from "@/components/Header/Header";
 import styles from "./layout.module.scss";
+import { Chatbox } from "@/components/Chatbox/Chatbox";
+
 const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<>
@@ -9,7 +11,10 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 			<div className={styles.layout}>
 				<Sidebar />
 
-				<main>{children}</main>
+				<main className={styles.main}>
+					{children}
+					<Chatbox />
+				</main>
 			</div>
 		</>
 	);

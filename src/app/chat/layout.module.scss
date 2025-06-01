@@ -1,4 +1,8 @@
 .layout {
   display: flex;
   height: 100vh;
+
+  .main {
+    padding: 0;
+  }
 }
