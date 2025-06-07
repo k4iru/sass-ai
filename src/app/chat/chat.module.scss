@@ -1,8 +1,27 @@
-.container {
+@use "@/styles/tokens" as *;
+
+:root {
+  --chat-text-color: var(--color-black);
+}
+
+:global(.dark) {
+  --chat-text-color: var(--color-black);
+}
+
+.cta {
   display: flex;
-  height: 100%;
-  overflow-y: auto;
-  width: 100%;
-  flex: 1 1 auto;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.newchat {
+  color: var(--chat-text-color);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-light);
+  text-decoration: underline;
+  text-decoration-color: var(--color-brand);
+  transition: all 0.3s ease;
 }

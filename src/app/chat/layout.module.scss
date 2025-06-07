@@ -9,5 +9,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    .container {
+      display: flex;
+      height: 100%;
+      overflow-y: auto;
+      width: 100%;
+      flex: 1 1 auto;
+      flex-direction: column;
+      align-items: center;
+      padding-top: var(--spacing-lg);
+    }
   }
 }

@@ -1,13 +1,8 @@
 import styles from "./chat.module.scss";
 const Chat = () => {
 	return (
-		<div className={styles.container}>
-			<h1>chat message</h1>
-			<ul>
-				{[...Array(100)].map((_, i) => (
-					<li key={i}>Item {i + 1}</li>
-				))}
-			</ul>
+		<div className={styles.cta}>
+			<h1 className={styles.newchat}>How can I help you today?</h1>
 		</div>
 	);
 };
