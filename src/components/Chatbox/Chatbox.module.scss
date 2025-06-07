@@ -18,10 +18,11 @@
   flex-direction: column;
   max-width: 500px;
   width: 100%;
-  border-radius: var(--spacing-sm);
+  border-radius: var(--spacing-md);
   justify-content: space-between;
   margin-bottom: var(--spacing-lg);
   flex: 0 0 auto;
+  padding: var(--spacing-md);
 
   .input {
     textarea {
@@ -33,12 +34,36 @@
       width: 100%;
       max-height: 10rem;
       color: var(--chatbox-text-color);
+      background-color: transparent;
     }
   }
 
   .bottom {
     display: flex;
     flex-direction: row;
+
+    .fileButton {
+      background-color: var(--color-gray);
+      border: none;
+      border-radius: 2px;
+      height: 1.5rem;
+      width: 1.5rem;
+      cursor: pointer;
+
+      .fileIcon {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--color-white);
+        margin: auto;
+      }
+    }
+
+    .modelSelect {
+      background-color: transparent;
+      color: var(--color-white);
+      border: none;
+      cursor: pointer;
+    }
 
     .spacer {
       flex-grow: 1;
