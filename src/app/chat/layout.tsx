@@ -12,7 +12,7 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 				<Sidebar />
 
 				<main className={styles.main}>
-					{children}
+					<div className={styles.container}>{children}</div>
 					<Chatbox />
 				</main>
 			</div>
