@@ -1,14 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { FilePlus, ArrowBigRight } from "lucide-react";
 
 export const Chatbox = () => {
+	const [text, setText] = useState<string>("");
+	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 	// resize the textarea based on its content
 	// and limit its height to a maximum of 160px / 10rem
+	// onInput for side effects
 	const resizeTextarea = useCallback(() => {
 		const el = textareaRef.current;
 		if (!el) return;
@@ -25,7 +28,12 @@ export const Chatbox = () => {
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault(); // prevent newline
-			sendMessage();
+			if (text.trim().length > 0) {
+				console.log(text);
+
+				sendMessage();
+				setText(""); // clear the input after sending
+			}
 		}
 	};
 
@@ -43,7 +51,9 @@ export const Chatbox = () => {
 					className={styles.textarea}
 					onInput={resizeTextarea}
 					onKeyDown={handleKeyDown}
+					onChange={(e) => setText(e.target.value)}
 					rows={1}
+					value={text}
 				/>
 			</div>
 			<div className={styles.bottom}>
@@ -55,7 +65,15 @@ export const Chatbox = () => {
 					<label htmlFor="model" className={styles.modelLabel}>
 						Model:
 					</label>
-					<select name="model" className={styles.modelSelect} />
+					<select name="model" className={styles.modelSelect}>
+						<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+						<option value="gpt-4">GPT-4</option>
+						<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
+						<option value="gpt-4o">GPT-4o</option>
+						<option value="gpt-4o-mini">GPT-4o Mini</option>
+						<option value="gpt-4-turbo">GPT-4 Turbo</option>
+						<option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
+					</select>
 				</div>
 				<button type="button" className={styles.sendButton}>
 					<ArrowBigRight className={styles.sendIcon} />
