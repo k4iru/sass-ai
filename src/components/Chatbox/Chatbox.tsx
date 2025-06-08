@@ -3,11 +3,16 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { FilePlus, ArrowBigRight, ChevronDown } from "lucide-react";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { v4 as uuidv4 } from "uuid";
+
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
 	const params = useParams();
 	const chatId = params?.chatId;
+	const { user } = useAuth();
 	const [text, setText] = useState<string>("");
 	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -32,9 +37,34 @@ export const Chatbox = () => {
 		// on send. if not on specific chatId in url. then create a new chat
 		// and send the message to the server
 
+		if (!text.trim()) {
+			console.log("Empty message, not sending");
+			return; // don't send empty messages
+		}
 		// get potential chatId from the URL
 		if (!chatId) {
 			console.log("No chatId found in URL");
+
+			const newChatId = uuidv4();
+			console.log(newChatId);
+
+			fetch(`${ApiUrl}/api/auth/create-chatroom`, {
+				method: "POST",
+				credentials: "include", // Include cookies in the request
+				body: JSON.stringify({
+					chatId: newChatId,
+					userId: user?.id,
+					message: text,
+				}),
+			});
+
+			setText(""); // clear the input after sending
+			redirect(`/chat/${newChatId}`);
+
+			// send api request to create a new chat. Also change the URL to include the new chatId
+			// on new chatId page. subscribe to the new chatId chatroom with web sockets on postgresl listen / notify
+
+			// fetch `/api/auth/create-chatroom` with the userId and chatId
 		} else {
 			console.log(`Sending message to chatId: ${chatId}`);
 		}
@@ -98,7 +128,11 @@ export const Chatbox = () => {
 						<ChevronDown className={styles.selectIcon} />
 					</div>
 				</div>
-				<button type="button" className={styles.sendButton}>
+				<button
+					type="button"
+					className={styles.sendButton}
+					onClick={sendMessage}
+				>
 					<ArrowBigRight className={styles.sendIcon} />
 				</button>
 			</div>
