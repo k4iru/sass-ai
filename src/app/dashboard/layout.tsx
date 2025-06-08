@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header2/Header";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -61,7 +60,6 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
 
 	return (
 		<div className={styles.dashboardContainer}>
-			<Header />
 			<main className={styles.dashboardMain}>{children}</main>
 		</div>
 	);
