@@ -59,11 +59,35 @@
       }
     }
 
-    .modelSelect {
-      background-color: transparent;
-      color: var(--color-white);
-      border: none;
-      cursor: pointer;
+    .modelSelector {
+      display: flex;
+      flex-direction: row;
+      .selectWrapper {
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        width: 2rem;
+        height: rem;
+        .modelSelect {
+          background: none;
+          width: 100%;
+          height: 100%;
+          color: transparent;
+          border: none;
+          outline: none;
+          appearance: none;
+          cursor: pointer;
+        }
+
+        .selectIcon {
+          pointer-events: none;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: var(--chatbox-text-color);
+        }
+      }
     }
 
     .spacer {

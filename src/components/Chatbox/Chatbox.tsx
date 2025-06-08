@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
-import { FilePlus, ArrowBigRight } from "lucide-react";
+import { FilePlus, ArrowBigRight, ChevronDown } from "lucide-react";
+import { useParams } from "next/navigation";
 
 export const Chatbox = () => {
+	const params = useParams();
+	const chatId = params?.chatId;
 	const [text, setText] = useState<string>("");
 	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -26,6 +29,15 @@ export const Chatbox = () => {
 	};
 
 	const sendMessage = () => {
+		// on send. if not on specific chatId in url. then create a new chat
+		// and send the message to the server
+
+		// get potential chatId from the URL
+		if (!chatId) {
+			console.log("No chatId found in URL");
+		} else {
+			console.log(`Sending message to chatId: ${chatId}`);
+		}
 		console.log("Message sent");
 	};
 
@@ -69,19 +81,22 @@ export const Chatbox = () => {
 					<label htmlFor="model" className={styles.modelLabel}>
 						{currModel}
 					</label>
-					<select
-						name="model"
-						className={styles.modelSelect}
-						onChange={handleModelChange}
-					>
-						<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-						<option value="gpt-4">GPT-4</option>
-						<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
-						<option value="gpt-4o">GPT-4o</option>
-						<option value="gpt-4o-mini">GPT-4o Mini</option>
-						<option value="gpt-4-turbo">GPT-4 Turbo</option>
-						<option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
-					</select>
+					<div className={styles.selectWrapper}>
+						<select
+							name="model"
+							className={styles.modelSelect}
+							onChange={handleModelChange}
+						>
+							<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+							<option value="gpt-4">GPT-4</option>
+							<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
+							<option value="gpt-4o">GPT-4o</option>
+							<option value="gpt-4o-mini">GPT-4o Mini</option>
+							<option value="gpt-4-turbo">GPT-4 Turbo</option>
+							<option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
+						</select>
+						<ChevronDown className={styles.selectIcon} />
+					</div>
 				</div>
 				<button type="button" className={styles.sendButton}>
 					<ArrowBigRight className={styles.sendIcon} />
