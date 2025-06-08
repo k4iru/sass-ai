@@ -21,6 +21,10 @@ export const Chatbox = () => {
 		el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
 	}, []);
 
+	const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+		setCurrModel(e.target.value);
+	};
+
 	const sendMessage = () => {
 		console.log("Message sent");
 	};
@@ -63,9 +67,13 @@ export const Chatbox = () => {
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
 					<label htmlFor="model" className={styles.modelLabel}>
-						Model:
+						{currModel}
 					</label>
-					<select name="model" className={styles.modelSelect}>
+					<select
+						name="model"
+						className={styles.modelSelect}
+						onChange={handleModelChange}
+					>
 						<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
 						<option value="gpt-4">GPT-4</option>
 						<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
