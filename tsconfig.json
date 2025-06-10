@@ -22,7 +22,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*", "./server/*"],
-			"@/styles/*": ["./src/styles/*"]
+			"@/styles/*": ["./src/styles/*"],
+			"@/hooks/*": ["./src/hooks/*"]
 		}
 	},
 	"include": [
