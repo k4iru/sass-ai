@@ -6,10 +6,14 @@ import { FilePlus, ArrowBigRight, ChevronDown } from "lucide-react";
 import { redirect, useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { v4 as uuidv4 } from "uuid";
+import { useChat } from "@/context/ChatContext";
+import type { Message } from "@/types/types";
+// Ensure the API URL is set in your environment variables
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
+	const { pushMessage } = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
@@ -67,6 +71,17 @@ export const Chatbox = () => {
 			// fetch `/api/auth/create-chatroom` with the userId and chatId
 		} else {
 			console.log(`Sending message to chatId: ${chatId}`);
+			if (!user || !user.id) return;
+
+			const newMessage: Message = {
+				role: "human",
+				chatId: chatId as string,
+				userId: user.id as string,
+				content: text,
+				createdAt: new Date(),
+			};
+			pushMessage(newMessage);
+			setText("");
 		}
 		console.log("Message sent");
 	};

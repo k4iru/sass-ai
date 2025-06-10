@@ -2,10 +2,11 @@ import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Header } from "@/components/Header/Header";
 import styles from "./layout.module.scss";
 import { Chatbox } from "@/components/Chatbox/Chatbox";
+import { ChatProvider } from "@/context/ChatContext";
 
 const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
-		<>
+		<ChatProvider>
 			{/* swap this header for a chat specific header later to keep pop open menu */}
 			<Header />
 			<div className={styles.layout}>
@@ -16,7 +17,7 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 					<Chatbox />
 				</main>
 			</div>
-		</>
+		</ChatProvider>
 	);
 };
 

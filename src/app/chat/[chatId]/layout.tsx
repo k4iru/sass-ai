@@ -1,7 +1,8 @@
+import { use } from "react";
+import { useChat } from "@/context/ChatContext";
 import styles from "./layout.module.scss";
-const chatIdLayout = ({ children }: { children: React.ReactNode }) => {
-	// on load. Need to check if the chatId is valid and also if user has access to it.
 
+const chatIdLayout = ({ children }: { children: React.ReactNode }) => {
 	return <>{children}</>;
 };
 

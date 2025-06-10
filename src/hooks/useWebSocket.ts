@@ -3,11 +3,18 @@ import type { Message } from "@/types/types";
 
 let socket: WebSocket | null = null;
 
-function useWebSocket(url: string) {
+function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
 
 	useEffect(() => {
+		// skip
+		if (!url) {
+			console.log("No URL provided for WebSocket connection.");
+			return;
+		}
+
 		if (!socket) {
+			console.log("Connecting to WebSocket at:", url);
 			socket = new WebSocket(url);
 
 			socket.onmessage = (event) => {
