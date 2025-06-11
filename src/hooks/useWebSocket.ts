@@ -34,14 +34,8 @@ function useWebSocket(url: string | null) {
 
 	const pushMessage = (message: Message): void => {
 		if (socketRef.current?.readyState === WebSocket.OPEN) {
-			// REFACTOR to send via websocket instead of fetch
-			fetch("/api/auth/push-message", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(message),
-			});
+			// send via WebSocket
+			socketRef.current.send(JSON.stringify(message));
 		} else {
 			console.warn("WebSocket is not open. Cannot push message.");
 		}

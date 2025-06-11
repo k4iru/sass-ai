@@ -2,6 +2,8 @@ import { WebSocketServer, type WebSocket } from "ws";
 import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
+import { insertMessage } from "@/lib/helper";
+import { askQuestion } from "@/lib/langchain";
 import type { Notification } from "pg";
 
 type ChatRooms = {
@@ -72,6 +74,28 @@ export function startWebSocketServer(): void {
 			chatRooms[chatroomId].close(); // Close the old connection
 		}
 		chatRooms[chatroomId] = ws;
+
+		ws.on("message", async (data) => {
+			// on message, send message to postgresql.
+			// then run langchain to process the message
+			try {
+				const text = data.toString();
+				const msg = JSON.parse(text);
+				console.log("📬 Parsed message:", msg);
+				insertMessage(msg);
+				console.log("📬 Message inserted into database");
+				console.log("📬 Asking question to LangChain");
+				const { success, message } = await askQuestion(msg);
+				console.log("📬 LangChain response:", { success, message });
+
+				if (success) {
+					console.log("✅ Message processed successfully");
+				}
+			} catch (err) {
+				console.error("Error parsing message:", err);
+				ws.send(JSON.stringify({ error: "Invalid message format" }));
+			}
+		});
 
 		ws.on("close", () => {
 			console.log("🔴 Client disconnected");
