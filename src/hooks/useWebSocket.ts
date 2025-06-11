@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import type { Message } from "@/types/types";
-
-let socket: WebSocket | null = null;
 
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
+	const socketRef = useRef<WebSocket | null>(null);
 
 	useEffect(() => {
 		// skip
@@ -13,40 +12,39 @@ function useWebSocket(url: string | null) {
 			return;
 		}
 
-		if (!socket) {
-			console.log("Connecting to WebSocket at:", url);
-			socket = new WebSocket(url);
+		const socket = new WebSocket(url);
+		socketRef.current = socket;
 
-			socket.onmessage = (event) => {
-				const newMessage = JSON.parse(event.data);
-				setMessages((prev) => [...prev, newMessage]);
-			};
+		socket.onmessage = (event) => {
+			const newMessage = JSON.parse(event.data);
+			setMessages((prev) => [...prev, newMessage]);
+		};
 
-			socket.onclose = () => {
-				console.log("WebSocket closed.");
-				socket = null; // Reset the socket
-			};
-		}
+		socket.onclose = () => {
+			console.log("WebSocket closed.");
+		};
 
 		return () => {
 			if (socket) {
 				socket.close();
-				socket = null; // Reset the socket on cleanup
+				socketRef.current = null;
 			}
 		};
 	}, [url]);
 
 	const pushMessage = (message: Message): void => {
-		// UseEffect first parameter is prev messages
-		// need to also push message to server
-		//setMessages((prev) => [...prev, message]);
-		fetch("/api/auth/push-message", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(message),
-		});
+		if (socketRef.current?.readyState === WebSocket.OPEN) {
+			// REFACTOR to send via websocket instead of fetch
+			fetch("/api/auth/push-message", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(message),
+			});
+		} else {
+			console.warn("WebSocket is not open. Cannot push message.");
+		}
 	};
 
 	const popMessage = (): void => {

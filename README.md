@@ -18,3 +18,4 @@ pm2 to auto start
 * support multiple clients
 * auth check
 * error handling
+* refactor pushMessage to send through websocket instead of http
