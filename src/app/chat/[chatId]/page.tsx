@@ -60,7 +60,7 @@ const ChatPage = ({ params }: Props) => {
 		<>
 			<ul>
 				{messages.map((msg, idx) => (
-					<li key={idx}>{msg.content}</li>
+					<li key={msg.id}>{msg.content}</li>
 				))}
 			</ul>
 		</>
