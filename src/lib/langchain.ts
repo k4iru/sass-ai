@@ -20,6 +20,8 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { getMessages } from "./helper";
 import { chat } from "@pinecone-database/pinecone/dist/assistant/data/chat";
+import type { Message } from "@/types/types";
+import { insertMessage } from "@/lib/helper";
 
 const model = new ChatOpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
@@ -108,15 +110,34 @@ const generateLangchainCompletion = async (
 	chatId: string,
 	question: string,
 ) => {
+	const docId = `${userId}/${chatId}`;
 	let pineconeVectorStore: PineconeStore | null = null;
 
-	const docId = `${userId}/${chatId}`;
-	// should already be in the vector store
-	pineconeVectorStore = await generateEmbeddingsInPineconeVectorStore(docId);
+	const chatHistory = await fetchMessagesFromDb(userId, chatId);
+
+	try {
+		pineconeVectorStore = await generateEmbeddingsInPineconeVectorStore(docId);
+	} catch (err) {
+		console.warn(`Embeddings unavailable for ${docId}, skipping retrieval.`);
+	}
+
+	if (!pineconeVectorStore) {
+		const fallbackPrompt = ChatPromptTemplate.fromMessages([
+			[
+				"system",
+				"You are a helpful assistant. Continue the conversation appropriately based on prior messages.",
+			],
+			...chatHistory,
+			["user", "{input}"],
+		]);
+
+		const chain = fallbackPrompt.pipe(model);
+
+		const reply = await chain.invoke({ input: question });
+		return reply.content;
+	}
 
 	const retriever = pineconeVectorStore.asRetriever();
-
-	const chatHistory = await fetchMessagesFromDb(userId, chatId);
 
 	const historyAwarePrompt = ChatPromptTemplate.fromMessages([
 		...chatHistory,
@@ -136,19 +157,17 @@ const generateLangchainCompletion = async (
 	const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
 		[
 			"system",
-			"Answer the users questions based on the below context:\n\n{context}",
+			"Answer the user's question based on the context below:\n\n{context}",
 		],
 		...chatHistory,
 		["user", "{input}"],
 	]);
 
-	// document combining chain
 	const historyAwareCombineDocsChain = await createStuffDocumentsChain({
 		llm: model,
 		prompt: historyAwareRetrievalPrompt,
 	});
 
-	// combine the retriever and combine docs chain
 	const conversationalRetrievalChain = await createRetrievalChain({
 		retriever: historyAwareRetrieverChain,
 		combineDocsChain: historyAwareCombineDocsChain,
@@ -162,4 +181,38 @@ const generateLangchainCompletion = async (
 	return reply.answer;
 };
 
-export { model, generateLangchainCompletion };
+const askQuestion = async (
+	message: Message,
+): Promise<{ success: boolean; message: string | null }> => {
+	// verify user authentication from cookies
+
+	// generate AI reply
+	const reply = await generateLangchainCompletion(
+		message.userId,
+		message.chatId,
+		message.content,
+	);
+
+	if (reply == null) {
+		return { success: false, message: "Error generating reply" };
+	}
+
+	const aiMessage: Message = {
+		role: "ai",
+		chatId: message.chatId,
+		userId: message.userId,
+		content: reply as string,
+		createdAt: new Date(),
+	};
+
+	// insert into db
+	const success = await insertMessage(aiMessage);
+
+	if (!success) {
+		return { success: false, message: "unsuccessful" };
+	}
+
+	return { success: true, message: null }; // return success message
+};
+
+export { model, generateLangchainCompletion, askQuestion };
