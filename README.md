@@ -12,6 +12,7 @@ pm2 to auto start
 * overhaul authentication
 * switch to npm-run-all from concurrently
 * update langchain logic
+* preload messages for faster ui
 
 ## websocket
 * heartbeat/ping implementation to detect dropped connections
