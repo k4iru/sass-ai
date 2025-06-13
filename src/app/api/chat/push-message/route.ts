@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/with-auth";
 import type { Message } from "@/types/types";
 import { insertMessage } from "@/lib/helper";
+import { askQuestion } from "@/lib/langchain";
 
 async function handler(req: NextRequest) {
 	// expect a Message object in the request body
@@ -23,6 +24,8 @@ async function handler(req: NextRequest) {
 				{ status: 400 },
 			);
 		}
+
+		askQuestion(body);
 
 		return NextResponse.json({ success: true }, { status: 200 });
 	} catch (err) {
