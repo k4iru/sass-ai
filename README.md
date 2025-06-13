@@ -8,6 +8,7 @@ pm2 to auto start
 
 # TODO
 
+## General
 * fix styling so that all page declarations are the same arrow functions i.e. const Home = () => {} export default Home;
 * overhaul authentication
 * switch to npm-run-all from concurrently
@@ -22,3 +23,7 @@ pm2 to auto start
 * refactor pushMessage to send through websocket instead of http
 * implement reconnect logic
 * implement backoff retry 
+
+## chat
+* make question asking async so users can't send messages while ai is processing
+* think of something to use for key prop
