@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { eq, and, desc } from "drizzle-orm";
 import { db, schema } from "@/db";
-import type { Message } from "@/types/types";
+import type { Chat, Message } from "@/types/types";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
@@ -107,6 +107,15 @@ export async function getMessages(
 	}
 }
 
+export async function getAllChats(userId: string): Promise<Chat[]> {
+	const chats = await db
+		.select()
+		.from(schema.chats)
+		.where(eq(schema.chats.userId, userId))
+		.orderBy(desc(schema.chats.createdAt));
+
+	return chats;
+}
 export async function createChatRoom(
 	userId: string,
 	roomName: string,
