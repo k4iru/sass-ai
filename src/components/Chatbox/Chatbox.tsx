@@ -55,7 +55,7 @@ export const Chatbox = () => {
 
 			const newChatId = uuidv4();
 
-			await fetch(`${ApiUrl}/api/auth/create-chatroom`, {
+			await fetch(`${ApiUrl}/api/chat/create-chatroom`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
 				body: JSON.stringify({

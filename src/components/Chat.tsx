@@ -37,7 +37,7 @@ function Chat({ fileId }: { fileId: string }) {
 		// TODO also have the user load previous messages from the server
 		const fetchMessages = async () => {
 			if (!user || !fileId) throw new Error("User or fileKey is not defined");
-			const resp = await fetch(`${ApiUrl}/api/auth/get-messages`, {
+			const resp = await fetch(`${ApiUrl}/api/chat/get-messages`, {
 				method: "POST",
 				credentials: "include",
 				body: JSON.stringify({ userId: user.id, chatId: fileId }),

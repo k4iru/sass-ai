@@ -34,7 +34,7 @@ const ChatPage = ({ params }: Props) => {
 
 			try {
 				const userId = user.id;
-				const response = await fetch(`${ApiUrl}/api/auth/get-messages`, {
+				const response = await fetch(`${ApiUrl}/api/chat/get-messages`, {
 					method: "POST",
 					credentials: "include", // Include cookies in the request
 					headers: {
