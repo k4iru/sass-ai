@@ -39,7 +39,7 @@ function useWebSocket(url: string | null) {
 			// send via WebSocket
 			socketRef.current.send(JSON.stringify(message));
 		} else {
-			fetch(`${ApiUrl}/api/auth/push-message`, {
+			fetch(`${ApiUrl}/api/chat/push-message`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
 				body: JSON.stringify(message),
