@@ -3,8 +3,10 @@ import { useState } from "react";
 import clsx from "clsx";
 import styles from "./Sidebar.module.scss";
 import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
+import { useAllChatsContext } from "@/context/AllChatsContext";
 
 export const Sidebar = () => {
+	const { chats } = useAllChatsContext();
 	const [isOpen, setIsOpen] = useState(true);
 
 	const handleToggleSidebar = () => {
@@ -39,6 +41,20 @@ export const Sidebar = () => {
 					/>
 				</button>
 			</div>
+			{chats && (
+				<ul className={styles.chatList}>
+					{chats.map((chat) => (
+						<li key={chat.id} className={styles.chatItem}>
+							<div className={styles.chatInfo}>
+								<span className={styles.chatName}>{chat.title}</span>
+								<span className={styles.chatDate}>
+									{new Date(chat.createdAt).toLocaleDateString()}
+								</span>
+							</div>
+						</li>
+					))}
+				</ul>
+			)}
 		</aside>
 	);
 };
