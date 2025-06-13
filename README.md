@@ -20,3 +20,5 @@ pm2 to auto start
 * auth check
 * error handling
 * refactor pushMessage to send through websocket instead of http
+* implement reconnect logic
+* implement backoff retry 
