@@ -11,6 +11,14 @@ export type MessageResponse = {
 	message: string;
 };
 
+export type Chat = {
+	id: string;
+	userId: string;
+	title: string;
+	model: string;
+	createdAt: Date;
+};
+
 export type Theme = {
 	theme: "light" | "dark";
 	toggleTheme: () => void;
