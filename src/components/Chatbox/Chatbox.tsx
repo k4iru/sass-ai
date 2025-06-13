@@ -8,11 +8,12 @@ import { useAuth } from "@/context/AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useChat } from "@/context/ChatContext";
 import type { Message } from "@/types/types";
-// Ensure the API URL is set in your environment variables
+import { useRouter } from "next/navigation"; // App Router
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
+	const router = useRouter();
 	const { pushMessage } = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
@@ -37,7 +38,7 @@ export const Chatbox = () => {
 		setCurrModel(e.target.value);
 	};
 
-	const sendMessage = () => {
+	const sendMessage = async () => {
 		// on send. if not on specific chatId in url. then create a new chat
 		// and send the message to the server
 
@@ -45,44 +46,57 @@ export const Chatbox = () => {
 			console.log("Empty message, not sending");
 			return; // don't send empty messages
 		}
+
+		if (!user || !user.id) return;
+
 		// get potential chatId from the URL
 		if (!chatId) {
 			console.log("No chatId found in URL");
 
 			const newChatId = uuidv4();
-			console.log(newChatId);
 
-			fetch(`${ApiUrl}/api/auth/create-chatroom`, {
+			await fetch(`${ApiUrl}/api/auth/create-chatroom`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
 				body: JSON.stringify({
 					chatId: newChatId,
 					userId: user?.id,
-					message: text,
+					model: currModel,
+					title: text.slice(0, 100), // Use the first 50 characters of the message as the title
 				}),
 			});
 
+			const newMessage: Message = {
+				role: "human",
+				chatId: newChatId as string,
+				userId: user.id as string,
+				content: text,
+				createdAt: new Date(),
+			};
+
+			pushMessage(newMessage);
+
 			setText(""); // clear the input after sending
-			redirect(`/chat/${newChatId}`);
+			router.push(`/chat/${newChatId}`); // ✅ this is the right way in client components
+			return;
 
 			// send api request to create a new chat. Also change the URL to include the new chatId
 			// on new chatId page. subscribe to the new chatId chatroom with web sockets on postgresl listen / notify
 
 			// fetch `/api/auth/create-chatroom` with the userId and chatId
-		} else {
-			console.log(`Sending message to chatId: ${chatId}`);
-			if (!user || !user.id) return;
-
-			const newMessage: Message = {
-				role: "human",
-				chatId: chatId as string,
-				userId: user.id as string,
-				content: text,
-				createdAt: new Date(),
-			};
-			pushMessage(newMessage);
-			setText("");
 		}
+		console.log(`Sending message to chatId: ${chatId}`);
+		const newMessage: Message = {
+			role: "human",
+			chatId: chatId as string,
+			userId: user.id as string,
+			content: text,
+			createdAt: new Date(),
+		};
+
+		pushMessage(newMessage);
+		setText("");
+
 		console.log("Message sent");
 	};
 

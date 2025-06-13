@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import type { Message } from "@/types/types";
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -33,10 +34,17 @@ function useWebSocket(url: string | null) {
 	}, [url]);
 
 	const pushMessage = (message: Message): void => {
+		// if on specific chatId, then send the message via WebSocket for real-time updates
 		if (socketRef.current?.readyState === WebSocket.OPEN) {
 			// send via WebSocket
 			socketRef.current.send(JSON.stringify(message));
 		} else {
+			fetch(`${ApiUrl}/api/auth/push-message`, {
+				method: "POST",
+				credentials: "include", // Include cookies in the request
+				body: JSON.stringify(message),
+			});
+			// in the case the WebSocket is not open, we can still update the local state
 			console.warn("WebSocket is not open. Cannot push message.");
 		}
 	};
