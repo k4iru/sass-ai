@@ -3,21 +3,24 @@ import { Header } from "@/components/Header/Header";
 import styles from "./layout.module.scss";
 import { Chatbox } from "@/components/Chatbox/Chatbox";
 import { ChatProvider } from "@/context/ChatContext";
+import { AllChatsProvider } from "@/context/AllChatsContext";
 
 const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
-		<ChatProvider>
-			{/* swap this header for a chat specific header later to keep pop open menu */}
-			<Header />
-			<div className={styles.layout}>
-				<Sidebar />
+		<AllChatsProvider>
+			<ChatProvider>
+				{/* swap this header for a chat specific header later to keep pop open menu */}
+				<Header />
+				<div className={styles.layout}>
+					<Sidebar />
 
-				<main className={styles.main}>
-					<div className={styles.container}>{children}</div>
-					<Chatbox />
-				</main>
-			</div>
-		</ChatProvider>
+					<main className={styles.main}>
+						<div className={styles.container}>{children}</div>
+						<Chatbox />
+					</main>
+				</div>
+			</ChatProvider>
+		</AllChatsProvider>
 	);
 };
 
