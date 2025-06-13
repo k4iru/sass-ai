@@ -35,7 +35,7 @@ export const chats = pgTable("chats", {
 		.references(() => usersTable.id),
 	title: varchar("title", { length: 100 }).notNull(),
 	model: varchar("model", { length: 100 }).notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const messages = pgTable("messages", {
