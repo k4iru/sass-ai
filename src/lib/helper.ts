@@ -110,6 +110,8 @@ export async function getMessages(
 export async function createChatRoom(
 	userId: string,
 	roomName: string,
+	model: string,
+	title: string,
 ): Promise<boolean> {
 	// check if chat room already exists
 	const existingChatRoom = await db
@@ -126,6 +128,8 @@ export async function createChatRoom(
 		const newChatRoom = await db.insert(schema.chats).values({
 			id: roomName,
 			userId: userId,
+			model: model,
+			title: title, // or any other default title
 		});
 
 		return true;
