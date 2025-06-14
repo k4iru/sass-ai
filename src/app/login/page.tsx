@@ -39,7 +39,7 @@ function Login() {
 
     // since redirect throws an error this needs to be outside the try catch block.
     setLoading(false);
-    router.replace("/dashboard");
+    router.replace("/chat");
     return;
 
     // handle message
