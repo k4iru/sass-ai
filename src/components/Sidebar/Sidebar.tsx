@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { useState, useEffect, useRef } from "react";
 import { ChatListItem } from "@/components/ChatListItem/ChatListItem";
 import { ConfirmModal } from "@/components/ConfirmModal/ConfirmModal";
@@ -7,14 +6,39 @@ import clsx from "clsx";
 import styles from "./Sidebar.module.scss";
 import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
 import { useAllChatsContext } from "@/context/AllChatsContext";
+import { useAuth } from "@/context/AuthContext";
+
+const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Sidebar = () => {
-	const { chats } = useAllChatsContext();
+	const { chats, refreshChats } = useAllChatsContext();
+	const { user } = useAuth();
 	const [isOpen, setIsOpen] = useState(true);
+	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+	const handleDelete = async () => {
+		if (!pendingDeleteId || !user) return;
+
+		const userId = user.id;
+
+		await fetch(`${ApiUrl}/api/chat/delete-chat`, {
+			method: "POST",
+			credentials: "include", // Include cookies in the request
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ userId, pendingDeleteId }),
+		});
+
+		refreshChats();
+		setOpenMenuId(null);
+	};
 
 	const handleToggleSidebar = () => {
 		setIsOpen(!isOpen);
 	};
+
 	return (
 		<aside className={clsx(styles.sidebar, isOpen && styles.open)}>
 			<div className={styles.topbar}>
@@ -47,14 +71,6 @@ export const Sidebar = () => {
 			{chats && (
 				<ul className={styles.chatList}>
 					{chats.map((chat) => (
-						<li key={chat.id} className={styles.chatItem}>
-							<div className={styles.chatInfo}>
-								<span className={styles.chatName}>{chat.title}</span>
-								<span className={styles.chatDate}>
-									{new Date(chat.createdAt).toLocaleDateString()}
-								</span>
-							</div>
-						</li>
 						<ChatListItem
 							key={chat.id}
 							id={chat.id}
