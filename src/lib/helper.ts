@@ -76,6 +76,40 @@ export async function insertMessage(message: Message): Promise<boolean> {
 	return true;
 }
 
+export async function deleteChat(
+	userId: string,
+	chatId: string,
+): Promise<boolean> {
+	try {
+		// Optional: Ensure the chat belongs to the user
+		const chat = await db
+			.select()
+			.from(schema.chats)
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
+
+		if (!chat.length) {
+			console.warn("Chat not found or does not belong to the user.");
+			return false;
+		}
+
+		// Only delete the chat — messages will be deleted via cascade
+		const result = await db
+			.delete(schema.chats)
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
+
+		if (!result.rowCount) {
+			throw new Error("Failed to delete chat");
+		}
+
+		return true;
+	} catch (err) {
+		console.error(
+			`Error deleting chat: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return false;
+	}
+}
+
 export async function getMessages(
 	userId: string,
 	chatId: string,
@@ -93,6 +127,7 @@ export async function getMessages(
 			.orderBy(desc(schema.messages.createdAt));
 
 		return messages.map((row) => ({
+			id: row.id,
 			role: row.role as "human" | "ai" | "placeholder",
 			chatId: row.chatId,
 			userId: row.userId,
