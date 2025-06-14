@@ -1,5 +1,8 @@
 "use client";
 import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ChatListItem } from "@/components/ChatListItem/ChatListItem";
+import { ConfirmModal } from "@/components/ConfirmModal/ConfirmModal";
 import clsx from "clsx";
 import styles from "./Sidebar.module.scss";
 import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
@@ -52,6 +55,18 @@ export const Sidebar = () => {
 								</span>
 							</div>
 						</li>
+						<ChatListItem
+							key={chat.id}
+							id={chat.id}
+							title={chat.title}
+							onCloseMenu={() => setOpenMenuId(null)}
+							isMenuOpen={openMenuId === chat.id}
+							onToggleMenu={() =>
+								setOpenMenuId((prevId) => (prevId === chat.id ? null : chat.id))
+							}
+							onRename={() => console.log("rename")}
+							onDelete={() => console.log("deleting")}
+						/>
 					))}
 				</ul>
 			)}
