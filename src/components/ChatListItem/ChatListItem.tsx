@@ -12,8 +12,8 @@ type ChatListItemProps = {
 	isMenuOpen: boolean;
 	onCloseMenu: () => void;
 	onToggleMenu: (id: string) => void;
-	onRename: () => void;
-	onDelete: () => void;
+	onRename: (id: string) => void;
+	onDelete: (id: string) => void;
 };
 export const ChatListItem = ({
 	id,
@@ -73,14 +73,14 @@ export const ChatListItem = ({
 						<button
 							type="button"
 							className={styles.menuItemRename}
-							onClick={() => console.log("this is a test")}
+							onClick={() => onRename(id)}
 						>
 							Rename
 						</button>
 						<button
 							type="button"
 							className={styles.menuItemDelete}
-							onClick={() => onDelete()}
+							onClick={() => onDelete(id)}
 						>
 							Delete
 						</button>

@@ -1,4 +1,5 @@
 "use client";
+import { createPortal } from "react-dom";
 import { useState, useEffect, useRef } from "react";
 import { ChatListItem } from "@/components/ChatListItem/ChatListItem";
 import { ConfirmModal } from "@/components/ConfirmModal/ConfirmModal";
@@ -22,6 +23,8 @@ export const Sidebar = () => {
 
 		const userId = user.id;
 
+		console.log("pendingdlete: ", pendingDeleteId);
+
 		await fetch(`${ApiUrl}/api/chat/delete-chat`, {
 			method: "POST",
 			credentials: "include", // Include cookies in the request
@@ -33,6 +36,7 @@ export const Sidebar = () => {
 
 		refreshChats();
 		setOpenMenuId(null);
+		setPendingDeleteId(null);
 	};
 
 	const handleToggleSidebar = () => {
@@ -40,52 +44,65 @@ export const Sidebar = () => {
 	};
 
 	return (
-		<aside className={clsx(styles.sidebar, isOpen && styles.open)}>
-			<div className={styles.topbar}>
-				<input
-					type="text"
-					placeholder="Search..."
-					className={styles.searchInput}
-				/>
-				<button
-					type="button"
-					className={styles.closeButton}
-					onClick={handleToggleSidebar}
-				>
-					<ArrowLeftFromLine
-						className={styles.closeIcon}
-						stroke="currentColor"
+		<>
+			<aside className={clsx(styles.sidebar, isOpen && styles.open)}>
+				<div className={styles.topbar}>
+					<input
+						type="text"
+						placeholder="Search..."
+						className={styles.searchInput}
 					/>
-				</button>
-				<button
-					type="button"
-					className={styles.openButton}
-					onClick={handleToggleSidebar}
-				>
-					<ArrowRightFromLineIcon
-						className={styles.openIcon}
-						stroke="currentColor"
-					/>
-				</button>
-			</div>
-			{chats && (
-				<ul className={styles.chatList}>
-					{chats.map((chat) => (
-						<ChatListItem
-							key={chat.id}
-							id={chat.id}
-							title={chat.title}
-							onCloseMenu={() => setOpenMenuId(null)}
-							isMenuOpen={openMenuId === chat.id}
-							onToggleMenu={() =>
-								setOpenMenuId((prevId) => (prevId === chat.id ? null : chat.id))
-							}
-							onRename={() => console.log("rename")}
-							onDelete={() => console.log("deleting")}
+					<button
+						type="button"
+						className={styles.closeButton}
+						onClick={handleToggleSidebar}
+					>
+						<ArrowLeftFromLine
+							className={styles.closeIcon}
+							stroke="currentColor"
 						/>
-					))}
-				</ul>
-			)}
-		</aside>
+					</button>
+					<button
+						type="button"
+						className={styles.openButton}
+						onClick={handleToggleSidebar}
+					>
+						<ArrowRightFromLineIcon
+							className={styles.openIcon}
+							stroke="currentColor"
+						/>
+					</button>
+				</div>
+				{chats && (
+					<ul className={styles.chatList}>
+						{chats.map((chat) => (
+							<ChatListItem
+								key={chat.id}
+								id={chat.id}
+								title={chat.title}
+								onCloseMenu={() => setOpenMenuId(null)}
+								isMenuOpen={openMenuId === chat.id}
+								onToggleMenu={() =>
+									setOpenMenuId((prevId) =>
+										prevId === chat.id ? null : chat.id,
+									)
+								}
+								onRename={(id) => console.log(id)}
+								onDelete={(id) => setPendingDeleteId(id)}
+							/>
+						))}
+					</ul>
+				)}
+			</aside>
+			{pendingDeleteId &&
+				createPortal(
+					<ConfirmModal
+						message="are you sure you want to delete?"
+						onConfirm={handleDelete}
+						onCancel={() => setPendingDeleteId(null)}
+					/>,
+					document.body,
+				)}
+		</>
 	);
 };

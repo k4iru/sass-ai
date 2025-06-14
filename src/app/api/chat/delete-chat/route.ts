@@ -8,7 +8,10 @@ export async function POST(req: NextRequest) {
 	// add user authentication as well.
 	try {
 		const body = await req.json();
-		const { userId, chatId } = body;
+		const { userId, pendingDeleteId } = body;
+
+		console.log(userId);
+		console.log(pendingDeleteId);
 
 		const verified = validateToken(req.cookies.get("accessToken")?.value);
 		if (!verified)
@@ -21,7 +24,7 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		const success = await deleteChat(userId, chatId);
+		const success = await deleteChat(userId, pendingDeleteId);
 
 		if (success) {
 			return NextResponse.json({ success: success }, { status: 200 });
