@@ -36,9 +36,17 @@ export const ChatListItem = ({
 }: ChatListItemProps) => {
 	const itemRef = useRef<HTMLLIElement>(null);
 	const popupRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
 
 	useEffect(() => {
+		if (isRenaming && inputRef.current) {
+			const input = inputRef.current;
+			input.focus();
+
+			// Move cursor to the end
+			input.setSelectionRange(input.value.length, input.value.length);
+		}
 		if (isMenuOpen && itemRef.current) {
 			const rect = itemRef.current.getBoundingClientRect();
 			setMenuPosition({
@@ -61,12 +69,13 @@ export const ChatListItem = ({
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
-	}, [isMenuOpen, onCloseMenu]);
+	}, [isMenuOpen, onCloseMenu, isRenaming]);
 
 	return (
 		<li className={styles.item} ref={itemRef}>
 			{isRenaming ? (
 				<input
+					ref={inputRef}
 					className={styles.renameInput}
 					value={newTitle}
 					onChange={(e) => onChangeTitle(e.target.value)}
@@ -78,7 +87,9 @@ export const ChatListItem = ({
 				/>
 			) : (
 				<Link href={`/chat/${id}`} className={styles.chatLink}>
-					<span className={styles.chatName}>{title}</span>
+					<span className={styles.chatName}>
+						{title.length > 25 ? `${title.slice(0, 25)}…` : title}
+					</span>
 				</Link>
 			)}
 			<span className={styles.spacer} />
@@ -96,7 +107,7 @@ export const ChatListItem = ({
 						<button
 							type="button"
 							className={styles.menuItemRename}
-							onClick={() => onRename(id, newTitle)}
+							onClick={() => onRename(id, title)}
 						>
 							Rename
 						</button>

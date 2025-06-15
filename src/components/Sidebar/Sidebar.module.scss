@@ -79,7 +79,8 @@
   }
 
   .chatList {
-    overflow: hidden;
+    //overflow: hidden;
+    opacity: 0;
     width: 0;
     transition: all 0.3s ease;
     text-wrap: nowrap;
@@ -87,9 +88,10 @@
 
   .chatsTitle {
     overflow: hidden;
+    opacity: 0;
+
     text-wrap: nowrap;
 
-    width: 0;
     transition: all 0.3s ease;
     margin-top: var(--spacing-md);
     font-size: var(--font-size-base);
@@ -103,7 +105,7 @@
     border-right: 1px solid var(--sidebar-border-color);
 
     .chatsTitle {
-      width: 100%;
+      opacity: 1;
     }
 
     .searchInput {
@@ -125,7 +127,8 @@
 
     .chatList {
       width: 100%;
-      overflow-y: auto;
+      opacity: 1;
+      //overflow-y: auto;
     }
   }
 
