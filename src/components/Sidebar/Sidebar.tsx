@@ -17,6 +17,29 @@ export const Sidebar = () => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+	const [renamingChatId, setRenamingChatId] = useState<string | null>(null);
+	const [newTitle, setNewTitle] = useState<string>("");
+
+	const handleRenameSubmit = async () => {
+		if (!renamingChatId || !newTitle.trim()) return;
+
+		await fetch(`${ApiUrl}/api/chat/rename-chat`, {
+			method: "POST",
+			credentials: "include",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				chatId: renamingChatId,
+				newTitle: newTitle.trim(),
+				userId: user?.id,
+			}),
+		});
+
+		refreshChats();
+		setRenamingChatId(null);
+		setNewTitle("");
+	};
 
 	const handleDelete = async () => {
 		if (!pendingDeleteId || !user) return;
@@ -74,24 +97,41 @@ export const Sidebar = () => {
 					</button>
 				</div>
 				{chats && (
-					<ul className={styles.chatList}>
-						{chats.map((chat) => (
-							<ChatListItem
-								key={chat.id}
-								id={chat.id}
-								title={chat.title}
-								onCloseMenu={() => setOpenMenuId(null)}
-								isMenuOpen={openMenuId === chat.id}
-								onToggleMenu={() =>
-									setOpenMenuId((prevId) =>
-										prevId === chat.id ? null : chat.id,
-									)
-								}
-								onRename={(id) => console.log(id)}
-								onDelete={(id) => setPendingDeleteId(id)}
-							/>
-						))}
-					</ul>
+					<>
+						<span className={styles.chatsTitle}>Chats</span>
+						<ul className={styles.chatList}>
+							{chats.map((chat) => (
+								<ChatListItem
+									key={chat.id}
+									id={chat.id}
+									title={chat.title}
+									isRenaming={renamingChatId === chat.id}
+									newTitle={newTitle}
+									onChangeTitle={setNewTitle}
+									onSubmitRename={handleRenameSubmit}
+									onBlurRename={() => {
+										if (newTitle.trim()) handleRenameSubmit();
+										else {
+											setRenamingChatId(null);
+											setNewTitle("");
+										}
+									}}
+									onCloseMenu={() => setOpenMenuId(null)}
+									isMenuOpen={openMenuId === chat.id}
+									onToggleMenu={() =>
+										setOpenMenuId((prevId) =>
+											prevId === chat.id ? null : chat.id,
+										)
+									}
+									onRename={(id, currentTitle) => {
+										setRenamingChatId(id);
+										setNewTitle(currentTitle);
+									}}
+									onDelete={(id) => setPendingDeleteId(id)}
+								/>
+							))}
+						</ul>
+					</>
 				)}
 			</aside>
 			{pendingDeleteId &&

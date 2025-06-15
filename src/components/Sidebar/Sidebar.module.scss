@@ -85,11 +85,26 @@
     text-wrap: nowrap;
   }
 
+  .chatsTitle {
+    overflow: hidden;
+    text-wrap: nowrap;
+
+    width: 0;
+    transition: all 0.3s ease;
+    margin-top: var(--spacing-md);
+    font-size: var(--font-size-base);
+    color: var(--color-brand);
+  }
+
   &.open {
     max-width: 300px;
     transition: all 0.3s ease;
     padding: var(--spacing-md);
     border-right: 1px solid var(--sidebar-border-color);
+
+    .chatsTitle {
+      width: 100%;
+    }
 
     .searchInput {
       width: 100%;

@@ -76,6 +76,53 @@ export async function insertMessage(message: Message): Promise<boolean> {
 	return true;
 }
 
+export async function renameChat(
+	userId: string,
+	chatId: string,
+	newTitle: string,
+): Promise<boolean> {
+	try {
+		// Optional: sanitize or validate title
+		const trimmedTitle = newTitle.trim();
+		if (!trimmedTitle) {
+			throw new Error("Title must not be empty.");
+		}
+
+		// Check if the chat exists and belongs to the user
+		const existingChat = await db
+			.select()
+			.from(schema.chats)
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
+
+		if (!existingChat.length) {
+			console.warn("Chat not found or does not belong to the user.");
+			return false;
+		}
+
+		// Only rename if the title is different
+		if (existingChat[0].title === trimmedTitle) {
+			console.log("New title is the same as the current one.");
+			return true; // No-op but successful
+		}
+
+		const result = await db
+			.update(schema.chats)
+			.set({ title: trimmedTitle })
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
+
+		if (!result.rowCount) {
+			throw new Error("Failed to update chat title.");
+		}
+
+		return true;
+	} catch (err) {
+		console.error(
+			`Error renaming chat: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		return false;
+	}
+}
+
 export async function deleteChat(
 	userId: string,
 	chatId: string,

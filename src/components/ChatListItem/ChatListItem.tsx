@@ -12,8 +12,13 @@ type ChatListItemProps = {
 	isMenuOpen: boolean;
 	onCloseMenu: () => void;
 	onToggleMenu: (id: string) => void;
-	onRename: (id: string) => void;
+	onRename: (id: string, newTitle: string) => void;
 	onDelete: (id: string) => void;
+	isRenaming: boolean;
+	newTitle: string;
+	onChangeTitle: (val: string) => void;
+	onSubmitRename: () => void;
+	onBlurRename: () => void;
 };
 export const ChatListItem = ({
 	id,
@@ -23,6 +28,11 @@ export const ChatListItem = ({
 	onToggleMenu,
 	onRename,
 	onDelete,
+	isRenaming,
+	newTitle,
+	onChangeTitle,
+	onSubmitRename,
+	onBlurRename,
 }: ChatListItemProps) => {
 	const itemRef = useRef<HTMLLIElement>(null);
 	const popupRef = useRef<HTMLDivElement>(null);
@@ -55,9 +65,22 @@ export const ChatListItem = ({
 
 	return (
 		<li className={styles.item} ref={itemRef}>
-			<Link href={`/chat/${id}`}>
-				<span className={styles.chatName}>{title}</span>
-			</Link>
+			{isRenaming ? (
+				<input
+					className={styles.renameInput}
+					value={newTitle}
+					onChange={(e) => onChangeTitle(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") onSubmitRename();
+						if (e.key === "Escape") onBlurRename(); // optional escape handler
+					}}
+					onBlur={onBlurRename}
+				/>
+			) : (
+				<Link href={`/chat/${id}`} className={styles.chatLink}>
+					<span className={styles.chatName}>{title}</span>
+				</Link>
+			)}
 			<span className={styles.spacer} />
 
 			<button
@@ -73,7 +96,7 @@ export const ChatListItem = ({
 						<button
 							type="button"
 							className={styles.menuItemRename}
-							onClick={() => onRename(id)}
+							onClick={() => onRename(id, newTitle)}
 						>
 							Rename
 						</button>
