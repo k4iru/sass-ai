@@ -13,6 +13,7 @@ interface User {
 
 type authContextType = {
 	user: User | null;
+	loading: boolean;
 	login: (email: string, password: string) => void;
 	setCurrUser: (user: User) => Promise<boolean>;
 	logout: () => void;
@@ -21,6 +22,7 @@ type authContextType = {
 // default object when context created.
 const defaultAuthContextType: authContextType = {
 	user: null,
+	loading: true,
 	login: () => {},
 	setCurrUser: () => Promise.resolve(false),
 	logout: () => {},
@@ -30,6 +32,7 @@ const AuthContext = createContext<authContextType>(defaultAuthContextType);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = useState<User | null>(null);
+	const [loading, setLoading] = useState<boolean>(true);
 
 	// TODO this login function only sets access token / refresh token in cookies.
 	// should also return user object to set in context.
@@ -40,17 +43,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			body: JSON.stringify({ email, password }),
 		});
 
-		const data = await response.json();
 		if (response.ok) {
+			const { success, userObj } = await response.json();
+			setUser(userObj);
+			setLoading(false);
 			console.log("logged in, setting access token/id");
 		} else {
-			throw new Error(data.error);
+			throw new Error("Error fetching user data after login");
 		}
 	};
 
 	const setCurrUser = async (user: User): Promise<boolean> => {
 		try {
 			setUser(user);
+			setLoading(false);
 			return true;
 		} catch (err) {
 			console.error(err instanceof Error ? err.message : "Unknown error");
@@ -67,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	return (
-		<AuthContext.Provider value={{ user, login, setCurrUser, logout }}>
+		<AuthContext.Provider value={{ user, login, loading, setCurrUser, logout }}>
 			{children}
 		</AuthContext.Provider>
 	);

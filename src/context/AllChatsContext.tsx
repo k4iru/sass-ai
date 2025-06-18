@@ -32,7 +32,7 @@ export const useAllChatsContext = (): AllChatsContextType => {
 export const AllChatsProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
 }: { children: React.ReactNode }) => {
-	const { user } = useAuth();
+	const { user, loading } = useAuth();
 	const [chats, setChats] = useState<Chat[]>([]);
 
 	const refreshChats = useCallback(async () => {
@@ -57,10 +57,10 @@ export const AllChatsProvider: React.FC<{ children: React.ReactNode }> = ({
 	}, [user]);
 
 	useEffect(() => {
-		if (user?.id) {
+		if (!loading) {
 			refreshChats();
 		}
-	}, [refreshChats, user]);
+	}, [refreshChats, loading]);
 
 	return (
 		<AllChatsContext.Provider value={{ chats, refreshChats }}>
