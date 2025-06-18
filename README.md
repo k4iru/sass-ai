@@ -27,3 +27,8 @@ pm2 to auto start
 ## chat
 * make question asking async so users can't send messages while ai is processing
 * think of something to use for key prop
+* refactor chatlistitem into separate sub components for maintainability
+
+## auth
+* rework auth logic so that users aren't logged out after 15 minutes of no activity
+* on login userid isn't defined until refresh
