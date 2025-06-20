@@ -1,0 +1,22 @@
+@use "@/styles/tokens" as *;
+
+:root {
+  --chatmessage-font-color: var(--color-black);
+}
+
+:global(.dark) {
+  --chatmessage-font-color: var(--color-white);
+}
+
+.ai {
+  pre {
+    padding: 1rem 0;
+  }
+}
+
+.human {
+  border: 1px solid var(--color-white);
+}
+
+.placeholder {
+}

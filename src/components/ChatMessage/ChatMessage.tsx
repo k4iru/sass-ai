@@ -3,6 +3,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
 import { defaultSchema } from "hast-util-sanitize";
+import styles from "./ChatMessage.module.scss";
 import "highlight.js/styles/atom-one-dark.css"; // or atom-one-light.css
 
 // Extend the schema to support code highlighting classes
@@ -25,13 +26,13 @@ interface ChatMessageProps {
 const ChatMessage = ({ role, content }: ChatMessageProps) => {
 	const messageClass =
 		role === "human"
-			? "bg-blue-500 text-white"
+			? styles.human
 			: role === "ai"
-				? "bg-green-500 text-white"
-				: "bg-gray-300 text-gray-700";
+				? styles.ai
+				: styles.placeholder;
 
 	return (
-		<div className={`p-2 rounded-lg ${messageClass} mb-2`}>
+		<div className={messageClass}>
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				rehypePlugins={[[rehypeSanitize, schema], rehypeHighlight]}
