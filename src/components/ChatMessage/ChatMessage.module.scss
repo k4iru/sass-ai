@@ -2,10 +2,13 @@
 
 :root {
   --chatmessage-font-color: var(--color-black);
+  --chatmessage-bg-color: var(--color-white);
+  --chatmessage-border-color: var(--color-brand);
 }
 
 :global(.dark) {
   --chatmessage-font-color: var(--color-white);
+  --chatmessage-bg-color: var(--color-gray-dark);
 }
 
 .ai {
@@ -15,7 +18,53 @@
 }
 
 .human {
-  border: 1px solid var(--color-white);
+  position: relative;
+  background: var(--chatmessage-bg-color);
+  color: var(--chatmessage-font-color);
+  padding: var(--spacing-md);
+  border-radius: 4px;
+  margin: 1rem 1rem 0 auto;
+  min-width: 100px;
+  max-width: 60%;
+  width: fit-content;
+  box-shadow: rgba(0, 0, 0, 0.5) 0 3px 5px -3px;
+  border: 1px solid var(--chatmessage-border-color); // darker green border
+
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 20px 20px 0;
+    border-color: transparent var(--chatmessage-bg-color) transparent
+      transparent;
+    z-index: 1;
+  }
+
+  &:before {
+    content: "";
+    position: absolute;
+    bottom: -23px; // slightly lower for the border
+    right: 19px; // slightly offset to center behind
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 23px 23px 0;
+    border-color: transparent var(--chatmessage-border-color) transparent
+      transparent;
+    z-index: 0;
+  }
+}
+
+:global(.dark) .human {
+  border: none;
+
+  &:before {
+    content: none;
+  }
 }
 
 .placeholder {
