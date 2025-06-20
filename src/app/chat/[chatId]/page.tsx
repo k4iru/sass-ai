@@ -4,6 +4,8 @@ import { useChat } from "@/context/ChatContext";
 import { useEffect } from "react";
 import { use } from "react";
 import { useAuth } from "@/context/AuthContext";
+import ChatMessage from "@/components/ChatMessage/ChatMessage";
+import styles from "./chatid.module.scss";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -58,9 +60,11 @@ const ChatPage = ({ params }: Props) => {
 
 	return (
 		<>
-			<ul>
+			<ul className={styles.messageList}>
 				{messages.map((msg, idx) => (
-					<li key={msg.id}>{msg.content}</li>
+					<li key={msg.id}>
+						<ChatMessage role={msg.role} content={msg.content} />
+					</li>
 				))}
 			</ul>
 		</>

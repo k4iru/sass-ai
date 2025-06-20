@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
 import type { Message } from "@/types/types";
 import { askQuestion } from "@/actions/askQuestion";
-import ChatMessage from "@/components/ChatMessage";
+import ChatMessage from "@/components/ChatMessage/ChatMessage";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
