@@ -98,7 +98,7 @@ export const Sidebar = () => {
 				</div>
 				{chats && (
 					<>
-						<span className={styles.chatsTitle}>Chats</span>
+						<span className={styles.chatsTitle}>Recent</span>
 						<ul className={styles.chatList}>
 							{chats.map((chat) => (
 								<ChatListItem
