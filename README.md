@@ -33,3 +33,4 @@ pm2 to auto start
 ## auth
 * rework auth logic so that users aren't logged out after 15 minutes of no activity
 * on login userid isn't defined until refresh
+* add salt
