@@ -2,17 +2,31 @@
 
 :root {
   --chatlist-font-color: var(--color-black);
+  --chatlist-bg-color: var(--color-white);
 }
 
 :global(.dark) {
   --chatlist-font-color: var(--color-white);
+  --chatlist-bg-color: var(--color-black);
 }
 
 .messageList {
-  padding: 0 5rem;
+  padding: 2rem 5rem;
+  width: 100%;
 
   li {
     list-style: none;
     padding: 1rem 0;
   }
+}
+
+.overlay {
+  position: sticky;
+  bottom: 0;
+  min-height: 2rem;
+  width: 100%;
+  background: linear-gradient(to top, var(--chatlist-bg-color), transparent);
+  pointer-events: none;
+  z-index: 1;
+  transition: background 0.3s ease;
 }

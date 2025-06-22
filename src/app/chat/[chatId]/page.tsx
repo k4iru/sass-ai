@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@/context/ChatContext";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { use } from "react";
 import { useAuth } from "@/context/AuthContext";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
@@ -14,6 +14,7 @@ type Props = {
 };
 
 const ChatPage = ({ params }: Props) => {
+	const bottom = useRef<HTMLSpanElement>(null);
 	const chatId = use(params).chatId;
 	const { user } = useAuth(); // Assuming user is provided by ChatContext or AuthContext
 	const {
@@ -23,6 +24,15 @@ const ChatPage = ({ params }: Props) => {
 		initializeMessages,
 		removePlaceholderMessages,
 	} = useChat();
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: need messages as a dependency to update run when new chat added
+	useEffect(() => {
+		if (bottom.current) {
+			bottom.current.scrollIntoView({ behavior: "smooth" });
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [messages]);
 
 	useEffect(() => {
 		console.log("loading chatroom messages");
@@ -66,7 +76,9 @@ const ChatPage = ({ params }: Props) => {
 						<ChatMessage role={msg.role} content={msg.content} />
 					</li>
 				))}
+				<span ref={bottom} />
 			</ul>
+			<div className={styles.overlay} />
 		</>
 	);
 };

@@ -39,7 +39,6 @@ const ChatMessage = ({ role, content }: ChatMessageProps) => {
 			>
 				{content}
 			</ReactMarkdown>
-			{role === "human" ? <div className={styles.leftTriangle} /> : null}
 		</div>
 	);
 };

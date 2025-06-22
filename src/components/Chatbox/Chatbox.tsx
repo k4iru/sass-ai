@@ -55,6 +55,17 @@ export const Chatbox = () => {
 
 			const newChatId = uuidv4();
 
+			const newMessage: Message = {
+				role: "human",
+				chatId: newChatId as string,
+				userId: user.id as string,
+				content: text,
+				createdAt: new Date(),
+			};
+
+			pushMessage(newMessage);
+			router.push(`/chat/${newChatId}`);
+
 			await fetch(`${ApiUrl}/api/chat/create-chatroom`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
@@ -66,18 +77,7 @@ export const Chatbox = () => {
 				}),
 			});
 
-			const newMessage: Message = {
-				role: "human",
-				chatId: newChatId as string,
-				userId: user.id as string,
-				content: text,
-				createdAt: new Date(),
-			};
-
-			pushMessage(newMessage);
-
 			setText(""); // clear the input after sending
-			router.push(`/chat/${newChatId}`); // ✅ this is the right way in client components
 			return;
 
 			// send api request to create a new chat. Also change the URL to include the new chatId
