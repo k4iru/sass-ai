@@ -34,3 +34,7 @@ pm2 to auto start
 * rework auth logic so that users aren't logged out after 15 minutes of no activity
 * on login userid isn't defined until refresh
 * add salt
+
+
+# Lessons
+* uuids even though slightly slower to generate than auto incrementing integers, helps speed things overall for optimistic ui since I don't need to wait for database insert
