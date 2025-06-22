@@ -108,7 +108,11 @@ export function startWebSocketServer(): void {
 					insertMessage(aiMessage);
 
 					if (chatRooms[msg.chatId]?.readyState === WebSocket.OPEN) {
-						chatRooms[msg.chatId].send(JSON.stringify(aiMessage));
+						const aiMessageWithAnimate = {
+							...aiMessage,
+							animate: true,
+						};
+						chatRooms[msg.chatId].send(JSON.stringify(aiMessageWithAnimate));
 					} else {
 						console.warn(`⚠️ WebSocket not open for chatroom ${msg.chatId}`);
 					}

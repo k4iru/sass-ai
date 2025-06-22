@@ -21,9 +21,10 @@ const schema = {
 interface ChatMessageProps {
 	role: "human" | "ai" | "placeholder";
 	content: string;
+	animate?: boolean;
 }
 
-const ChatMessage = ({ role, content }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, animate }: ChatMessageProps) => {
 	const messageClass =
 		role === "human"
 			? styles.human
@@ -31,8 +32,11 @@ const ChatMessage = ({ role, content }: ChatMessageProps) => {
 				? styles.ai
 				: styles.placeholder;
 
+	if (role === "ai" && animate) return <div>test</div>;
+
 	return (
 		<div className={messageClass}>
+			animate {animate !== undefined ? animate.toString() : false.toString()}
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				rehypePlugins={[[rehypeSanitize, schema], rehypeHighlight]}

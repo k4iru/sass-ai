@@ -82,7 +82,11 @@ const ChatPage = ({ params }: Props) => {
 			<ul className={styles.messageList}>
 				{messages.map((msg, idx) => (
 					<li key={msg.id}>
-						<ChatMessage role={msg.role} content={msg.content} />
+						<ChatMessage
+							role={msg.role}
+							content={msg.content}
+							animate={msg.animate}
+						/>
 					</li>
 				))}
 				<span ref={bottom} />
