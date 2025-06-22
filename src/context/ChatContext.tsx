@@ -1,7 +1,7 @@
 // contexts/ChatContext.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createContext, useContext } from "react";
 import { useParams } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
@@ -13,6 +13,8 @@ type ChatContextType = {
 	popMessage: () => void;
 	initializeMessages: (initialMessages: Message[]) => void;
 	removePlaceholderMessages: () => void;
+	skipInitialize: boolean;
+	setSkipInitialize: (val: boolean) => void;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export const useChat = () => {
 };
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
+	const [skipInitialize, setSkipInitialize] = useState(false);
 	const params = useParams();
 	const chatId = typeof params.chatId === "string" ? params.chatId : null;
 
@@ -51,6 +54,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 				popMessage,
 				initializeMessages,
 				removePlaceholderMessages,
+				skipInitialize,
+				setSkipInitialize,
 			}}
 		>
 			{children}

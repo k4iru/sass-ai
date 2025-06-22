@@ -23,6 +23,8 @@ const ChatPage = ({ params }: Props) => {
 		popMessage,
 		initializeMessages,
 		removePlaceholderMessages,
+		skipInitialize,
+		setSkipInitialize,
 	} = useChat();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: need messages as a dependency to update run when new chat added
@@ -65,8 +67,15 @@ const ChatPage = ({ params }: Props) => {
 				console.error("Error fetching messages:", error);
 			}
 		};
+
+		// Control flow prevents infinite loop
+		if (skipInitialize) {
+			setSkipInitialize(false); // clears flag on first run
+			return; // skip fetching
+		}
+
 		fetchMessages();
-	}, [chatId, initializeMessages, user]);
+	}, [chatId, user, initializeMessages, skipInitialize, setSkipInitialize]);
 
 	return (
 		<>

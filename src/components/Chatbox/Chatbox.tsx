@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { FilePlus, ArrowBigRight, ChevronDown } from "lucide-react";
-import { redirect, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useChat } from "@/context/ChatContext";
@@ -14,7 +14,7 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const { pushMessage } = useChat();
+	const { pushMessage, skipInitialize, setSkipInitialize } = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
@@ -49,33 +49,44 @@ export const Chatbox = () => {
 
 		if (!user || !user.id) return;
 
+		const newMessageId = uuidv4();
+
 		// get potential chatId from the URL
 		if (!chatId) {
 			console.log("No chatId found in URL");
 
 			const newChatId = uuidv4();
 
+			const chatObj = {
+				chatId: newChatId,
+				userId: user?.id,
+				model: currModel,
+				title: text.slice(0, 25),
+			};
+
 			const newMessage: Message = {
+				id: newMessageId,
 				role: "human",
 				chatId: newChatId as string,
 				userId: user.id as string,
 				content: text,
 				createdAt: new Date(),
+				firstMessage: true,
 			};
 
-			pushMessage(newMessage);
-			router.push(`/chat/${newChatId}`);
-
-			await fetch(`${ApiUrl}/api/chat/create-chatroom`, {
+			// fire and forget
+			fetch(`${ApiUrl}/api/chat/create-chatroom`, {
 				method: "POST",
 				credentials: "include", // Include cookies in the request
 				body: JSON.stringify({
-					chatId: newChatId,
-					userId: user?.id,
-					model: currModel,
-					title: text.slice(0, 100), // Use the first 50 characters of the message as the title
+					chatObj: chatObj,
+					message: newMessage,
 				}),
 			});
+
+			pushMessage(newMessage);
+			setSkipInitialize(true);
+			router.push(`/chat/${newChatId}`);
 
 			setText(""); // clear the input after sending
 			return;
@@ -87,6 +98,7 @@ export const Chatbox = () => {
 		}
 		console.log(`Sending message to chatId: ${chatId}`);
 		const newMessage: Message = {
+			id: newMessageId,
 			role: "human",
 			chatId: chatId as string,
 			userId: user.id as string,

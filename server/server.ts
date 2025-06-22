@@ -1,9 +1,12 @@
-import { WebSocketServer, type WebSocket } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
 import { insertMessage } from "@/lib/helper";
 import { askQuestion } from "@/lib/langchain";
+import type { Message } from "@/types/types";
+import { v4 as uuidv4 } from "uuid";
+
 import type { Notification } from "pg";
 
 type ChatRooms = {
@@ -79,16 +82,37 @@ export function startWebSocketServer(): void {
 			// on message, send message to postgresql.
 			// then run langchain to process the message
 			try {
+				console.log("trying to insert message");
 				const text = data.toString();
 				const msg = JSON.parse(text);
-				console.log("📬 Parsed message:", msg);
-				insertMessage(msg);
-				console.log("📬 Message inserted into database");
-				console.log("📬 Asking question to LangChain");
-				const { success, message } = await askQuestion(msg);
-				console.log("📬 LangChain response:", { success, message });
+
+				if (!msg.firstMessage) {
+					// not first message is pushed along with chatroom in api call.
+					insertMessage(msg);
+				}
+
+				const { success, reply } = await askQuestion(msg);
 
 				if (success) {
+					// insert ai message
+					const newMessageId = uuidv4();
+					const aiMessage: Message = {
+						id: newMessageId,
+						role: "ai",
+						chatId: msg.chatId,
+						userId: msg.userId,
+						content: reply as string,
+						createdAt: new Date(),
+					};
+
+					insertMessage(aiMessage);
+
+					if (chatRooms[msg.chatId]?.readyState === WebSocket.OPEN) {
+						chatRooms[msg.chatId].send(JSON.stringify(aiMessage));
+					} else {
+						console.warn(`⚠️ WebSocket not open for chatroom ${msg.chatId}`);
+					}
+
 					console.log("✅ Message processed successfully");
 				}
 			} catch (err) {
@@ -104,7 +128,6 @@ export function startWebSocketServer(): void {
 	});
 
 	console.log(`🚀 WebSocket server running on wss://localhost: ${port}`);
-	listenForMessages();
 }
 
 startWebSocketServer();

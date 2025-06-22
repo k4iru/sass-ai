@@ -5,6 +5,7 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const socketRef = useRef<WebSocket | null>(null);
+	const pendingQueueRef = useRef<Message[]>([]);
 
 	useEffect(() => {
 		// skip
@@ -16,8 +17,19 @@ function useWebSocket(url: string | null) {
 		const socket = new WebSocket(url);
 		socketRef.current = socket;
 
+		// on connenct flush all message
+		socket.onopen = () => {
+			for (const msg of pendingQueueRef.current) {
+				socket.send(JSON.stringify(msg));
+			}
+
+			pendingQueueRef.current = [];
+		};
+
 		socket.onmessage = (event) => {
 			const newMessage = JSON.parse(event.data);
+
+			// update ui
 			setMessages((prev) => [...prev, newMessage]);
 		};
 
@@ -35,17 +47,15 @@ function useWebSocket(url: string | null) {
 
 	const pushMessage = (message: Message): void => {
 		// if on specific chatId, then send the message via WebSocket for real-time updates
+		setMessages((prev) => [...prev, message]);
+
 		if (socketRef.current?.readyState === WebSocket.OPEN) {
-			// send via WebSocket
+			console.log("sending through websocket");
 			socketRef.current.send(JSON.stringify(message));
 		} else {
-			fetch(`${ApiUrl}/api/chat/push-message`, {
-				method: "POST",
-				credentials: "include", // Include cookies in the request
-				body: JSON.stringify(message),
-			});
-			// in the case the WebSocket is not open, we can still update the local state
-			console.warn("WebSocket is not open. Cannot push message.");
+			//
+			console.log("websocket not currently open. adding to queue");
+			pendingQueueRef.current.push(message);
 		}
 	};
 

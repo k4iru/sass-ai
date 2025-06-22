@@ -183,7 +183,7 @@ const generateLangchainCompletion = async (
 
 const askQuestion = async (
 	message: Message,
-): Promise<{ success: boolean; message: string | null }> => {
+): Promise<{ success: boolean; reply: string | null }> => {
 	// verify user authentication from cookies
 
 	// generate AI reply
@@ -193,26 +193,10 @@ const askQuestion = async (
 		message.content,
 	);
 
-	if (reply == null) {
-		return { success: false, message: "Error generating reply" };
+	if (reply == null || reply === undefined) {
+		return { success: false, reply: "Error generating reply" };
 	}
-
-	const aiMessage: Message = {
-		role: "ai",
-		chatId: message.chatId,
-		userId: message.userId,
-		content: reply as string,
-		createdAt: new Date(),
-	};
-
-	// insert into db
-	const success = await insertMessage(aiMessage);
-
-	if (!success) {
-		return { success: false, message: "unsuccessful" };
-	}
-
-	return { success: true, message: null }; // return success message
+	return { success: true, reply: reply as string }; // return success message
 };
 
 export { model, generateLangchainCompletion, askQuestion };

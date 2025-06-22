@@ -1,10 +1,11 @@
 export type Message = {
-	id?: number;
+	id: string;
 	role: "human" | "ai" | "placeholder";
 	chatId: string;
 	userId: string;
 	content: string;
 	createdAt: Date;
+	firstMessage?: boolean;
 };
 export type MessageResponse = {
 	success: boolean;

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { validateToken } from "@/lib/jwt";
-import { createChatRoom } from "@/lib/helper";
+import { createChatRoom, insertMessage } from "@/lib/helper";
 
 // TODO move s3client to a separate helper file
 
@@ -8,18 +8,20 @@ export async function POST(req: NextRequest) {
 	// add user authentication as well.
 	try {
 		const body = await req.json();
-		const { userId, chatId, model, title } = body;
+		const { chatObj, message } = body;
 
 		const verified = validateToken(req.cookies.get("accessToken")?.value);
 		if (!verified)
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-		if (!userId || !chatId) {
+		if (!chatObj || !message) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
 				{ status: 400 },
 			);
 		}
+
+		const { userId, chatId, model, title } = chatObj;
 
 		console.log("test");
 		const success = await createChatRoom(userId, chatId, model, title);
@@ -27,6 +29,15 @@ export async function POST(req: NextRequest) {
 		if (!success) {
 			return NextResponse.json(
 				{ error: "Chat room already exists" },
+				{ status: 409 },
+			);
+		}
+
+		const newMessage = await insertMessage(message);
+
+		if (!newMessage) {
+			return NextResponse.json(
+				{ error: "cant insert message" },
 				{ status: 409 },
 			);
 		}

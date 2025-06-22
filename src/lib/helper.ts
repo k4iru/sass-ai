@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, asc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { Chat, Message } from "@/types/types";
 
@@ -54,10 +54,10 @@ export function timeStringToSeconds(input: string): number {
 }
 
 export async function insertMessage(message: Message): Promise<boolean> {
-	// TODO implement this function
 	try {
 		const parsedDate = new Date(message.createdAt);
 		const newMessageRow: typeof schema.messages.$inferInsert = {
+			id: message.id,
 			role: message.role,
 			chatId: message.chatId,
 			userId: message.userId,
@@ -171,7 +171,7 @@ export async function getMessages(
 					eq(schema.messages.userId, userId),
 				),
 			)
-			.orderBy(desc(schema.messages.createdAt));
+			.orderBy(asc(schema.messages.createdAt));
 
 		return messages.map((row) => ({
 			id: row.id,
