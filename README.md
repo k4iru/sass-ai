@@ -35,6 +35,8 @@ pm2 to auto start
 * on login userid isn't defined until refresh
 * add salt
 
+## Tests
+* Implement some test classes
 
 # Lessons
 * uuids even though slightly slower to generate than auto incrementing integers, helps speed things overall for optimistic ui since I don't need to wait for database insert
