@@ -39,7 +39,7 @@ export const chats = pgTable("chats", {
 });
 
 export const messages = pgTable("messages", {
-	id: serial(), // Use integer with autoIncrement
+	id: uuid("id").primaryKey(), // Use integer with autoIncrement
 	role: varchar("role", { enum: ["human", "ai", "placeholder"] }).notNull(),
 	chatId: uuid("chat_id")
 		.notNull()
