@@ -12,10 +12,6 @@ const schema = {
 	...defaultSchema,
 	attributes: {
 		...defaultSchema.attributes,
-		code: [
-			...(defaultSchema.attributes?.code || []),
-			["className"], // enable language-* classes
-		],
 	},
 };
 
@@ -37,10 +33,9 @@ const ChatMessage = ({ role, content, animate }: ChatMessageProps) => {
 
 	return (
 		<div className={messageClass}>
-			animate {animate !== undefined ? animate.toString() : false.toString()}
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
-				rehypePlugins={[[rehypeSanitize, schema], rehypeHighlight]}
+				rehypePlugins={[rehypeHighlight]}
 			>
 				{content}
 			</ReactMarkdown>
