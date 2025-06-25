@@ -15,6 +15,31 @@
   pre {
     padding: 1rem 0;
   }
+
+  ul {
+    list-style: disc;
+    li {
+      list-style: inherit;
+    }
+  }
+
+  ol {
+    list-style: decimal;
+    li {
+      list-style: inherit;
+    }
+  }
+
+  pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+    word-wrap: normal;
+  }
+
+  code {
+    word-break: break-word;
+  }
 }
 
 .human {
