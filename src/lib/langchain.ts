@@ -12,16 +12,13 @@ import {
 } from "@langchain/core/messages";
 import pineconeClient from "./pinecone";
 import { PineconeStore } from "@langchain/pinecone";
-import { PineconeConflictError } from "@pinecone-database/pinecone/dist/errors";
 import type { Index, RecordMetadata } from "@pinecone-database/pinecone";
 import { downloadFileToBuffer } from "./s3";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { getMessages } from "./helper";
-import { chat } from "@pinecone-database/pinecone/dist/assistant/data/chat";
 import type { Message } from "@/types/types";
-import { insertMessage } from "@/lib/helper";
 
 const model = new ChatOpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
