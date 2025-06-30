@@ -1,24 +1,14 @@
-import {
-	timestamp,
-	pgTable,
-	varchar,
-	uuid,
-	integer,
-	serial,
-} from "drizzle-orm/pg-core"; // Add integer import
-import { sql } from "drizzle-orm"; // Import sql from drizzle-orm
-import { title } from "node:process";
-import { model } from "@/lib/langchain";
+import { timestamp, pgTable, varchar, uuid } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
-	id: uuid("id").default(sql`gen_random_uuid()`).primaryKey(), // Use SQL function explicitly
+	id: uuid("id").primaryKey().defaultRandom().notNull(),
 	name: varchar("name", { length: 255 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	password: varchar("password", { length: 255 }).notNull(),
 });
 
 export const refreshTokensTable = pgTable("refresh_tokens", {
-	id: varchar({ length: 255 }).primaryKey().notNull(), // Use SQL function explicitly
+	id: uuid("id").primaryKey().defaultRandom().notNull(),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => usersTable.id), // Foreign key reference
@@ -39,7 +29,7 @@ export const chats = pgTable("chats", {
 });
 
 export const messages = pgTable("messages", {
-	id: uuid("id").primaryKey(), // Use integer with autoIncrement
+	id: uuid("id").primaryKey(),
 	role: varchar("role", { enum: ["human", "ai", "placeholder"] }).notNull(),
 	chatId: uuid("chat_id")
 		.notNull()
@@ -48,5 +38,15 @@ export const messages = pgTable("messages", {
 		.notNull()
 		.references(() => usersTable.id),
 	content: varchar("content").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const apiKeys = pgTable("api_keys", {
+	id: uuid("id").primaryKey().defaultRandom().notNull(),
+	userId: uuid("user_id")
+		.notNull()
+		.references(() => usersTable.id),
+	encryptedKey: varchar("encrypted_key", { length: 255 }).notNull(),
+	provider: varchar("provider", { length: 255 }).notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
