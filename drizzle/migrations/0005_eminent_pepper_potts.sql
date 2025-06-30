@@ -1,0 +1,1 @@
+ALTER TABLE "api_keys" ALTER COLUMN "encrypted_key" SET DATA TYPE varchar(500);

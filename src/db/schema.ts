@@ -46,7 +46,7 @@ export const apiKeys = pgTable("api_keys", {
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => usersTable.id),
-	encryptedKey: varchar("encrypted_key", { length: 255 }).notNull(),
+	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
 	provider: varchar("provider", { length: 255 }).notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
