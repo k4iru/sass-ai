@@ -27,10 +27,39 @@ function useWebSocket(url: string | null) {
 		};
 
 		socket.onmessage = (event) => {
-			const newMessage = JSON.parse(event.data);
+			const data = JSON.parse(event.data);
 
-			// update ui
-			setMessages((prev) => [...prev, newMessage]);
+			console.log(data);
+			// stream aware
+			setMessages((prev) => {
+				const updatedMessages = [...prev];
+				if (data.type === "token") {
+					// copy previous messages
+					const lastMessage = updatedMessages[updatedMessages.length - 1];
+
+					if (lastMessage?.id === data.id) {
+						// Make a new object so React sees a change
+						const updatedStreamingMessage = {
+							...lastMessage,
+							content: lastMessage.content + data.content,
+						};
+						updatedMessages[updatedMessages.length - 1] =
+							updatedStreamingMessage;
+					} else {
+						updatedMessages.push({
+							id: data.id,
+							role: "ai",
+							chatId: data.chatId,
+							userId: data.userId,
+							content: data.content,
+							animate: true,
+							createdAt: new Date(),
+						});
+					}
+				}
+
+				return updatedMessages;
+			});
 		};
 
 		socket.onclose = () => {

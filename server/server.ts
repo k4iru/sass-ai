@@ -5,6 +5,7 @@ import { parse } from "node:url";
 import { insertMessage } from "@/lib/helper";
 // import { askQuestion } from "@/lib/langchain";
 import { askQuestion } from "@/lib/langchain/llmHandler";
+import { getChatModel } from "@/lib/langchain/llmFactory";
 import type { Message } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -92,33 +93,60 @@ export function startWebSocketServer(): void {
 					insertMessage(msg);
 				}
 
-				const { success, reply } = await askQuestion(msg);
+				const chatModel = await getChatModel(
+					msg.userId,
+					msg.provider ? msg.provider : "openai",
+				);
 
-				if (success) {
-					// insert ai message
-					const newMessageId = uuidv4();
-					const aiMessage: Message = {
-						id: newMessageId,
+				if (!chatModel) {
+					console.log("chat model not found");
+					ws.send(JSON.stringify({ error: "chat model not found" }));
+					return;
+				}
+
+				let streamedText = "";
+
+				const AiMessageId = uuidv4();
+				for await (const chunkk of askQuestion(msg, chatModel)) {
+					const token = chunkk.text || "";
+					streamedText += token;
+
+					if (ws.readyState === WebSocket.OPEN) {
+						ws.send(
+							JSON.stringify({
+								id: AiMessageId,
+								role: "ai",
+								chatId: msg.chatId,
+								userId: msg.userId,
+								content: token,
+								type: "token",
+							}),
+						);
+					}
+				}
+
+				// send final messages
+				if (ws.readyState === WebSocket.OPEN) {
+					ws.send(
+						JSON.stringify({
+							id: AiMessageId,
+							role: "ai",
+							chatId: msg.chatId,
+							userId: msg.userId,
+							content: streamedText,
+							type: "done",
+						}),
+					);
+
+					// insert into db
+					insertMessage({
+						id: AiMessageId,
 						role: "ai",
 						chatId: msg.chatId,
 						userId: msg.userId,
-						content: reply as string,
+						content: streamedText,
 						createdAt: new Date(),
-					};
-
-					insertMessage(aiMessage);
-
-					if (chatRooms[msg.chatId]?.readyState === WebSocket.OPEN) {
-						const aiMessageWithAnimate = {
-							...aiMessage,
-							animate: true,
-						};
-						chatRooms[msg.chatId].send(JSON.stringify(aiMessageWithAnimate));
-					} else {
-						console.warn(`⚠️ WebSocket not open for chatroom ${msg.chatId}`);
-					}
-
-					console.log("✅ Message processed successfully");
+					});
 				}
 			} catch (err) {
 				console.error("Error parsing message:", err);

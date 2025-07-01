@@ -85,7 +85,7 @@ const ChatPage = ({ params }: Props) => {
 						<ChatMessage
 							role={msg.role}
 							content={msg.content}
-							animate={msg.animate}
+							type={msg.type}
 						/>
 					</li>
 				))}

@@ -18,10 +18,10 @@ const schema = {
 interface ChatMessageProps {
 	role: "human" | "ai" | "placeholder";
 	content: string;
-	animate?: boolean;
+	type?: string;
 }
 
-const ChatMessage = ({ role, content, animate }: ChatMessageProps) => {
+const ChatMessage = ({ role, content, type }: ChatMessageProps) => {
 	const messageClass =
 		role === "human"
 			? styles.human
@@ -29,18 +29,22 @@ const ChatMessage = ({ role, content, animate }: ChatMessageProps) => {
 				? styles.ai
 				: styles.placeholder;
 
-	if (role === "ai" && animate) return <AnimateContent content={content} />;
+	const renderContent = () => {
+		if (type === "token") {
+			return <pre>{content}</pre>;
+		}
 
-	return (
-		<div className={messageClass}>
+		return (
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm]}
 				rehypePlugins={[rehypeHighlight]}
 			>
 				{content}
 			</ReactMarkdown>
-		</div>
-	);
+		);
+	};
+
+	return <div className={messageClass}>{renderContent()}</div>;
 };
 
 export default ChatMessage;

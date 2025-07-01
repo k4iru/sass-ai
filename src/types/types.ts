@@ -7,6 +7,7 @@ export type Message = {
 	createdAt: Date;
 	firstMessage?: boolean;
 	animate?: boolean;
+	type?: string;
 };
 export type MessageResponse = {
 	success: boolean;
