@@ -8,7 +8,7 @@ export const usersTable = pgTable("users", {
 });
 
 export const refreshTokensTable = pgTable("refresh_tokens", {
-	id: uuid("id").primaryKey().defaultRandom().notNull(),
+	id: varchar({ length: 255 }).primaryKey().notNull(),
 	userId: uuid("user_id")
 		.notNull()
 		.references(() => usersTable.id), // Foreign key reference

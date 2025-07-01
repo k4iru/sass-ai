@@ -3,7 +3,8 @@ import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
 import { insertMessage } from "@/lib/helper";
-import { askQuestion } from "@/lib/langchain";
+// import { askQuestion } from "@/lib/langchain";
+import { askQuestion } from "@/lib/langchain/llmHandler";
 import type { Message } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
 
