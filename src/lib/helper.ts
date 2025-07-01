@@ -76,6 +76,29 @@ export async function insertMessage(message: Message): Promise<boolean> {
 	return true;
 }
 
+export async function getApiKey(
+	userId: string,
+	provider: string,
+): Promise<string | null> {
+	try {
+		const apiKeys = await db
+			.select()
+			.from(schema.apiKeys)
+			.where(
+				and(
+					eq(schema.apiKeys.userId, userId),
+					eq(schema.apiKeys.provider, provider),
+				),
+			);
+
+		if (!apiKeys.length) throw new Error("Can't get apiKey");
+
+		return apiKeys[0].encryptedKey;
+	} catch (error) {
+		return null;
+	}
+}
+
 export async function renameChat(
 	userId: string,
 	chatId: string,
