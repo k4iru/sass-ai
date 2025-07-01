@@ -98,6 +98,8 @@ export function startWebSocketServer(): void {
 					msg.provider ? msg.provider : "openai",
 				);
 
+				console.log("I am model", chatModel);
+
 				if (!chatModel) {
 					console.log("chat model not found");
 					ws.send(JSON.stringify({ error: "chat model not found" }));

@@ -21,8 +21,10 @@ export async function getChatModel(
 	const cacheKey = `${userId}-${provider}`;
 
 	if (chatModelCache.has(cacheKey)) {
+		console.log("cache hit for", provider);
 		return chatModelCache.get(cacheKey) as BaseChatModel;
 	}
+	console.log("not in cache, fetching API key for", provider);
 	const apiKey = await getApiKey(userId, provider);
 	if (apiKey === null) return null;
 	const decryptedKey = decrypt(apiKey);
