@@ -3,7 +3,6 @@ import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
 import { defaultSchema } from "hast-util-sanitize";
-import { AnimateContent } from "@/components/AnimateContent/AnimateContent";
 import styles from "./ChatMessage.module.scss";
 import "highlight.js/styles/atom-one-dark.css"; // or atom-one-light.css
 
