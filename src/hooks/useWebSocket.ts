@@ -29,7 +29,6 @@ function useWebSocket(url: string | null) {
 		socket.onmessage = (event) => {
 			const data = JSON.parse(event.data);
 
-			console.log(data);
 			// stream aware
 			setMessages((prev) => {
 				const updatedMessages = [...prev];
