@@ -5,8 +5,31 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatGroq } from "@langchain/groq";
 import { ChatAnthropic } from "@langchain/anthropic";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 
 type LLMProvider = "openai" | "groq" | "anthropic";
+
+const searchTool = tool(
+	(_) => {
+		// This is a placeholder for the actual implementation
+		return "Cold, with a low of 3℃";
+	},
+	{
+		name: "search",
+		description:
+			"Use to surf the web, fetch current information, check the weather, and retrieve other information.",
+		schema: z.object({
+			query: z.string().describe("The query to use in your search."),
+		}),
+	},
+);
+
+await searchTool.invoke({ query: "What's the weather like?" });
+
+const tools = [searchTool];
+const toolNode = new ToolNode(tools);
 
 const chatModelCache = new LRUCache<string, BaseChatModel>({
 	max: 100,
