@@ -3,12 +3,10 @@ import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
 import { insertMessage } from "@/lib/helper";
-// import { askQuestion } from "@/lib/langchain";
 import { askQuestion } from "@/lib/langchain/llmHandler";
 import { getChatModel } from "@/lib/langchain/llmFactory";
 import type { Message } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
-
 import type { Notification } from "pg";
 
 type ChatRooms = {
@@ -23,39 +21,6 @@ const envFilePath =
 		? ".env.production.local"
 		: ".env.local";
 config({ path: envFilePath });
-
-// Subscribe to PostgreSQL notifications
-async function listenForMessages(): Promise<void> {
-	await client.connect();
-	await client.query("LISTEN new_message");
-
-	// postgres client on notification
-	client.on("notification", (msg: Notification) => {
-		try {
-			if (!msg.payload) {
-				console.error("No payload in notification message");
-				return;
-			}
-			const newMessage = JSON.parse(msg.payload);
-			console.log("📬 New message received:", newMessage);
-
-			// look up chat room dictionary
-			const chatRoom: WebSocket = chatRooms[newMessage.chat_id];
-			if (chatRoom && chatRoom.readyState === chatRoom.OPEN) {
-				chatRoom.send(JSON.stringify(newMessage));
-			}
-		} catch (err) {
-			console.error("Error parsing message payload:", err);
-		}
-	});
-
-	client.on("error", (err: unknown) => {
-		console.error(
-			"PostgreSQL LISTEN error:",
-			err instanceof Error ? err.message : err,
-		);
-	});
-}
 
 // Start WebSocket server
 export function startWebSocketServer(): void {
@@ -107,7 +72,7 @@ export function startWebSocketServer(): void {
 				let streamedText = "";
 
 				const AiMessageId = uuidv4();
-				for await (const chunkk of askQuestion(msg, chatModel)) {
+				for await (const chunkk of askQuestion(msg, chatModel, msg.provider)) {
 					const token = chunkk.text || "";
 					streamedText += token;
 
