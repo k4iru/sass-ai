@@ -30,11 +30,13 @@ pm2 to auto start
 * think of something to use for key prop
 * refactor chatlistitem into separate sub components for maintainability
 * optimistic ui. on new chat push message to list immediately while waiting for reply. don't need to wait until message in db to sync
+* move message push to db until after api response to get exact token size
 
 ## auth
 * rework auth logic so that users aren't logged out after 15 minutes of no activity
 * on login userid isn't defined until refresh
 * add salt
+* fix ability to send messages with expired tokens.
 
 ## Tests
 * Implement some test classes
