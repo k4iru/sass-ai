@@ -5,9 +5,9 @@ export type Message = {
 	userId: string;
 	content: string;
 	createdAt: Date;
-	firstMessage?: boolean;
-	animate?: boolean;
 	type?: string;
+	provider: string;
+	tokens?: number;
 };
 export type MessageResponse = {
 	success: boolean;
