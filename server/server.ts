@@ -1,13 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { client } from "../src/db/index";
 import { config } from "dotenv";
 import { parse } from "node:url";
 import { insertMessage } from "@/lib/helper";
 import { askQuestion } from "@/lib/langchain/llmHandler";
 import { getChatModel } from "@/lib/langchain/llmFactory";
-import type { Message } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
-import type { Notification } from "pg";
 
 type ChatRooms = {
 	[key: string]: WebSocket;
@@ -53,15 +50,8 @@ export function startWebSocketServer(): void {
 				const text = data.toString();
 				const msg = JSON.parse(text);
 
-				if (!msg.firstMessage) {
-					// not first message is pushed along with chatroom in api call.
-					insertMessage(msg);
-				}
-
-				const chatModel = await getChatModel(
-					msg.userId,
-					msg.provider ? msg.provider : "openai",
-				);
+				// TODO Set up other providers later. for now default to OpenAi
+				const chatModel = await getChatModel(msg.userId, "openai");
 
 				if (!chatModel) {
 					console.log("chat model not found");
@@ -72,7 +62,7 @@ export function startWebSocketServer(): void {
 				let streamedText = "";
 
 				const AiMessageId = uuidv4();
-				for await (const chunkk of askQuestion(msg, chatModel, msg.provider)) {
+				for await (const chunkk of askQuestion(msg, chatModel)) {
 					const token = chunkk.text || "";
 					streamedText += token;
 
@@ -102,16 +92,6 @@ export function startWebSocketServer(): void {
 							type: "done",
 						}),
 					);
-
-					// insert into db
-					insertMessage({
-						id: AiMessageId,
-						role: "ai",
-						chatId: msg.chatId,
-						userId: msg.userId,
-						content: streamedText,
-						createdAt: new Date(),
-					});
 				}
 			} catch (err) {
 				console.error("Error parsing message:", err);
