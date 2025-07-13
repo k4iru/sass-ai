@@ -1,5 +1,3 @@
-// goals. chat peristance. store last x messages up to token limit. also store system prompt that summarizes rest of chat. As chat continues. Storre last message until limit. then summarize all messages again.
-
 import type { Message } from "@/types/types";
 import { Annotation } from "@langchain/langgraph";
 import type {
@@ -17,16 +15,13 @@ import {
 	SystemMessage,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
-import { getMessages } from "../helper";
-import { tool } from "@langchain/core/tools";
-import { z } from "zod";
-import { messages } from "@/db/schema";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { getMessages, insertMessage } from "../helper";
 import { StateGraph, END } from "@langchain/langgraph";
 import type { Runnable } from "@langchain/core/runnables";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { LRUCache } from "lru-cache";
 import { get_encoding, type TiktokenEncoding } from "@dqbd/tiktoken";
+import { toolNode, tools } from "./tools";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
 
@@ -43,26 +38,6 @@ const StateAnnotation = Annotation.Root({
 		reducer: (x, y) => x.concat(y),
 	}),
 });
-
-const searchTool = tool(
-	(_) => {
-		// This is a placeholder for the actual implementation
-		return "Cold, with a low of 3℃";
-	},
-	{
-		name: "search",
-		description:
-			"Use to surf the web, fetch current information, check the weather, and retrieve other information.",
-		schema: z.object({
-			query: z.string().describe("The query to use in your search."),
-		}),
-	},
-);
-
-await searchTool.invoke({ query: "What's the weather like?" });
-
-const tools = [searchTool];
-const toolNode = new ToolNode(tools);
 
 const routeMessage = (state: typeof StateAnnotation.State) => {
 	const { messages } = state;
