@@ -32,6 +32,8 @@ function useWebSocket(url: string | null) {
 			// stream aware
 			setMessages((prev) => {
 				const updatedMessages = [...prev];
+
+				// pushes to react client side message list
 				if (data.type === "token") {
 					// copy previous messages
 					const lastMessage = updatedMessages[updatedMessages.length - 1];
@@ -51,7 +53,7 @@ function useWebSocket(url: string | null) {
 							chatId: data.chatId,
 							userId: data.userId,
 							content: data.content,
-							animate: true,
+							provider: data.provider,
 							createdAt: new Date(),
 						});
 					}
