@@ -63,6 +63,8 @@ export async function insertMessage(message: Message): Promise<boolean> {
 			userId: message.userId,
 			content: message.content,
 			createdAt: parsedDate,
+			tokens: message.tokens || 0, // default to 0 if not provided
+			provider: message.provider || "",
 		};
 
 		const result = await db.insert(schema.messages).values(newMessageRow);
@@ -202,6 +204,7 @@ export async function getMessages(
 			chatId: row.chatId,
 			userId: row.userId,
 			content: row.content,
+			provider: row.provider,
 			createdAt: row.createdAt as Date,
 		}));
 	} catch (err) {
