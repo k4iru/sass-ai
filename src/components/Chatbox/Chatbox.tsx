@@ -57,34 +57,17 @@ export const Chatbox = () => {
 
 			const newChatId = uuidv4();
 
-			const chatObj = {
-				chatId: newChatId,
-				userId: user?.id,
-				model: currModel,
-				title: text.slice(0, 25),
-			};
-
 			const newMessage: Message = {
 				id: newMessageId,
 				role: "human",
 				chatId: newChatId as string,
 				userId: user.id as string,
 				content: text,
+				provider: currModel,
 				createdAt: new Date(),
-				firstMessage: true,
 			};
 
-			// fire and forget
-			fetch(`${ApiUrl}/api/chat/create-chatroom`, {
-				method: "POST",
-				credentials: "include", // Include cookies in the request
-				body: JSON.stringify({
-					chatObj: chatObj,
-					message: newMessage,
-				}),
-			});
-
-			pushMessage(newMessage);
+			pushMessage(newMessage); // push to websocket
 			setSkipInitialize(true);
 			router.push(`/chat/${newChatId}`);
 
@@ -104,6 +87,7 @@ export const Chatbox = () => {
 			userId: user.id as string,
 			content: text,
 			createdAt: new Date(),
+			provider: currModel,
 		};
 
 		pushMessage(newMessage);
