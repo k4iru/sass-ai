@@ -1,4 +1,10 @@
-import { timestamp, pgTable, varchar, uuid } from "drizzle-orm/pg-core";
+import {
+	timestamp,
+	pgTable,
+	varchar,
+	uuid,
+	smallint,
+} from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -39,6 +45,8 @@ export const messages = pgTable("messages", {
 		.references(() => usersTable.id),
 	content: varchar("content").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
+	tokens: smallint("tokens").notNull(),
+	provider: varchar("provider", { length: 100 }).notNull(),
 });
 
 export const apiKeys = pgTable("api_keys", {
