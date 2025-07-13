@@ -21,6 +21,7 @@ import type { Runnable } from "@langchain/core/runnables";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { LRUCache } from "lru-cache";
 import { get_encoding, type TiktokenEncoding } from "@dqbd/tiktoken";
+import { MemorySaver } from "@langchain/langgraph";
 import { toolNode, tools } from "./tools";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
@@ -71,6 +72,8 @@ const handleWorkFlow = (
 		BaseChatModelCallOptions
 	>,
 ) => {
+	const checkpointer = new MemorySaver();
+
 	const workflow = new StateGraph(StateAnnotation)
 		.addNode("agent", handleCallModel(llmProvider))
 		.addNode("tools", toolNode)
@@ -78,7 +81,7 @@ const handleWorkFlow = (
 		.addConditionalEdges("agent", routeMessage)
 		.addEdge("tools", "agent");
 
-	const agent = workflow.compile();
+	const agent = workflow.compile({ checkpointer });
 
 	return { agent };
 };
@@ -106,7 +109,7 @@ const askQuestion = async function* (
 	message: Message,
 	chatProvider: BaseChatModel,
 ): AsyncGenerator<AIMessageChunk> {
-	const { role, chatId, userId, content } = message;
+	const { role, chatId, userId, content, provider } = message;
 
 	const boundChatProvider =
 		typeof chatProvider.bindTools === "function"
@@ -150,7 +153,7 @@ const askQuestion = async function* (
 	// can fill rest of token limit with last x messages. as new messages are added. remove the oldest messages and resummarize chat.
 	// if chatCache has the chatId, use that instead of fetching from database.
 
-	// map to BaseMessageLike
+	// convery Message[] to a format that langchain understands
 	const context = messageHistory.map((msg) => {
 		if (msg.role === "human") {
 			return new HumanMessage(msg.content);
@@ -171,28 +174,53 @@ const askQuestion = async function* (
 		{
 			messages: context,
 		},
-		{ streamMode: "messages", configurable: { thread_id: chatId } },
+		{
+			streamMode: "messages",
+			configurable: {
+				thread_id: chatId,
+				stream_options: {
+					include_usage: true,
+				},
+			},
+		},
 	);
 	const chunks = [];
+	//let finalMetaData = null;
+
 	for await (const [chunk, _metadata] of stream) {
 		if (isAIMessageChunk(chunk as AIMessageChunk) && chunk.content.length > 0) {
 			chunks.push(chunk);
-
 			yield chunk as AIMessageChunk;
-		}
-
-		if ((chunk as AIMessageChunk).usage_metadata) {
-			const inputTokens =
-				(chunk as AIMessageChunk).usage_metadata?.input_tokens || 0; // human query
-			const outputTokens =
-				(chunk as AIMessageChunk).usage_metadata?.output_tokens || 0; // ai response
-
-			// create batch to push both to db.
-			// order is important. human message first, then ai message.
 		}
 	}
 
-	console.log(chunks);
+	// if stream is done try and get metadata
+	console.log("Stream done, fetching metadata...");
+	try {
+		const finalState = await agent.getState({
+			configurable: { thread_id: chatId },
+		});
+
+		if (finalState.values?.messages) {
+			const lastMessage =
+				finalState.values.messages[finalState.values.messages.length - 1];
+			console.log("Last message:", lastMessage);
+
+			if (lastMessage.reponse_metadata) {
+				console.log("Response metadata:", lastMessage.reponse_metadata);
+				const previousTotalTokens =
+					messageHistory.length > 0 ? approximateTokens(messageHistory) : 0;
+
+				const currentInputTokens =
+					lastMessage.usage_metadata.input_tokens - previousTotalTokens;
+
+				console.log("Current input tokens:", currentInputTokens);
+				console.log("previousTotalTokens:", previousTotalTokens);
+			}
+		}
+	} catch (error) {
+		console.error("Error fetching metadata:", error);
+	}
 };
 
 export { askQuestion };
