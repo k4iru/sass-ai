@@ -1,45 +1,53 @@
 import type { Message } from "@/types/types";
-import { Annotation } from "@langchain/langgraph";
+import { v4 as uuidv4 } from "uuid";
 import type {
 	BaseChatModel,
 	BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
-import type {
-	AIMessageChunk,
-	BaseMessageLike,
-	BaseMessage,
-} from "@langchain/core/messages";
 import {
 	HumanMessage,
-	AIMessage,
+	type AIMessage,
+	type AIMessageChunk,
+	type BaseMessageLike,
 	SystemMessage,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
-import { getMessages, insertMessage } from "../helper";
-import { StateGraph, END } from "@langchain/langgraph";
+import { getChatContext, getMessages, insertMessage } from "../helper";
+import {
+	StateGraph,
+	START,
+	END,
+	Annotation,
+	MemorySaver,
+} from "@langchain/langgraph";
 import type { Runnable } from "@langchain/core/runnables";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { LRUCache } from "lru-cache";
-import { get_encoding, type TiktokenEncoding } from "@dqbd/tiktoken";
-import { MemorySaver } from "@langchain/langgraph";
 import { toolNode, tools } from "./tools";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
 
 const TOKEN_LIMIT = 8192; // 8k tokens
+const SUMMARY_SIZE = 256;
 
-const chatCache = new LRUCache<string, BaseMessageLike[]>({
+// max 100 chats lasting for 1 hour
+const chatCache = new LRUCache<
+	string,
+	{ messages: BaseMessageLike[]; totalTokens: number }
+>({
 	max: 100,
 	ttl: 1000 * 60 * 60,
 	allowStale: false,
 });
 
+// define state for langgraph
 const StateAnnotation = Annotation.Root({
 	messages: Annotation<BaseMessageLike[]>({
 		reducer: (x, y) => x.concat(y),
 	}),
 });
 
+// message router. if tool call call tool node else END
 const routeMessage = (state: typeof StateAnnotation.State) => {
 	const { messages } = state;
 	const lastMessage = messages[messages.length - 1] as AIMessage;
@@ -50,6 +58,8 @@ const routeMessage = (state: typeof StateAnnotation.State) => {
 	// Otherwise if there is, we continue and call the tools
 	return "tools";
 };
+
+// agent node
 const handleCallModel = (
 	llmProvider: Runnable<
 		BaseLanguageModelInput,
@@ -58,8 +68,6 @@ const handleCallModel = (
 	>,
 ) => {
 	return async (state: typeof StateAnnotation.State) => {
-		// For versions of @langchain/core < 0.2.3, you must call `.stream()`
-		// and aggregate the message from chunks instead of calling `.invoke()`.
 		const { messages } = state;
 		const responseMessage = await llmProvider.invoke(messages);
 		return { messages: [responseMessage] };
@@ -74,34 +82,17 @@ const handleWorkFlow = (
 ) => {
 	const checkpointer = new MemorySaver();
 
+	// orchestration
 	const workflow = new StateGraph(StateAnnotation)
 		.addNode("agent", handleCallModel(llmProvider))
 		.addNode("tools", toolNode)
-		.addEdge("__start__", "agent")
+		.addEdge(START, "agent")
 		.addConditionalEdges("agent", routeMessage)
 		.addEdge("tools", "agent");
 
 	const agent = workflow.compile({ checkpointer });
 
 	return { agent };
-};
-
-// create a function to approximate numbers of tokens. useful for send limits.
-const approximateTokens = (
-	context: Message[],
-	encodingName = "cl100k_base",
-) => {
-	const enc = get_encoding(encodingName as TiktokenEncoding);
-	let tokenCount = 0;
-	for (const message of context) {
-		const tokens = enc.encode(message.content as string);
-		tokenCount += 4;
-		tokenCount += tokens.length;
-		tokenCount += message.role.length;
-		tokenCount += 2;
-	}
-
-	return tokenCount;
 };
 
 //TODO add persistence still to chat
@@ -111,6 +102,7 @@ const askQuestion = async function* (
 ): AsyncGenerator<AIMessageChunk> {
 	const { role, chatId, userId, content, provider } = message;
 
+	// bind the provider to available tools
 	const boundChatProvider =
 		typeof chatProvider.bindTools === "function"
 			? chatProvider.bindTools(tools)
@@ -122,57 +114,26 @@ const askQuestion = async function* (
 
 	const { agent } = handleWorkFlow(boundChatProvider);
 
-	// get messages from database. potentially change this to be more efficient.
-	// get messages up to token limit
-
-	// returns list of Message objects
-	const messageHistory = await getMessages(userId, chatId);
-
 	const chatKey = `${userId}-${chatId}`;
-	const chatContext = chatCache.get(chatKey);
-	let tokenCount = -1;
+	let chatContext = chatCache.get(chatKey); // cache hit
 
 	if (!chatContext) {
-		// fetch from database.
-		// fetch messages up to token limit than summarize it.
-		// if first message approximate first message. else try and grab context from db.
-		if (messageHistory.length === 0) {
-			tokenCount = approximateTokens([message]);
-		} else {
-			tokenCount = approximateTokens(messageHistory);
-		}
-	}
-
-	console.log(tokenCount);
-
-	if (chatCache.has(chatKey)) {
+		chatContext = await getChatContext(
+			userId,
+			chatId,
+			TOKEN_LIMIT,
+			SUMMARY_SIZE,
+		);
+	} else {
 		console.log("Using cached chat context for", chatKey);
 	}
-	// schema for context.
-	// have a system message at the start with instructions plus summary of chat if too many messages / tokens used. System message + summary should be less than 250 tokens.
-	// can fill rest of token limit with last x messages. as new messages are added. remove the oldest messages and resummarize chat.
-	// if chatCache has the chatId, use that instead of fetching from database.
-
-	// convery Message[] to a format that langchain understands
-	const context = messageHistory.map((msg) => {
-		if (msg.role === "human") {
-			return new HumanMessage(msg.content);
-		}
-		if (msg.role === "ai") {
-			return new AIMessage(msg.content);
-		}
-		return new SystemMessage(msg.content);
-	});
 
 	// add question
-	context.push(new HumanMessage(content));
+	chatContext.messages.push(new HumanMessage(content));
 
-	// const output = await app.invoke({ messages: content }, config);
-
-	//const stream = await chatProvider.stream(context, config);
 	const stream = await agent.stream(
 		{
-			messages: context,
+			messages: chatContext.messages,
 		},
 		{
 			streamMode: "messages",
@@ -206,16 +167,42 @@ const askQuestion = async function* (
 				finalState.values.messages[finalState.values.messages.length - 1];
 			console.log("Last message:", lastMessage);
 
-			if (lastMessage.reponse_metadata) {
-				console.log("Response metadata:", lastMessage.reponse_metadata);
-				const previousTotalTokens =
-					messageHistory.length > 0 ? approximateTokens(messageHistory) : 0;
+			if (lastMessage.response_metadata) {
+				// calculate how many tokens in the prompt.çç
 
-				const currentInputTokens =
-					lastMessage.usage_metadata.input_tokens - previousTotalTokens;
+				const promptTokens =
+					chatContext.messages.length === 1
+						? lastMessage.response_metadata.usage.total_tokens -
+							lastMessage.response_metadata.usage.completion_tokens
+						: lastMessage.response_metadata.usage.total_tokens -
+							chatContext.totalTokens -
+							-lastMessage.response_metadata.usage.completion_tokens;
 
-				console.log("Current input tokens:", currentInputTokens);
-				console.log("previousTotalTokens:", previousTotalTokens);
+				console.log("chatcontext: ", chatContext.messages.length);
+
+				console.log("prompt tokens: ", promptTokens);
+				const humanMessageWithTokens = {
+					...message,
+					tokens: promptTokens,
+				};
+
+				const aiMessage: Message = {
+					id: uuidv4(),
+					role: "ai",
+					chatId: chatId,
+					userId: userId,
+					content: chunks.map((c) => c.content).join(""),
+					provider: provider || "",
+					createdAt: new Date(),
+					tokens:
+						lastMessage.response_metadata.usage.completion_tokens -
+						lastMessage.response_metadata.usage.completion_tokens_details
+							.reasoning_tokens,
+				};
+
+				console.log("AI message:", aiMessage);
+
+				insertMessage([humanMessageWithTokens, aiMessage]);
 			}
 		}
 	} catch (error) {

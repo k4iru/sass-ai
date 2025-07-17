@@ -15,6 +15,9 @@ type ChatContextType = {
 	removePlaceholderMessages: () => void;
 	skipInitialize: boolean;
 	setSkipInitialize: (val: boolean) => void;
+	pushInitialMessage: (msg: Message) => void;
+	pendingInitialMessages: Message[];
+	setPendingInitialMessages: (msg: Message[]) => void;
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -27,6 +30,15 @@ export const useChat = () => {
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 	const [skipInitialize, setSkipInitialize] = useState(false);
+	const [pendingInitialMessages, setPendingInitialMessages] = useState<
+		Message[]
+	>([]);
+
+	const pushInitialMessage = (msg: Message) => {
+		setPendingInitialMessages([msg]);
+		setSkipInitialize(true);
+	};
+
 	const params = useParams();
 	const chatId = typeof params.chatId === "string" ? params.chatId : null;
 
@@ -56,6 +68,9 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 				removePlaceholderMessages,
 				skipInitialize,
 				setSkipInitialize,
+				pushInitialMessage,
+				pendingInitialMessages,
+				setPendingInitialMessages,
 			}}
 		>
 			{children}

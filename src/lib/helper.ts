@@ -2,11 +2,19 @@ import { type NextRequest, NextResponse } from "next/server";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { Chat, Message } from "@/types/types";
+import {
+	type BaseMessage,
+	type BaseMessageLike,
+	HumanMessage,
+	AIMessage,
+	SystemMessage,
+} from "@langchain/core/messages";
 
 const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 
 type User = typeof schema.usersTable.$inferSelect;
 type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
+type MessageHistory = typeof schema.messages.$inferSelect;
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
@@ -53,22 +61,29 @@ export function timeStringToSeconds(input: string): number {
 	return value * conversionRates[unit];
 }
 
-export async function insertMessage(message: Message): Promise<boolean> {
+export async function insertMessage(messages: Message[]): Promise<boolean> {
+	if (messages.length === 0) return true;
 	try {
-		const parsedDate = new Date(message.createdAt);
-		const newMessageRow: typeof schema.messages.$inferInsert = {
-			id: message.id,
-			role: message.role,
-			chatId: message.chatId,
-			userId: message.userId,
-			content: message.content,
-			createdAt: parsedDate,
-			tokens: message.tokens || 0, // default to 0 if not provided
-			provider: message.provider || "",
-		};
+		// check if chatroom exists first
+		const chatRoom = await createChatRoom(
+			messages[0].userId,
+			messages[0].chatId,
+			messages[0].provider,
+			messages[0].content.slice(0, 20),
+		);
 
-		const result = await db.insert(schema.messages).values(newMessageRow);
-		if (!result) throw new Error("Error inserting new message into table");
+		const messageRows = messages.map((msg) => ({
+			id: msg.id,
+			role: msg.role,
+			chatId: msg.chatId,
+			userId: msg.userId,
+			content: msg.content,
+			createdAt: new Date(msg.createdAt),
+			tokens: msg.tokens || 0,
+			provider: msg.provider || "",
+		}));
+
+		await db.insert(schema.messages).values(messageRows);
 	} catch (err) {
 		console.log(
 			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
@@ -182,6 +197,72 @@ export async function deleteChat(
 	}
 }
 
+export async function getChatContext(
+	userId: string,
+	chatId: string,
+	tokenLimit: number,
+	summarySize: number,
+): Promise<{
+	messages: BaseMessage[];
+	totalTokens: number;
+}> {
+	try {
+		const allMessages = await db
+			.select()
+			.from(schema.messages)
+			.where(
+				and(
+					eq(schema.messages.chatId, chatId),
+					eq(schema.messages.userId, userId),
+				),
+			)
+			.orderBy(asc(schema.messages.createdAt));
+
+		if (allMessages.length === 0) return { messages: [], totalTokens: 0 }; // empty context
+
+		// First pass: calculate how many recent messages fit in context
+		const contextTokenLimit = tokenLimit - summarySize;
+		let contextTokens = 0;
+		let contextEndIndex = allMessages.length;
+
+		// reverse order for newest messages stored in context without summarizing
+		for (let i = allMessages.length - 1; i >= 0; i--) {
+			const tokens = allMessages[i].tokens || 0;
+			if (contextTokens + tokens > contextTokenLimit) {
+				contextEndIndex = i + 1;
+				break;
+			}
+			contextTokens += tokens;
+		}
+
+		const baseMessages = convertToBaseMessageArray(allMessages);
+		// Split the arrays
+		const summarize = baseMessages.slice(0, contextEndIndex);
+		const context = baseMessages.slice(contextEndIndex);
+
+		return { messages: context, totalTokens: contextTokens };
+	} catch (error) {
+		console.log("error creating context", error);
+		return { messages: [], totalTokens: 0 };
+	}
+}
+
+export function convertToBaseMessageArray(
+	messages: MessageHistory[],
+): BaseMessage[] {
+	const baseMessages = messages.map((msg) => {
+		if (msg.role === "human") {
+			return new HumanMessage(msg.content);
+		}
+		if (msg.role === "ai") {
+			return new AIMessage(msg.content);
+		}
+		return new SystemMessage(msg.content);
+	});
+
+	return baseMessages;
+}
+
 export async function getMessages(
 	userId: string,
 	chatId: string,
@@ -204,7 +285,8 @@ export async function getMessages(
 			chatId: row.chatId,
 			userId: row.userId,
 			content: row.content,
-			provider: row.provider,
+			tokens: row.tokens || 0, // default to 0 if not provided
+			provider: row.provider || "", // default to empty string if not provided
 			createdAt: row.createdAt as Date,
 		}));
 	} catch (err) {

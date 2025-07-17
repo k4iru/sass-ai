@@ -14,7 +14,8 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const { pushMessage, skipInitialize, setSkipInitialize } = useChat();
+	const { pushMessage, skipInitialize, setSkipInitialize, pushInitialMessage } =
+		useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
@@ -67,7 +68,8 @@ export const Chatbox = () => {
 				createdAt: new Date(),
 			};
 
-			pushMessage(newMessage); // push to websocket
+			pushMessage(newMessage);
+			pushInitialMessage(newMessage); // push to websocket
 			setSkipInitialize(true);
 			router.push(`/chat/${newChatId}`);
 

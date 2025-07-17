@@ -25,6 +25,8 @@ const ChatPage = ({ params }: Props) => {
 		removePlaceholderMessages,
 		skipInitialize,
 		setSkipInitialize,
+		pendingInitialMessages,
+		setPendingInitialMessages,
 	} = useChat();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: need messages as a dependency to update run when new chat added
@@ -37,29 +39,23 @@ const ChatPage = ({ params }: Props) => {
 	}, [messages]);
 
 	useEffect(() => {
-		console.log("loading chatroom messages");
+		if (skipInitialize) return; // prevent fetch if already initialized
 
 		const fetchMessages = async () => {
-			console.log("Fetching messages for chatId:", chatId);
-			if (!chatId || !user) {
-				console.warn("No chatId provided, cannot fetch messages.");
-				return;
-			}
+			if (!chatId || !user) return;
 
 			try {
 				const userId = user.id;
 				const response = await fetch(`${ApiUrl}/api/chat/get-messages`, {
 					method: "POST",
-					credentials: "include", // Include cookies in the request
+					credentials: "include",
 					headers: {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({ userId, chatId }),
 				});
 
-				if (!response.ok) {
-					throw new Error("Failed to fetch messages");
-				}
+				if (!response.ok) throw new Error("Failed to fetch messages");
 
 				const data = await response.json();
 				initializeMessages(data);
@@ -68,14 +64,8 @@ const ChatPage = ({ params }: Props) => {
 			}
 		};
 
-		// Control flow prevents infinite loop
-		if (skipInitialize) {
-			setSkipInitialize(false); // clears flag on first run
-			return; // skip fetching
-		}
-
 		fetchMessages();
-	}, [chatId, user, initializeMessages, skipInitialize, setSkipInitialize]);
+	}, [chatId, user, initializeMessages, skipInitialize]);
 
 	return (
 		<>
