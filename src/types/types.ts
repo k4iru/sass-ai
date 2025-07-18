@@ -1,3 +1,6 @@
+import type { BaseMessage } from "@langchain/core/messages";
+import type { ConversationSummaryMemory } from "langchain/memory";
+
 export type Message = {
 	id: string;
 	role: "human" | "ai" | "placeholder";
@@ -9,9 +12,17 @@ export type Message = {
 	provider: string;
 	tokens?: number;
 };
+
 export type MessageResponse = {
 	success: boolean;
 	message: string;
+};
+
+export type ChatContext = {
+	messages: BaseMessage[];
+	totalTokens: number;
+	summary?: string;
+	summaryMemory?: ConversationSummaryMemory;
 };
 
 export type Chat = {

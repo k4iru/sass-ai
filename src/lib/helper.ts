@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { eq, and, desc, asc } from "drizzle-orm";
 import { db, schema } from "@/db";
-import type { Chat, Message } from "@/types/types";
+import type { Chat, ChatContext, Message } from "@/types/types";
 import {
 	type BaseMessage,
 	type BaseMessageLike,
@@ -202,10 +202,7 @@ export async function getChatContext(
 	chatId: string,
 	tokenLimit: number,
 	summarySize: number,
-): Promise<{
-	messages: BaseMessage[];
-	totalTokens: number;
-}> {
+): Promise<ChatContext> {
 	try {
 		const allMessages = await db
 			.select()

@@ -1,4 +1,4 @@
-import type { Message } from "@/types/types";
+import type { ChatContext, Message } from "@/types/types";
 import { v4 as uuidv4 } from "uuid";
 import type {
 	BaseChatModel,
@@ -6,9 +6,10 @@ import type {
 } from "@langchain/core/language_models/chat_models";
 import {
 	HumanMessage,
-	type AIMessage,
+	AIMessage,
 	type AIMessageChunk,
 	type BaseMessageLike,
+	type BaseMessage,
 	SystemMessage,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
@@ -22,6 +23,11 @@ import {
 } from "@langchain/langgraph";
 import type { Runnable } from "@langchain/core/runnables";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
+import { ConversationSummaryMemory } from "langchain/memory";
+import {
+	ChatPromptTemplate,
+	MessagesPlaceholder,
+} from "@langchain/core/prompts";
 import { LRUCache } from "lru-cache";
 import { toolNode, tools } from "./tools";
 
@@ -29,12 +35,10 @@ import { toolNode, tools } from "./tools";
 
 const TOKEN_LIMIT = 8192; // 8k tokens
 const SUMMARY_SIZE = 256;
+const RECENT_MESSAGES = 3; // 3 turns of messages
 
 // max 100 chats lasting for 1 hour
-const chatCache = new LRUCache<
-	string,
-	{ messages: BaseMessageLike[]; totalTokens: number }
->({
+const chatCache = new LRUCache<string, ChatContext>({
 	max: 100,
 	ttl: 1000 * 60 * 60,
 	allowStale: false,
@@ -45,12 +49,30 @@ const StateAnnotation = Annotation.Root({
 	messages: Annotation<BaseMessageLike[]>({
 		reducer: (x, y) => x.concat(y),
 	}),
+	summary: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
+	recent_messages: Annotation<BaseMessage[]>({
+		reducer: (x, y) => y ?? x,
+	}),
+	input: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
 });
 
-// message router. if tool call call tool node else END
+// Create conversation summary memory
+const createSummaryMemory = (llmProvider: BaseChatModel) => {
+	return new ConversationSummaryMemory({
+		llm: llmProvider,
+		returnMessages: true,
+	});
+};
+
+// message router. if tool call, call tool node else END
 const routeMessage = (state: typeof StateAnnotation.State) => {
 	const { messages } = state;
 	const lastMessage = messages[messages.length - 1] as AIMessage;
+
 	// If no tools are called, we can finish (respond to the user)
 	if (!lastMessage?.tool_calls?.length) {
 		return END;
@@ -66,9 +88,27 @@ const handleCallModel = (
 		AIMessageChunk,
 		BaseChatModelCallOptions
 	>,
+	prompt: ChatPromptTemplate,
 ) => {
 	return async (state: typeof StateAnnotation.State) => {
-		const { messages } = state;
+		const { messages, summary, recent_messages, input } = state;
+
+		if (
+			summary !== undefined &&
+			recent_messages !== undefined &&
+			input !== undefined
+		) {
+			const formattedPrompt = await prompt.formatMessages({
+				summary,
+				recent_messages,
+				input,
+			});
+			console.log("formatted prompt: ", formattedPrompt);
+			const responseMessage = await llmProvider.invoke(formattedPrompt);
+			return { messages: [responseMessage] };
+		}
+
+		// fallback if no summary / recent_messages
 		const responseMessage = await llmProvider.invoke(messages);
 		return { messages: [responseMessage] };
 	};
@@ -81,10 +121,11 @@ const handleWorkFlow = (
 	>,
 ) => {
 	const checkpointer = new MemorySaver();
+	const prompt = createChatPrompt();
 
 	// orchestration
 	const workflow = new StateGraph(StateAnnotation)
-		.addNode("agent", handleCallModel(llmProvider))
+		.addNode("agent", handleCallModel(llmProvider, prompt))
 		.addNode("tools", toolNode)
 		.addEdge(START, "agent")
 		.addConditionalEdges("agent", routeMessage)
@@ -93,6 +134,49 @@ const handleWorkFlow = (
 	const agent = workflow.compile({ checkpointer });
 
 	return { agent };
+};
+
+// Create prompt template with summary and recent messages
+const createChatPrompt = () => {
+	return ChatPromptTemplate.fromMessages([
+		[
+			"system",
+			"You are a helpful AI assistant that speaks using a pirates tone. Here's a summary of our previous conversation:\n\n{summary}",
+		],
+		new MessagesPlaceholder("recent_messages"),
+		["human", "{input}"],
+	]);
+};
+
+const prepareMessagesWithSummary = async (
+	messages: BaseMessage[],
+	summaryMemory: ConversationSummaryMemory,
+	currentInput: string,
+): Promise<{ summary: string; recent_messages: BaseMessage[] }> => {
+	if (messages.length <= RECENT_MESSAGES * 2) {
+		return {
+			summary: "No previous conversation to summarize.",
+			recent_messages: messages,
+		};
+	}
+
+	const messagesToSummarize = messages.slice(0, -(RECENT_MESSAGES * 2));
+	const recentMessages = messages.slice(-(RECENT_MESSAGES * 2));
+
+	let summary = "";
+	if (messagesToSummarize.length > 0) {
+		for (const message of messagesToSummarize) {
+			await summaryMemory.saveContext(
+				{ input: message.content },
+				{ output: "" },
+			);
+		}
+		const memoryVariables = await summaryMemory.loadMemoryVariables({});
+		summary =
+			memoryVariables.history || "No previous conversation to summarize.";
+	}
+
+	return { summary, recent_messages: recentMessages };
 };
 
 //TODO add persistence still to chat
@@ -124,16 +208,33 @@ const askQuestion = async function* (
 			TOKEN_LIMIT,
 			SUMMARY_SIZE,
 		);
+
+		// Initialize summary memory for new chat context
+		chatContext.summaryMemory = createSummaryMemory(chatProvider);
 	} else {
 		console.log("Using cached chat context for", chatKey);
 	}
 
-	// add question
+	// Add current question to messages
 	chatContext.messages.push(new HumanMessage(content));
 
+	// enclose this in a try catch later
+	if (!chatContext.summaryMemory)
+		throw new Error("summary memory not initialized");
+
+	const { summary, recent_messages } = await prepareMessagesWithSummary(
+		chatContext.messages,
+		chatContext.summaryMemory,
+		content,
+	);
+
+	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
 		{
-			messages: chatContext.messages,
+			messages: [], // Empty - we use summary/recent_messages instead
+			summary,
+			recent_messages,
+			input: content,
 		},
 		{
 			streamMode: "messages",
@@ -199,6 +300,13 @@ const askQuestion = async function* (
 						lastMessage.response_metadata.usage.completion_tokens_details
 							.reasoning_tokens,
 				};
+
+				chatContext.messages.push(new AIMessage(aiMessage.content));
+				await chatContext.summaryMemory.saveContext(
+					{ input: content },
+					{ output: aiMessage.content },
+				);
+				chatCache.set(chatKey, chatContext);
 
 				console.log("AI message:", aiMessage);
 
