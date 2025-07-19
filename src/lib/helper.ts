@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { Chat, ChatContext, Message } from "@/types/types";
 import {
@@ -15,6 +15,8 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
 type User = typeof schema.usersTable.$inferSelect;
 type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 type MessageHistory = typeof schema.messages.$inferSelect;
+type Summary = typeof schema.summaries.$inferInsert;
+type ChatCounter = typeof schema.chatCounter.$inferInsert;
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
@@ -72,18 +74,35 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 			messages[0].content.slice(0, 20),
 		);
 
-		const messageRows = messages.map((msg) => ({
-			id: msg.id,
-			role: msg.role,
-			chatId: msg.chatId,
-			userId: msg.userId,
-			content: msg.content,
-			createdAt: new Date(msg.createdAt),
-			tokens: msg.tokens || 0,
-			provider: msg.provider || "",
-		}));
+		await db.transaction(async (tx) => {
+			for (const msg of messages) {
+				const [counter] = await tx
+					.update(schema.chatCounter)
+					.set({
+						nextMessageOrder: sql`${schema.chatCounter.nextMessageOrder} + 1`,
+					})
+					.where(eq(schema.chatCounter.chatId, msg.chatId))
+					.returning({ messageOrder: schema.chatCounter.nextMessageOrder });
 
-		await db.insert(schema.messages).values(messageRows);
+				if (!counter) {
+					throw new Error(
+						`chat_counters row not found for chat_id ${msg.chatId}`,
+					);
+				}
+
+				await tx.insert(schema.messages).values({
+					id: msg.id,
+					role: msg.role,
+					chatId: msg.chatId,
+					userId: msg.userId,
+					content: msg.content,
+					createdAt: new Date(msg.createdAt),
+					tokens: msg.tokens || 0,
+					provider: msg.provider || "",
+					messageOrder: counter.messageOrder,
+				});
+			}
+		});
 	} catch (err) {
 		console.log(
 			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
@@ -303,6 +322,45 @@ export async function getAllChats(userId: string): Promise<Chat[]> {
 
 	return chats;
 }
+
+export async function updateSummary(
+	userId: string,
+	chatId: string,
+	summary: string,
+): Promise<boolean> {
+	try {
+		await db
+			.update(schema.summaries)
+			.set({ summary: summary })
+			.where(
+				and(
+					eq(schema.summaries.chatId, chatId),
+					eq(schema.summaries.userId, userId),
+				),
+			);
+	} catch (error) {
+		console.log(error);
+		return false;
+	}
+	return true;
+}
+
+export async function createSummary(
+	userId: string,
+	chatId: string,
+): Promise<boolean> {
+	try {
+		await db.insert(schema.summaries).values({
+			userId: userId,
+			chatId: chatId,
+		});
+	} catch (error) {
+		console.log(error);
+		return false;
+	}
+	return true;
+}
+
 export async function createChatRoom(
 	userId: string,
 	roomName: string,
@@ -321,11 +379,18 @@ export async function createChatRoom(
 	}
 
 	try {
-		const newChatRoom = await db.insert(schema.chats).values({
-			id: roomName,
-			userId: userId,
-			model: model,
-			title: title, // or any other default title
+		await db.transaction(async (tx) => {
+			await tx.insert(schema.chats).values({
+				id: roomName,
+				userId: userId,
+				model: model,
+				title: title, // or any other default title
+			});
+
+			await tx.insert(schema.chatCounter).values({
+				chatId: roomName,
+				nextMessageOrder: 0,
+			});
 		});
 
 		return true;

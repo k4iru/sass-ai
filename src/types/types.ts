@@ -23,6 +23,8 @@ export type ChatContext = {
 	totalTokens: number;
 	summary?: string;
 	summaryMemory?: ConversationSummaryMemory;
+	lastSummaryIndex?: number;
+	cachedSummary?: string;
 };
 
 export type Chat = {

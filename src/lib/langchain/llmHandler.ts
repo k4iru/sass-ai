@@ -37,10 +37,18 @@ const TOKEN_LIMIT = 8192; // 8k tokens
 const SUMMARY_SIZE = 256;
 const RECENT_MESSAGES = 3; // 3 turns of messages
 
+// ${userId}-${chatId}
 // max 100 chats lasting for 1 hour
 const chatCache = new LRUCache<string, ChatContext>({
 	max: 100,
-	ttl: 1000 * 60 * 60,
+	ttl: 1000 * 60 * 60 * 2,
+	allowStale: false,
+});
+
+// ${userId}-${chatId}
+const summaryCache = new LRUCache<string, string>({
+	max: 100,
+	ttl: 1000 * 60 * 60 * 2,
 	allowStale: false,
 });
 
@@ -141,7 +149,7 @@ const createChatPrompt = () => {
 	return ChatPromptTemplate.fromMessages([
 		[
 			"system",
-			"You are a helpful AI assistant that speaks using a pirates tone. Here's a summary of our previous conversation:\n\n{summary}",
+			"You are a helpful AI assistant. Here's a summary of our previous conversation:\n\n{summary}",
 		],
 		new MessagesPlaceholder("recent_messages"),
 		["human", "{input}"],
