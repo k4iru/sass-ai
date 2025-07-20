@@ -1,4 +1,4 @@
-import type { ChatContext, Message } from "@/types/types";
+import type { ChatContext, Message, MessageHistory } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 import type {
 	BaseChatModel,
@@ -6,14 +6,19 @@ import type {
 } from "@langchain/core/language_models/chat_models";
 import {
 	HumanMessage,
-	AIMessage,
+	type AIMessage,
 	type AIMessageChunk,
 	type BaseMessageLike,
 	type BaseMessage,
 	SystemMessage,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
-import { getChatContext, getMessages, insertMessage } from "../helper";
+import {
+	convertToBaseMessageArray,
+	getChatContext,
+	getMessages,
+	insertMessage,
+} from "../helper";
 import {
 	StateGraph,
 	START,
@@ -45,13 +50,6 @@ const chatCache = new LRUCache<string, ChatContext>({
 	allowStale: false,
 });
 
-// ${userId}-${chatId}
-const summaryCache = new LRUCache<string, string>({
-	max: 100,
-	ttl: 1000 * 60 * 60 * 2,
-	allowStale: false,
-});
-
 // define state for langgraph
 const StateAnnotation = Annotation.Root({
 	messages: Annotation<BaseMessageLike[]>({
@@ -67,14 +65,6 @@ const StateAnnotation = Annotation.Root({
 		reducer: (x, y) => y ?? x,
 	}),
 });
-
-// Create conversation summary memory
-const createSummaryMemory = (llmProvider: BaseChatModel) => {
-	return new ConversationSummaryMemory({
-		llm: llmProvider,
-		returnMessages: true,
-	});
-};
 
 // message router. if tool call, call tool node else END
 const routeMessage = (state: typeof StateAnnotation.State) => {
@@ -149,7 +139,7 @@ const createChatPrompt = () => {
 	return ChatPromptTemplate.fromMessages([
 		[
 			"system",
-			"You are a helpful AI assistant. Here's a summary of our previous conversation:\n\n{summary}",
+			"You are a helpful AI assistant. Keep responses under 12,000 characters. Here's a summary of our previous conversation:\n\n{summary}",
 		],
 		new MessagesPlaceholder("recent_messages"),
 		["human", "{input}"],
@@ -157,17 +147,36 @@ const createChatPrompt = () => {
 };
 
 const prepareMessagesWithSummary = async (
-	messages: BaseMessage[],
-	summaryMemory: ConversationSummaryMemory,
+	messages: Message[],
+	currentSummary: string,
+	lastSummaryIndex: number,
 	currentInput: string,
 ): Promise<{ summary: string; recent_messages: BaseMessage[] }> => {
-	if (messages.length <= RECENT_MESSAGES * 2) {
+	const recentMessageLength = messages.length;
+	if (!messages[0].messageOrder) throw new Error("malformed messages");
+	const lastMessageIndex = messages[0].messageOrder;
+
+	// early chat. no need to summarize yet.
+	if (recentMessageLength <= RECENT_MESSAGES * 2 && lastSummaryIndex === 0) {
 		return {
 			summary: "No previous conversation to summarize.",
-			recent_messages: messages,
+			recent_messages: convertToBaseMessageArray(messages as MessageHistory[]),
 		};
 	}
 
+	if (lastMessageIndex < lastSummaryIndex)
+		return {
+			summary: currentSummary,
+			recent_messages: convertToBaseMessageArray(messages as MessageHistory[]),
+		};
+
+	if (lastSummaryIndex === 0) {
+		const summary = summarizeMessages();
+	}
+
+	// if set to no previous converstion to summarize, generate brand new one. else combine.
+
+	// need to summarize.
 	const messagesToSummarize = messages.slice(0, -(RECENT_MESSAGES * 2));
 	const recentMessages = messages.slice(-(RECENT_MESSAGES * 2));
 
@@ -210,36 +219,36 @@ const askQuestion = async function* (
 	let chatContext = chatCache.get(chatKey); // cache hit
 
 	if (!chatContext) {
+		// { messages: context, totalTokens: contextTokens, summary: summary, lastSummaryIndex: lastIndex }
 		chatContext = await getChatContext(
 			userId,
 			chatId,
 			TOKEN_LIMIT,
 			SUMMARY_SIZE,
+			RECENT_MESSAGES,
 		);
-
-		// Initialize summary memory for new chat context
-		chatContext.summaryMemory = createSummaryMemory(chatProvider);
 	} else {
 		console.log("Using cached chat context for", chatKey);
 	}
 
 	// Add current question to messages
-	chatContext.messages.push(new HumanMessage(content));
+	// chatContext.messages.push(new HumanMessage(content));
 
 	// enclose this in a try catch later
-	if (!chatContext.summaryMemory)
+	if (!chatContext.summary || !chatContext.lastSummaryIndex)
 		throw new Error("summary memory not initialized");
 
 	const { summary, recent_messages } = await prepareMessagesWithSummary(
 		chatContext.messages,
-		chatContext.summaryMemory,
+		chatContext.summary,
+		chatContext.lastSummaryIndex,
 		content,
 	);
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
 		{
-			messages: [], // Empty - we use summary/recent_messages instead
+			messages: [], // Empty, keep here for compatibility
 			summary,
 			recent_messages,
 			input: content,
@@ -309,11 +318,7 @@ const askQuestion = async function* (
 							.reasoning_tokens,
 				};
 
-				chatContext.messages.push(new AIMessage(aiMessage.content));
-				await chatContext.summaryMemory.saveContext(
-					{ input: content },
-					{ output: aiMessage.content },
-				);
+				//chatContext.messages.push(new AIMessage(aiMessage.content));
 				chatCache.set(chatKey, chatContext);
 
 				console.log("AI message:", aiMessage);

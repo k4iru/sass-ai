@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import type { Theme } from "@/types/types";
+import type { Theme } from "@/lib/types";
 
 const defaultTheme: Theme = {
 	theme: "light",

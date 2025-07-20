@@ -1,0 +1,1 @@
+ALTER TABLE "summaries" ADD COLUMN "last_index" smallint NOT NULL;

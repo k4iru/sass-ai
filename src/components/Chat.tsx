@@ -13,7 +13,7 @@ import { Loader2Icon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 import { askQuestion } from "@/actions/askQuestion";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
 

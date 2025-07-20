@@ -1,7 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { eq, and, desc, asc, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
-import type { Chat, ChatContext, Message } from "@/types/types";
+import type {
+	Chat,
+	ChatContext,
+	Message,
+	User,
+	RefreshToken,
+	MessageHistory,
+} from "@/lib/types";
 import {
 	type BaseMessage,
 	type BaseMessageLike,
@@ -9,14 +16,7 @@ import {
 	AIMessage,
 	SystemMessage,
 } from "@langchain/core/messages";
-
-const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || "7d";
-
-type User = typeof schema.usersTable.$inferSelect;
-type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
-type MessageHistory = typeof schema.messages.$inferSelect;
-type Summary = typeof schema.summaries.$inferInsert;
-type ChatCounter = typeof schema.chatCounter.$inferInsert;
+import { REFRESH_TOKEN_EXPIRY } from "@/lib/constants";
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
@@ -67,7 +67,7 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 	if (messages.length === 0) return true;
 	try {
 		// check if chatroom exists first
-		const chatRoom = await createChatRoom(
+		await createChatRoom(
 			messages[0].userId,
 			messages[0].chatId,
 			messages[0].provider,
@@ -216,14 +216,42 @@ export async function deleteChat(
 	}
 }
 
+export async function getSummary(
+	userId: string,
+	chatId: string,
+): Promise<{ summary: string; lastIndex: number }> {
+	try {
+		const summaryObj = await db
+			.select()
+			.from(schema.summaries)
+			.where(
+				and(
+					eq(schema.messages.chatId, chatId),
+					eq(schema.messages.userId, userId),
+				),
+			);
+
+		return {
+			summary: summaryObj[0].summary,
+			lastIndex: summaryObj[0].lastIndex,
+		};
+	} catch (error) {
+		console.log(error);
+		return { summary: "", lastIndex: -1 };
+	}
+}
+
 export async function getChatContext(
 	userId: string,
 	chatId: string,
 	tokenLimit: number,
 	summarySize: number,
+	message_turns: number,
 ): Promise<ChatContext> {
 	try {
-		const allMessages = await db
+		const { summary, lastIndex } = await getSummary(userId, chatId);
+		// grab up to message turn
+		let recentMessages = await db
 			.select()
 			.from(schema.messages)
 			.where(
@@ -232,18 +260,28 @@ export async function getChatContext(
 					eq(schema.messages.userId, userId),
 				),
 			)
-			.orderBy(asc(schema.messages.createdAt));
+			.orderBy(desc(schema.messages.createdAt))
+			.limit(message_turns * 2);
 
-		if (allMessages.length === 0) return { messages: [], totalTokens: 0 }; // empty context
+		recentMessages = recentMessages.reverse();
+
+		// first message in chat
+		if (recentMessages.length === 0)
+			return {
+				messages: [],
+				totalTokens: 0,
+				summary: summary,
+				lastSummaryIndex: lastIndex,
+			}; // empty context
 
 		// First pass: calculate how many recent messages fit in context
 		const contextTokenLimit = tokenLimit - summarySize;
 		let contextTokens = 0;
-		let contextEndIndex = allMessages.length;
+		let contextEndIndex = recentMessages.length;
 
 		// reverse order for newest messages stored in context without summarizing
-		for (let i = allMessages.length - 1; i >= 0; i--) {
-			const tokens = allMessages[i].tokens || 0;
+		for (let i = recentMessages.length - 1; i >= 0; i--) {
+			const tokens = recentMessages[i].tokens || 0;
 			if (contextTokens + tokens > contextTokenLimit) {
 				contextEndIndex = i + 1;
 				break;
@@ -251,15 +289,17 @@ export async function getChatContext(
 			contextTokens += tokens;
 		}
 
-		const baseMessages = convertToBaseMessageArray(allMessages);
-		// Split the arrays
-		const summarize = baseMessages.slice(0, contextEndIndex);
-		const context = baseMessages.slice(contextEndIndex);
+		const context = recentMessages.slice(contextEndIndex);
 
-		return { messages: context, totalTokens: contextTokens };
+		return {
+			messages: context,
+			totalTokens: contextTokens,
+			summary: summary,
+			lastSummaryIndex: lastIndex,
+		};
 	} catch (error) {
 		console.log("error creating context", error);
-		return { messages: [], totalTokens: 0 };
+		return { messages: [], totalTokens: 0, summary: "", lastSummaryIndex: -1 };
 	}
 }
 
@@ -353,6 +393,7 @@ export async function createSummary(
 		await db.insert(schema.summaries).values({
 			userId: userId,
 			chatId: chatId,
+			lastIndex: 0,
 		});
 	} catch (error) {
 		console.log(error);

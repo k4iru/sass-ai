@@ -1,7 +1,7 @@
 "use server";
 
 import { authenticate } from "@/lib/auth";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 import { insertMessage } from "@/lib/helper";
 import { generateLangchainCompletion } from "@/lib/langchain";
 

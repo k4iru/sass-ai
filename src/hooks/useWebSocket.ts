@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, useRef } from "react";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function useWebSocket(url: string | null) {

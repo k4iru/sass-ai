@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { v4 as uuidv4 } from "uuid";
 import { useChat } from "@/context/ChatContext";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 import { useRouter } from "next/navigation"; // App Router
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";

@@ -1,5 +1,11 @@
 import type { BaseMessage } from "@langchain/core/messages";
-import type { ConversationSummaryMemory } from "langchain/memory";
+import type { schema } from "@/db";
+
+export type User = typeof schema.usersTable.$inferSelect;
+export type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
+export type MessageHistory = typeof schema.messages.$inferSelect;
+export type Summary = typeof schema.summaries.$inferInsert;
+export type ChatCounter = typeof schema.chatCounter.$inferInsert;
 
 export type Message = {
 	id: string;
@@ -11,6 +17,7 @@ export type Message = {
 	type?: string;
 	provider: string;
 	tokens?: number;
+	messageOrder?: number;
 };
 
 export type MessageResponse = {
@@ -19,12 +26,10 @@ export type MessageResponse = {
 };
 
 export type ChatContext = {
-	messages: BaseMessage[];
+	messages: Message[];
 	totalTokens: number;
 	summary?: string;
-	summaryMemory?: ConversationSummaryMemory;
 	lastSummaryIndex?: number;
-	cachedSummary?: string;
 };
 
 export type Chat = {

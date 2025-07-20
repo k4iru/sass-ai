@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { createContext, useContext } from "react";
 import { useParams } from "next/navigation";
 import useWebSocket from "@/hooks/useWebSocket";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 
 type ChatContextType = {
 	messages: Message[];

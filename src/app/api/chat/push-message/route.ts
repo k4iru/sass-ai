@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/with-auth";
-import type { Message } from "@/types/types";
+import type { Message } from "@/lib/types";
 import { insertMessage } from "@/lib/helper";
 import { askQuestion } from "@/lib/langchain";
 

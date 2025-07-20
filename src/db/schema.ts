@@ -44,7 +44,7 @@ export const messages = pgTable("messages", {
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
 	content: varchar("content").notNull(),
-	createdAt: timestamp("created_at").defaultNow(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
 	tokens: smallint("tokens").notNull(),
 	provider: varchar("provider", { length: 100 }).notNull(),
 	messageOrder: smallint("message_order").notNull(),
@@ -69,6 +69,7 @@ export const summaries = pgTable("summaries", {
 	summary: varchar("summary")
 		.notNull()
 		.default("No previous conversation to summarize."),
+	lastIndex: smallint("last_index").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
 
