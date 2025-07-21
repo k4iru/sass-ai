@@ -5,7 +5,6 @@ export type User = typeof schema.usersTable.$inferSelect;
 export type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 export type MessageHistory = typeof schema.messages.$inferSelect;
 export type Summary = typeof schema.summaries.$inferInsert;
-export type ChatCounter = typeof schema.chatCounter.$inferInsert;
 
 export type Message = {
 	id: string;
@@ -17,7 +16,7 @@ export type Message = {
 	type?: string;
 	provider: string;
 	tokens?: number;
-	messageOrder?: number;
+	messageOrder: number;
 };
 
 export type MessageResponse = {
@@ -26,10 +25,12 @@ export type MessageResponse = {
 };
 
 export type ChatContext = {
+	userId: string;
+	chatId: string;
 	messages: Message[];
 	totalTokens: number;
-	summary?: string;
-	lastSummaryIndex?: number;
+	summary: string;
+	lastSummaryIndex: number;
 };
 
 export type Chat = {
