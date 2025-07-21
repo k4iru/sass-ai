@@ -8,7 +8,7 @@ import type { BaseChatModel } from "@langchain/core/language_models/chat_models"
 
 type LLMProvider = "openai" | "groq" | "anthropic";
 
-const chatModelCache = new LRUCache<string, BaseChatModel>({
+const chatModelCache = new LRUCache<string, [BaseChatModel, BaseChatModel]>({
 	max: 100,
 	ttl: 1000 * 60 * 15,
 	allowStale: false,
@@ -17,19 +17,24 @@ const chatModelCache = new LRUCache<string, BaseChatModel>({
 export async function getChatModel(
 	userId: string,
 	provider: LLMProvider,
-): Promise<BaseChatModel | null> {
+): Promise<[BaseChatModel, BaseChatModel] | null> {
 	const cacheKey = `${userId}-${provider}`;
 
-	if (chatModelCache.has(cacheKey)) {
+	const cached = chatModelCache.get(cacheKey);
+	if (cached) {
 		console.log("cache hit for", provider);
-		return chatModelCache.get(cacheKey) as BaseChatModel;
+		return cached;
 	}
+
 	console.log("not in cache, fetching API key for", provider);
 	const apiKey = await getApiKey(userId, provider);
+
+	// invalid api key
 	if (apiKey === null) return null;
 	const decryptedKey = decrypt(apiKey);
 
 	let model: BaseChatModel;
+	let summaryProvider: BaseChatModel;
 
 	switch (provider) {
 		case "openai":
@@ -37,11 +42,21 @@ export async function getChatModel(
 				model: "o4-mini-2025-04-16",
 				apiKey: decryptedKey,
 			});
+			summaryProvider = new ChatOpenAI({
+				model: "o4-mini-2025-04-16",
+				apiKey: decryptedKey,
+				streaming: false,
+			});
 			break;
 		case "groq":
 			model = new ChatGroq({
 				model: "mixtral-8x7b-32768",
 				apiKey: decryptedKey,
+			});
+			summaryProvider = new ChatGroq({
+				model: "mixtral-8x7b-32768",
+				apiKey: decryptedKey,
+				streaming: false,
 			});
 			break;
 		case "anthropic":
@@ -49,10 +64,15 @@ export async function getChatModel(
 				model: "anthropic",
 				apiKey: decryptedKey,
 			});
+			summaryProvider = new ChatAnthropic({
+				model: "anthropic",
+				apiKey: decryptedKey,
+				streaming: false,
+			});
 			break;
 		default:
 			return null;
 	}
-	chatModelCache.set(cacheKey, model);
-	return model;
+	chatModelCache.set(cacheKey, [model, summaryProvider]);
+	return [model, summaryProvider];
 }

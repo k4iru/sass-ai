@@ -1,7 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { config } from "dotenv";
 import { parse } from "node:url";
-import { insertMessage } from "@/lib/helper";
 import { askQuestion } from "@/lib/langchain/llmHandler";
 import { getChatModel } from "@/lib/langchain/llmFactory";
 import { v4 as uuidv4 } from "uuid";
@@ -51,18 +50,19 @@ export function startWebSocketServer(): void {
 				const msg = JSON.parse(text);
 
 				// TODO Set up other providers later. for now default to OpenAi
-				const chatModel = await getChatModel(msg.userId, "openai");
+				const cache = await getChatModel(msg.userId, "openai");
 
-				if (!chatModel) {
+				if (cache === null) {
 					console.log("chat model not found");
 					ws.send(JSON.stringify({ error: "chat model not found" }));
 					return;
 				}
+				const [model, summaryProvider] = cache;
 
 				let streamedText = "";
 
 				const AiMessageId = uuidv4();
-				for await (const chunkk of askQuestion(msg, chatModel)) {
+				for await (const chunkk of askQuestion(msg, model, summaryProvider)) {
 					const token = chunkk.text || "";
 					streamedText += token;
 
