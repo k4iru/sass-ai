@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { eq, and, desc, asc, sql } from "drizzle-orm";
+import { eq, and, desc, asc, sql, gte, lte, gt, lt } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type {
 	Chat,
@@ -63,6 +63,38 @@ export function timeStringToSeconds(input: string): number {
 	return value * conversionRates[unit];
 }
 
+export async function getRecentMessages(
+	userId: string,
+	chatId: string,
+	lastSummaryIndex: number,
+	lastMessageIndex: number,
+): Promise<string> {
+	try {
+		const rows = await db
+			.select()
+			.from(schema.messages)
+			.where(
+				and(
+					eq(schema.messages.userId, userId),
+					eq(schema.messages.chatId, chatId),
+					gt(schema.messages.messageOrder, lastSummaryIndex),
+					lt(schema.messages.messageOrder, lastMessageIndex),
+				),
+			)
+			.orderBy(asc(schema.messages.messageOrder));
+
+		const formattedMessages = rows.map((row) => {
+			const role = row.role === "human" ? "User" : "Assistant";
+			return `${role}: ${row.content}`;
+		});
+
+		return formattedMessages.join("\n");
+	} catch (error) {
+		console.log(error);
+		return "";
+	}
+}
+
 export async function insertMessage(messages: Message[]): Promise<boolean> {
 	if (messages.length === 0) return true;
 	try {
@@ -76,20 +108,6 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 
 		await db.transaction(async (tx) => {
 			for (const msg of messages) {
-				const [counter] = await tx
-					.update(schema.chatCounter)
-					.set({
-						nextMessageOrder: sql`${schema.chatCounter.nextMessageOrder} + 1`,
-					})
-					.where(eq(schema.chatCounter.chatId, msg.chatId))
-					.returning({ messageOrder: schema.chatCounter.nextMessageOrder });
-
-				if (!counter) {
-					throw new Error(
-						`chat_counters row not found for chat_id ${msg.chatId}`,
-					);
-				}
-
 				await tx.insert(schema.messages).values({
 					id: msg.id,
 					role: msg.role,
@@ -99,7 +117,7 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 					createdAt: new Date(msg.createdAt),
 					tokens: msg.tokens || 0,
 					provider: msg.provider || "",
-					messageOrder: counter.messageOrder,
+					messageOrder: msg.messageOrder,
 				});
 			}
 		});
@@ -226,8 +244,8 @@ export async function getSummary(
 			.from(schema.summaries)
 			.where(
 				and(
-					eq(schema.messages.chatId, chatId),
-					eq(schema.messages.userId, userId),
+					eq(schema.summaries.chatId, chatId),
+					eq(schema.summaries.userId, userId),
 				),
 			);
 
@@ -242,22 +260,32 @@ export async function getSummary(
 }
 
 export async function getChatContext(
-	userId: string,
-	chatId: string,
+	message: Message,
 	tokenLimit: number,
 	summarySize: number,
 	message_turns: number,
 ): Promise<ChatContext> {
 	try {
-		const { summary, lastIndex } = await getSummary(userId, chatId);
+		// create chatroom if doesnt exist
+		await createChatRoom(
+			message.userId,
+			message.chatId,
+			message.provider,
+			message.content.slice(0, 20),
+		);
+		const { summary, lastIndex } = await getSummary(
+			message.userId,
+			message.chatId,
+		);
+
 		// grab up to message turn
 		let recentMessages = await db
 			.select()
 			.from(schema.messages)
 			.where(
 				and(
-					eq(schema.messages.chatId, chatId),
-					eq(schema.messages.userId, userId),
+					eq(schema.messages.chatId, message.chatId),
+					eq(schema.messages.userId, message.userId),
 				),
 			)
 			.orderBy(desc(schema.messages.createdAt))
@@ -268,6 +296,8 @@ export async function getChatContext(
 		// first message in chat
 		if (recentMessages.length === 0)
 			return {
+				userId: message.userId,
+				chatId: message.chatId,
 				messages: [],
 				totalTokens: 0,
 				summary: summary,
@@ -282,16 +312,18 @@ export async function getChatContext(
 		// reverse order for newest messages stored in context without summarizing
 		for (let i = recentMessages.length - 1; i >= 0; i--) {
 			const tokens = recentMessages[i].tokens || 0;
-			if (contextTokens + tokens > contextTokenLimit) {
+			if (contextTokens + tokens < contextTokenLimit) {
 				contextEndIndex = i + 1;
 				break;
 			}
 			contextTokens += tokens;
 		}
 
-		const context = recentMessages.slice(contextEndIndex);
+		const context = recentMessages.slice(0, contextEndIndex);
 
 		return {
+			userId: message.userId,
+			chatId: message.chatId,
 			messages: context,
 			totalTokens: contextTokens,
 			summary: summary,
@@ -299,7 +331,14 @@ export async function getChatContext(
 		};
 	} catch (error) {
 		console.log("error creating context", error);
-		return { messages: [], totalTokens: 0, summary: "", lastSummaryIndex: -1 };
+		return {
+			userId: message.userId,
+			chatId: message.chatId,
+			messages: [],
+			totalTokens: 0,
+			summary: "",
+			lastSummaryIndex: -1,
+		};
 	}
 }
 
@@ -344,6 +383,7 @@ export async function getMessages(
 			tokens: row.tokens || 0, // default to 0 if not provided
 			provider: row.provider || "", // default to empty string if not provided
 			createdAt: row.createdAt as Date,
+			messageOrder: row.messageOrder,
 		}));
 	} catch (err) {
 		console.error(
@@ -367,11 +407,12 @@ export async function updateSummary(
 	userId: string,
 	chatId: string,
 	summary: string,
+	lastSummaryIndex: number,
 ): Promise<boolean> {
 	try {
 		await db
 			.update(schema.summaries)
-			.set({ summary: summary })
+			.set({ summary: summary, lastIndex: lastSummaryIndex - 1 })
 			.where(
 				and(
 					eq(schema.summaries.chatId, chatId),
@@ -428,9 +469,10 @@ export async function createChatRoom(
 				title: title, // or any other default title
 			});
 
-			await tx.insert(schema.chatCounter).values({
+			await tx.insert(schema.summaries).values({
+				userId: userId,
 				chatId: roomName,
-				nextMessageOrder: 0,
+				lastIndex: 0,
 			});
 		});
 
