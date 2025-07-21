@@ -14,8 +14,13 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const { pushMessage, skipInitialize, setSkipInitialize, pushInitialMessage } =
-		useChat();
+	const {
+		pushMessage,
+		skipInitialize,
+		setSkipInitialize,
+		pushInitialMessage,
+		messages,
+	} = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
@@ -66,6 +71,7 @@ export const Chatbox = () => {
 				content: text,
 				provider: currModel,
 				createdAt: new Date(),
+				messageOrder: messages.length + 1,
 			};
 
 			pushMessage(newMessage);
@@ -82,6 +88,7 @@ export const Chatbox = () => {
 			// fetch `/api/auth/create-chatroom` with the userId and chatId
 		}
 		console.log(`Sending message to chatId: ${chatId}`);
+
 		const newMessage: Message = {
 			id: newMessageId,
 			role: "human",
@@ -90,6 +97,7 @@ export const Chatbox = () => {
 			content: text,
 			createdAt: new Date(),
 			provider: currModel,
+			messageOrder: messages.length + 1,
 		};
 
 		pushMessage(newMessage);

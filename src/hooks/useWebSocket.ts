@@ -55,6 +55,7 @@ function useWebSocket(url: string | null) {
 							content: data.content,
 							provider: data.provider,
 							createdAt: new Date(),
+							messageOrder: data.messageOrder,
 						});
 					}
 				}
