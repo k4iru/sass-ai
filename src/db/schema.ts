@@ -50,14 +50,6 @@ export const messages = pgTable("messages", {
 	messageOrder: smallint("message_order").notNull(),
 });
 
-export const chatCounter = pgTable("chat_counter", {
-	id: uuid("id").primaryKey().defaultRandom().notNull(),
-	chatId: uuid("chat_id")
-		.notNull()
-		.references(() => chats.id, { onDelete: "cascade" }),
-	nextMessageOrder: smallint("next_message_order").notNull(),
-});
-
 export const summaries = pgTable("summaries", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
 	chatId: uuid("chat_id")
