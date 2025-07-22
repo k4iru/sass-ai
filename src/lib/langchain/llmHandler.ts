@@ -39,8 +39,7 @@ import { updateSummaryPrompt, createChatPrompt } from "./prompts";
 
 const TOKEN_LIMIT = 8192; // 8k tokens
 const SUMMARY_SIZE = 256;
-const RECENT_MESSAGES = 3; // 3 turns of messages
-
+const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
 // ${userId}-${chatId}
 // max 100 chats lasting for 1 hour
 const chatCache = new LRUCache<string, ChatContext>({
@@ -187,12 +186,7 @@ const askQuestion = async function* (
 
 	if (!chatContext) {
 		// { messages: context, totalTokens: contextTokens, summary: summary, lastSummaryIndex: lastIndex }
-		chatContext = await getChatContext(
-			message,
-			TOKEN_LIMIT,
-			SUMMARY_SIZE,
-			RECENT_MESSAGES,
-		);
+		chatContext = await getChatContext(message);
 
 		console.log(chatContext);
 	} else {

@@ -259,12 +259,7 @@ export async function getSummary(
 	}
 }
 
-export async function getChatContext(
-	message: Message,
-	tokenLimit: number,
-	summarySize: number,
-	message_turns: number,
-): Promise<ChatContext> {
+export async function getChatContext(message: Message): Promise<ChatContext> {
 	try {
 		// create chatroom if doesnt exist
 		await createChatRoom(
@@ -279,19 +274,17 @@ export async function getChatContext(
 		);
 
 		// grab up to message turn
-		let recentMessages = await db
+		const recentMessages = await db
 			.select()
 			.from(schema.messages)
 			.where(
 				and(
 					eq(schema.messages.chatId, message.chatId),
 					eq(schema.messages.userId, message.userId),
+					gt(schema.messages.messageOrder, lastIndex),
 				),
 			)
-			.orderBy(desc(schema.messages.createdAt))
-			.limit(message_turns * 2);
-
-		recentMessages = recentMessages.reverse();
+			.orderBy(asc(schema.messages.messageOrder));
 
 		// first message in chat
 		if (recentMessages.length === 0)
@@ -302,30 +295,18 @@ export async function getChatContext(
 				approximateTotalTokens: 0,
 				summary: summary,
 				lastSummaryIndex: lastIndex,
-			}; // empty context
+			};
 
-		// First pass: calculate how many recent messages fit in context
-		const contextTokenLimit = tokenLimit - summarySize;
-		let contextTokens = 0;
-		let contextEndIndex = recentMessages.length;
-
-		// reverse order for newest messages stored in context without summarizing
-		for (let i = recentMessages.length - 1; i >= 0; i--) {
-			const tokens = recentMessages[i].tokens || 0;
-			if (contextTokens + tokens < contextTokenLimit) {
-				contextEndIndex = i + 1;
-				break;
-			}
-			contextTokens += tokens;
-		}
-
-		const context = recentMessages.slice(0, contextEndIndex);
+		const approximateTotalTokens = recentMessages.reduce(
+			(acc, curr) => acc + curr.tokens,
+			0,
+		);
 
 		return {
 			userId: message.userId,
 			chatId: message.chatId,
-			messages: context,
-			approximateTotalTokens: contextTokens,
+			messages: recentMessages,
+			approximateTotalTokens: approximateTotalTokens,
 			summary: summary,
 			lastSummaryIndex: lastIndex,
 		};
