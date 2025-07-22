@@ -299,7 +299,7 @@ export async function getChatContext(
 				userId: message.userId,
 				chatId: message.chatId,
 				messages: [],
-				totalTokens: 0,
+				approximateTotalTokens: 0,
 				summary: summary,
 				lastSummaryIndex: lastIndex,
 			}; // empty context
@@ -325,7 +325,7 @@ export async function getChatContext(
 			userId: message.userId,
 			chatId: message.chatId,
 			messages: context,
-			totalTokens: contextTokens,
+			approximateTotalTokens: contextTokens,
 			summary: summary,
 			lastSummaryIndex: lastIndex,
 		};
@@ -335,7 +335,7 @@ export async function getChatContext(
 			userId: message.userId,
 			chatId: message.chatId,
 			messages: [],
-			totalTokens: 0,
+			approximateTotalTokens: 0,
 			summary: "",
 			lastSummaryIndex: -1,
 		};

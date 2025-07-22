@@ -28,7 +28,7 @@ export type ChatContext = {
 	userId: string;
 	chatId: string;
 	messages: Message[];
-	totalTokens: number;
+	approximateTotalTokens: number;
 	summary: string;
 	lastSummaryIndex: number;
 };

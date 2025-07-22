@@ -199,6 +199,11 @@ const askQuestion = async function* (
 		console.log("Using cached chat context for", chatKey);
 	}
 
+	const calculateApproxTokens = (content: string): number => {
+		const overhead = 12;
+		return content.length / 4 + overhead;
+	};
+
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
 		{
@@ -248,7 +253,7 @@ const askQuestion = async function* (
 						? lastMessage.response_metadata.usage.total_tokens -
 							lastMessage.response_metadata.usage.completion_tokens
 						: lastMessage.response_metadata.usage.total_tokens -
-							chatContext.totalTokens -
+							chatContext.approximateTotalTokens -
 							lastMessage.response_metadata.usage.completion_tokens;
 
 				const humanMessageWithTokens = {
@@ -274,13 +279,25 @@ const askQuestion = async function* (
 
 				chatContext.messages.push(humanMessageWithTokens);
 				chatContext.messages.push(aiMessage);
+				chatContext.approximateTotalTokens +=
+					calculateApproxTokens(humanMessageWithTokens.content) +
+					calculateApproxTokens(aiMessage.content);
+
+				// insert messages
+				insertMessage([humanMessageWithTokens, aiMessage]);
+
+				if (
+					chatContext.approximateTotalTokens > 4096 ||
+					chatContext.messages.length > 8
+				) {
+					// needs summation + message trim
+				}
 
 				// figure out if I should remove messages / summarize
 				if (chatContext.messages.length > 6) {
 					chatContext.messages.shift();
 					chatContext.messages.shift();
 				}
-				insertMessage([humanMessageWithTokens, aiMessage]);
 
 				chatCache.set(chatKey, chatContext);
 			}
