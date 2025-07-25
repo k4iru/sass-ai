@@ -1,0 +1,1 @@
+ALTER TABLE "token_usage" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;

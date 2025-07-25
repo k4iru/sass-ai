@@ -4,6 +4,7 @@ import {
 	varchar,
 	uuid,
 	smallint,
+	integer,
 } from "drizzle-orm/pg-core";
 
 export const usersTable = pgTable("users", {
@@ -32,6 +33,19 @@ export const chats = pgTable("chats", {
 	title: varchar("title", { length: 100 }).notNull(),
 	model: varchar("model", { length: 100 }).notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const tokenUsage = pgTable("token_usage", {
+	id: uuid("id").primaryKey().defaultRandom().notNull(),
+	userId: uuid("user_id")
+		.notNull()
+		.references(() => usersTable.id, { onDelete: "cascade" }),
+	chatId: uuid("chat_id")
+		.notNull()
+		.references(() => chats.id, { onDelete: "cascade" }),
+	usage: integer("usage").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const messages = pgTable("messages", {
