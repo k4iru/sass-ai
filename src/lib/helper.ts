@@ -95,6 +95,51 @@ export async function getRecentMessages(
 	}
 }
 
+export async function updateTokenUsage(
+	userId: string,
+	chatId: string,
+	tokensUsed: number,
+): Promise<void> {
+	try {
+		// Check if record exists
+		const existing = await db
+			.select()
+			.from(schema.tokenUsage)
+			.where(
+				and(
+					eq(schema.tokenUsage.userId, userId),
+					eq(schema.tokenUsage.chatId, chatId),
+				),
+			)
+			.limit(1);
+
+		if (existing.length > 0) {
+			// Update existing record
+			await db
+				.update(schema.tokenUsage)
+				.set({
+					usage: existing[0].usage + tokensUsed,
+					updatedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(schema.tokenUsage.userId, userId),
+						eq(schema.tokenUsage.chatId, chatId),
+					),
+				);
+		} else {
+			// Create new record initialized with usage
+			await db.insert(schema.tokenUsage).values({
+				userId,
+				chatId,
+				usage: tokensUsed, // Start with the current usage
+			});
+		}
+	} catch (error) {
+		console.log(error);
+	}
+}
+
 export async function insertMessage(messages: Message[]): Promise<boolean> {
 	if (messages.length === 0) return true;
 	try {
@@ -259,7 +304,9 @@ export async function getSummary(
 	}
 }
 
-export async function getChatContext(message: Message): Promise<ChatContext> {
+export async function createChatContext(
+	message: Message,
+): Promise<ChatContext> {
 	try {
 		// create chatroom if doesnt exist
 		await createChatRoom(
