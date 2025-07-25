@@ -8,6 +8,7 @@ import styles from "./Sidebar.module.scss";
 import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
 import { useAllChatsContext } from "@/context/AllChatsContext";
 import { useAuth } from "@/context/AuthContext";
+import { usePathname, useRouter } from "next/navigation";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -19,6 +20,9 @@ export const Sidebar = () => {
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 	const [renamingChatId, setRenamingChatId] = useState<string | null>(null);
 	const [newTitle, setNewTitle] = useState<string>("");
+
+	const router = useRouter();
+	const pathname = usePathname();
 
 	const handleRenameSubmit = async () => {
 		if (!renamingChatId || !newTitle.trim()) return;
@@ -60,6 +64,10 @@ export const Sidebar = () => {
 		refreshChats();
 		setOpenMenuId(null);
 		setPendingDeleteId(null);
+
+		if (pathname.includes(pendingDeleteId)) {
+			router.push("/chat");
+		}
 	};
 
 	const handleToggleSidebar = () => {
