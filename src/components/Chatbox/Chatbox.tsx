@@ -71,7 +71,7 @@ export const Chatbox = () => {
 				content: text,
 				provider: currModel,
 				createdAt: new Date(),
-				messageOrder: messages.length + 1,
+				messageOrder: messages.length,
 			};
 
 			pushMessage(newMessage);
@@ -97,7 +97,7 @@ export const Chatbox = () => {
 			content: text,
 			createdAt: new Date(),
 			provider: currModel,
-			messageOrder: messages.length + 1,
+			messageOrder: messages.length,
 		};
 
 		pushMessage(newMessage);
