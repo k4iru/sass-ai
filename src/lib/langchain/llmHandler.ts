@@ -1,25 +1,21 @@
-import type { ChatContext, Message, MessageHistory } from "@/lib/types";
+import type { Message, MessageHistory } from "@/lib/types";
 import { v4 as uuidv4 } from "uuid";
 import type {
 	BaseChatModel,
 	BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import {
-	HumanMessage,
 	type AIMessage,
 	type AIMessageChunk,
 	type BaseMessageLike,
 	type BaseMessage,
-	SystemMessage,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
 import {
 	convertToBaseMessageArray,
-	getChatContext,
-	getMessages,
-	getRecentMessages,
+	createChatContext,
 	insertMessage,
-	updateSummary,
+	updateTokenUsage,
 } from "../helper";
 import {
 	StateGraph,
@@ -31,22 +27,15 @@ import {
 import type { Runnable } from "@langchain/core/runnables";
 import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import type { ChatPromptTemplate } from "@langchain/core/prompts";
-import { LRUCache } from "lru-cache";
 import { toolNode, tools } from "./tools";
 import { updateSummaryPrompt, createChatPrompt } from "./prompts";
+import { calculateApproxTokens } from "./llmHelper";
+import { chatContextManager } from "../services/chatContextManager";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
 
 const TOKEN_LIMIT = 8192; // 8k tokens
-const SUMMARY_SIZE = 256;
 const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
-// ${userId}-${chatId}
-// max 100 chats lasting for 1 hour
-const chatCache = new LRUCache<string, ChatContext>({
-	max: 100,
-	ttl: 1000 * 60 * 60 * 2,
-	allowStale: false,
-});
 
 // define state for langgraph
 const StateAnnotation = Annotation.Root({
@@ -132,35 +121,6 @@ const handleWorkFlow = (
 	return { agent };
 };
 
-const summarizeMessages = async (
-	existing_summary: string,
-	lastSummaryIndex: number,
-	lastMessageIndex: number,
-	userId: string,
-	chatId: string,
-	chatProvider: BaseChatModel,
-): Promise<{ summary: string; lastSummaryIndex: number }> => {
-	const summaryUpdatePrompt = updateSummaryPrompt();
-	const new_messages = await getRecentMessages(
-		userId,
-		chatId,
-		lastSummaryIndex,
-		lastMessageIndex,
-	);
-
-	const formattedSummaryPrompt = await summaryUpdatePrompt.formatMessages({
-		existing_summary,
-		new_messages,
-	});
-
-	const reply = await chatProvider.invoke(formattedSummaryPrompt);
-	updateSummary(userId, chatId, reply.content as string, lastMessageIndex);
-	return {
-		summary: reply.content as string,
-		lastSummaryIndex: lastMessageIndex - 1,
-	};
-};
-
 //TODO add persistence still to chat
 const askQuestion = async function* (
 	message: Message,
@@ -181,22 +141,27 @@ const askQuestion = async function* (
 
 	const { agent } = handleWorkFlow(boundChatProvider);
 
-	const chatKey = `${userId}-${chatId}`;
-	let chatContext = chatCache.get(chatKey); // cache hit
+	let chatContext = chatContextManager.getChatContext(userId, chatId);
 
 	if (!chatContext) {
 		// { messages: context, totalTokens: contextTokens, summary: summary, lastSummaryIndex: lastIndex }
-		chatContext = await getChatContext(message);
-
-		console.log(chatContext);
+		chatContext = await createChatContext(message);
+		chatContextManager.setChatContext(userId, chatId, chatContext);
 	} else {
-		console.log("Using cached chat context for", chatKey);
+		console.log(`Using cached chat context for ${userId}-${chatId}`);
+
+		if (chatContext.messages.length > 0 && chatContext.lastSummaryIndex > 0) {
+			while (
+				chatContext.messages.length > 0 &&
+				chatContext.messages[0].messageOrder <= chatContext.lastSummaryIndex
+			)
+				chatContext.messages.shift();
+		}
+
+		chatContextManager.setChatContext(userId, chatId, chatContext);
 	}
 
-	const calculateApproxTokens = (content: string): number => {
-		const overhead = 12;
-		return content.length / 4 + overhead;
-	};
+	console.log(chatContext);
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
@@ -242,58 +207,56 @@ const askQuestion = async function* (
 			if (lastMessage.response_metadata) {
 				// calculate how many tokens in the prompt.
 
-				const promptTokens =
-					chatContext.messages.length === 1
-						? lastMessage.response_metadata.usage.total_tokens -
-							lastMessage.response_metadata.usage.completion_tokens
-						: lastMessage.response_metadata.usage.total_tokens -
-							chatContext.approximateTotalTokens -
-							lastMessage.response_metadata.usage.completion_tokens;
+				const promptTokens = calculateApproxTokens(message.content);
 
 				const humanMessageWithTokens = {
 					...message,
 					tokens: promptTokens,
 				};
 
+				const aiResponse = chunks.map((c) => c.content).join("");
+
 				const aiMessage: Message = {
 					id: uuidv4(),
 					role: "ai",
 					chatId: chatId,
 					userId: userId,
-					content: chunks.map((c) => c.content).join(""),
+					content: aiResponse,
 					provider: provider || "",
 					createdAt: new Date(),
-					tokens:
-						lastMessage.response_metadata.usage.completion_tokens -
-						lastMessage.response_metadata.usage.completion_tokens_details
-							.reasoning_tokens,
-					messageOrder:
-						message.messageOrder !== undefined ? message.messageOrder + 1 : -1,
+					tokens: calculateApproxTokens(aiResponse),
+					messageOrder: message.messageOrder + 1,
 				};
 
 				chatContext.messages.push(humanMessageWithTokens);
 				chatContext.messages.push(aiMessage);
+
 				chatContext.approximateTotalTokens +=
 					calculateApproxTokens(humanMessageWithTokens.content) +
 					calculateApproxTokens(aiMessage.content);
 
 				// insert messages
 				insertMessage([humanMessageWithTokens, aiMessage]);
+				updateTokenUsage(
+					userId,
+					chatId,
+					lastMessage.response_metadata.usage.total_tokens,
+				);
 
+				// re summarize
 				if (
 					chatContext.approximateTotalTokens > 4096 ||
-					chatContext.messages.length > 8
+					chatContext.messages.length > MAX_MESSAGE_TURNS
 				) {
-					// needs summation + message trim
+					chatContextManager.updateSummaryInBackground(
+						userId,
+						chatId,
+						summaryProvider,
+					);
 				}
 
-				// figure out if I should remove messages / summarize
-				if (chatContext.messages.length > 6) {
-					chatContext.messages.shift();
-					chatContext.messages.shift();
-				}
-
-				chatCache.set(chatKey, chatContext);
+				// update context
+				chatContextManager.setChatContext(userId, chatId, chatContext);
 			}
 		}
 	} catch (error) {
