@@ -21,7 +21,8 @@
   color: var(--chat-text-color);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-light);
-  text-decoration: underline;
+  text-align: center;
   text-decoration-color: var(--color-brand);
+  text-decoration: underline;
   transition: all 0.3s ease;
 }
