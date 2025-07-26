@@ -43,6 +43,14 @@ export const Header = () => {
 				</div>
 				<div className={clsx(styles.popupMenu, isMenuOpen && styles.open)}>
 					<div className={styles.popupWrapper}>
+						<Image
+							src="/images/logo.png"
+							alt="Logo"
+							width={120}
+							height={40}
+							className={styles.logo}
+						/>
+						<div className={styles.spacer} />
 						<div className={styles.btnContainer}>
 							<button
 								type="button"
@@ -55,14 +63,6 @@ export const Header = () => {
 								/>
 							</button>
 						</div>
-
-						<Image
-							src="/images/logo.png"
-							alt="Logo"
-							width={120}
-							height={40}
-							className={styles.logo}
-						/>
 					</div>
 					{/* chat links */}
 					<Link href="/profile" className={styles.link}>
