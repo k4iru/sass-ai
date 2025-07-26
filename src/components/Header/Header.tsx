@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { UserRound, Menu, ArrowLeftToLine } from "lucide-react";
 import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
+import { Input } from "@/components/ui/Input";
 
 export const Header = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,7 +43,7 @@ export const Header = () => {
 					<SettingsMenu />
 				</div>
 				<div className={clsx(styles.popupMenu, isMenuOpen && styles.open)}>
-					<div className={styles.popupWrapper}>
+					<div className={styles.topWrapper}>
 						<Image
 							src="/images/logo.png"
 							alt="Logo"
