@@ -34,9 +34,14 @@
     .menu {
       background-color: transparent;
       border: none;
+      display: none;
       position: relative;
       color: var(--icon-color);
       padding-right: var(--spacing-md);
+
+      @media screen and (max-width: $breakpoint-tablet) {
+        display: block;
+      }
 
       .menuIcon {
         color: var(--icon-color); // used by SVG as `currentColor`
@@ -86,25 +91,25 @@
 
   // popup menu
   .popupMenu {
-    color: var(--text-color);
-    top: 0;
-    left: 0;
     background-color: var(--header-bg);
-    position: absolute;
-    height: 100vh;
-    max-width: 400px;
-    width: 100%;
+    box-shadow: 4px 4px 4px 0px #00000033;
+    color: var(--text-color);
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    left: 0;
+    max-width: 400px;
+    opacity: 0;
     padding: var(--spacing-md);
-    z-index: 1000;
-    box-shadow: 4px 4px 4px 0px #00000033;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    transform: translateX(-100%); // start off-screen left
     transition:
       transform 0.5s ease,
       opacity 0.2s ease;
-    transform: translateX(-100%); // start off-screen left
-    opacity: 0;
-    pointer-events: none;
+    width: 100%;
+    z-index: 1000;
 
     &.open {
       transform: translateX(0); // slide into view
