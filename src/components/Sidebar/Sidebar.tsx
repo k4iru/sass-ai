@@ -1,84 +1,18 @@
 "use client";
-import { createPortal } from "react-dom";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { ChatListItem } from "@/components/ChatListItem/ChatListItem";
-import { ConfirmModal } from "@/components/ConfirmModal/ConfirmModal";
+import { useState } from "react";
+
 import clsx from "clsx";
 import styles from "./Sidebar.module.scss";
 import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
-import { useAllChatsContext } from "@/context/AllChatsContext";
-import { useAuth } from "@/context/AuthContext";
-import { usePathname, useRouter } from "next/navigation";
-import { Input } from "@/components/ui/Input/Input";
 
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+import { Input } from "@/components/ui/Input/Input";
+import { ChatListPanel } from "../ChatListPanel/ChatListPanel";
+import useChatMenuController from "@/hooks/useChatMenuController";
 
 export const Sidebar = () => {
-	const { chats, refreshChats } = useAllChatsContext();
-	const { user } = useAuth();
+	const controller = useChatMenuController();
+
 	const [isOpen, setIsOpen] = useState(true);
-	const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-	const [renamingChatId, setRenamingChatId] = useState<string | null>(null);
-	const [newTitle, setNewTitle] = useState<string>("");
-	const [searchTerm, setSearchTerm] = useState<string>("");
-
-	const router = useRouter();
-	const pathname = usePathname();
-
-	const filteredChats = useMemo(() => {
-		if (!searchTerm || !searchTerm.trim()) return chats;
-
-		return chats.filter((chat) =>
-			chat.title.toLowerCase().includes(searchTerm.trim().toLowerCase()),
-		);
-	}, [searchTerm, chats]);
-
-	const handleRenameSubmit = async () => {
-		if (!renamingChatId || !newTitle.trim()) return;
-
-		await fetch(`${ApiUrl}/api/chat/rename-chat`, {
-			method: "POST",
-			credentials: "include",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				chatId: renamingChatId,
-				newTitle: newTitle.trim(),
-				userId: user?.id,
-			}),
-		});
-
-		refreshChats();
-		setRenamingChatId(null);
-		setNewTitle("");
-	};
-
-	const handleDelete = async () => {
-		if (!pendingDeleteId || !user) return;
-
-		const userId = user.id;
-
-		console.log("pendingdlete: ", pendingDeleteId);
-
-		await fetch(`${ApiUrl}/api/chat/delete-chat`, {
-			method: "POST",
-			credentials: "include", // Include cookies in the request
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ userId, pendingDeleteId }),
-		});
-
-		refreshChats();
-		setOpenMenuId(null);
-		setPendingDeleteId(null);
-
-		if (pathname.includes(pendingDeleteId)) {
-			router.push("/chat");
-		}
-	};
 
 	const handleToggleSidebar = () => {
 		setIsOpen(!isOpen);
@@ -90,8 +24,8 @@ export const Sidebar = () => {
 				<div className={styles.topbar}>
 					<Input
 						type="text"
-						onChange={(e) => setSearchTerm(e.target.value)}
-						value={searchTerm}
+						value={controller.searchTerm}
+						onChange={(e) => controller.setSearchTerm(e.target.value)}
 					/>
 					<button
 						type="button"
@@ -114,55 +48,24 @@ export const Sidebar = () => {
 						/>
 					</button>
 				</div>
-				{filteredChats && filteredChats.length > 0 ? (
-					<>
-						<span className={styles.chatsTitle}>Recent</span>
-						<ul className={styles.chatList}>
-							{filteredChats.map((chat) => (
-								<ChatListItem
-									key={chat.id}
-									id={chat.id}
-									title={chat.title}
-									isRenaming={renamingChatId === chat.id}
-									newTitle={newTitle}
-									onChangeTitle={setNewTitle}
-									onSubmitRename={handleRenameSubmit}
-									onBlurRename={() => {
-										if (newTitle.trim()) handleRenameSubmit();
-										else {
-											setRenamingChatId(null);
-											setNewTitle("");
-										}
-									}}
-									onCloseMenu={() => setOpenMenuId(null)}
-									isMenuOpen={openMenuId === chat.id}
-									onToggleMenu={() =>
-										setOpenMenuId((prevId) =>
-											prevId === chat.id ? null : chat.id,
-										)
-									}
-									onRename={(id, currentTitle) => {
-										setRenamingChatId(id);
-										setNewTitle(currentTitle);
-									}}
-									onDelete={(id) => setPendingDeleteId(id)}
-								/>
-							))}
-						</ul>
-					</>
+				{controller.filteredChats && controller.filteredChats.length > 0 ? (
+					<ChatListPanel
+						filteredChats={controller.filteredChats}
+						openMenuId={controller.openMenuId}
+						setOpenMenuId={controller.setOpenMenuId}
+						pendingDeleteId={controller.pendingDeleteId}
+						setPendingDeleteId={controller.setPendingDeleteId}
+						renamingChatId={controller.renamingChatId}
+						setRenamingChatId={controller.setRenamingChatId}
+						newTitle={controller.newTitle}
+						setNewTitle={controller.setNewTitle}
+						handleRenameSubmit={controller.handleRenameSubmit}
+						handleDelete={controller.handleDelete}
+					/>
 				) : (
 					<></>
 				)}
 			</aside>
-			{pendingDeleteId &&
-				createPortal(
-					<ConfirmModal
-						message="are you sure you want to delete?"
-						onConfirm={handleDelete}
-						onCancel={() => setPendingDeleteId(null)}
-					/>,
-					document.body,
-				)}
 		</>
 	);
 };
