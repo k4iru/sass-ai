@@ -1,6 +1,6 @@
 "use client";
 import { createPortal } from "react-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { ChatListItem } from "@/components/ChatListItem/ChatListItem";
 import { ConfirmModal } from "@/components/ConfirmModal/ConfirmModal";
 import clsx from "clsx";
@@ -9,6 +9,7 @@ import { ArrowLeftFromLine, ArrowRightFromLineIcon } from "lucide-react";
 import { useAllChatsContext } from "@/context/AllChatsContext";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
+import { Input } from "@/components/ui/Input/Input";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -20,9 +21,18 @@ export const Sidebar = () => {
 	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 	const [renamingChatId, setRenamingChatId] = useState<string | null>(null);
 	const [newTitle, setNewTitle] = useState<string>("");
+	const [searchTerm, setSearchTerm] = useState<string>("");
 
 	const router = useRouter();
 	const pathname = usePathname();
+
+	const filteredChats = useMemo(() => {
+		if (!searchTerm || !searchTerm.trim()) return chats;
+
+		return chats.filter((chat) =>
+			chat.title.toLowerCase().includes(searchTerm.trim().toLowerCase()),
+		);
+	}, [searchTerm, chats]);
 
 	const handleRenameSubmit = async () => {
 		if (!renamingChatId || !newTitle.trim()) return;
@@ -78,10 +88,10 @@ export const Sidebar = () => {
 		<>
 			<aside className={clsx(styles.sidebar, isOpen && styles.open)}>
 				<div className={styles.topbar}>
-					<input
+					<Input
 						type="text"
-						placeholder="Search..."
-						className={styles.searchInput}
+						onChange={(e) => setSearchTerm(e.target.value)}
+						value={searchTerm}
 					/>
 					<button
 						type="button"
@@ -104,11 +114,11 @@ export const Sidebar = () => {
 						/>
 					</button>
 				</div>
-				{chats && (
+				{filteredChats && filteredChats.length > 0 ? (
 					<>
 						<span className={styles.chatsTitle}>Recent</span>
 						<ul className={styles.chatList}>
-							{chats.map((chat) => (
+							{filteredChats.map((chat) => (
 								<ChatListItem
 									key={chat.id}
 									id={chat.id}
@@ -140,6 +150,8 @@ export const Sidebar = () => {
 							))}
 						</ul>
 					</>
+				) : (
+					<></>
 				)}
 			</aside>
 			{pendingDeleteId &&

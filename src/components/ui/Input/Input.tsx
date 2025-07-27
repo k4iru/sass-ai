@@ -16,6 +16,7 @@ export const Input: React.FC<InputProps> = ({
 		<input
 			type={type}
 			className={clsx(styles.input, className)}
+			placeholder="search..."
 			{...props}
 			value={value}
 		/>

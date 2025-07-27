@@ -45,6 +45,8 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
+    height: 100%;
+    margin-left: 1rem;
     .closeIcon {
       background-color: transparent;
       color: var(--sidebar-icon-color);
@@ -132,6 +134,7 @@
 
     .openButton {
       opacity: 0;
+      left: 300px;
     }
 
     .chatList {
