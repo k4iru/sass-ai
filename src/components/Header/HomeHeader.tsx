@@ -7,13 +7,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { UserRound, Menu, ArrowLeftToLine } from "lucide-react";
 import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
-import { Input } from "@/components/ui/Input/Input";
-import { ChatListPanel } from "../ChatListPanel/ChatListPanel";
-import useChatMenuController from "@/hooks/useChatMenuController";
 
-export const Header = () => {
-	const controller = useChatMenuController();
-
+export const HomeHeader = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	const handleOpenMenu = () => {
@@ -69,28 +64,6 @@ export const Header = () => {
 							</button>
 						</div>
 					</div>
-					<Input
-						type="text"
-						value={controller.searchTerm}
-						onChange={(e) => controller.setSearchTerm(e.target.value)}
-					/>
-					{controller.filteredChats && controller.filteredChats.length > 0 ? (
-						<ChatListPanel
-							filteredChats={controller.filteredChats}
-							openMenuId={controller.openMenuId}
-							setOpenMenuId={controller.setOpenMenuId}
-							pendingDeleteId={controller.pendingDeleteId}
-							setPendingDeleteId={controller.setPendingDeleteId}
-							renamingChatId={controller.renamingChatId}
-							setRenamingChatId={controller.setRenamingChatId}
-							newTitle={controller.newTitle}
-							setNewTitle={controller.setNewTitle}
-							handleRenameSubmit={controller.handleRenameSubmit}
-							handleDelete={controller.handleDelete}
-						/>
-					) : (
-						<></>
-					)}
 				</div>
 				<div className={clsx(styles.overlay, isMenuOpen && styles.open)} />
 			</div>
