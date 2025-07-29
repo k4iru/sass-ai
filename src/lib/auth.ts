@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { validateToken } from "./jwt";
 import { getRefreshToken } from "./helper";
-import type { NextRequest } from "next/server";
+import { config } from "dotenv";
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -52,4 +52,27 @@ export async function authenticate(): Promise<void> {
 		console.log(err);
 		throw new Error("Unauthorized");
 	}
+}
+
+export async function getGoogleOAuthURL() {
+	if (
+		process.env.GOOGLE_REDIRECT_URI === undefined ||
+		process.env.GOOGLE_CLIENT_ID === undefined
+	)
+		throw new Error("invalid env config");
+	const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+	const options = {
+		redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+		client_id: process.env.GOOGLE_CLIENT_ID,
+		access_type: "offline",
+		response_type: "code",
+		prompt: "consent",
+		scope: [
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		].join(" "),
+	};
+
+	const params = new URLSearchParams(options);
+	return `${rootUrl}?${params.toString()}`;
 }
