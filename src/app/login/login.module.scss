@@ -5,11 +5,21 @@
 }
 
 :global(.dark) {
-  --login-text-color: var(--color-white);
+  --login-text-color: #fff;
 }
 
 .wrapper {
   width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+
+  form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
   .header {
     font-family: var(--font-roboto), sans-serif;
     font-size: var(--font-size-xl);
@@ -23,6 +33,7 @@
     display: flex;
     margin-bottom: var(--spacing-lg);
     position: relative;
+    width: 350px;
     label {
       display: block;
       background-color: var(--color-primary);
@@ -53,17 +64,81 @@
     .loginButton {
       font-family: var(--font-roboto), sans-serif;
       color: var(--login-text-color);
-      width: 100%;
+      width: 350px;
       height: var(--spacing-xxl);
       background-color: var(--color-brand);
       border: none;
       border-radius: var(--spacing-sm);
       font-size: var(--font-size-lg);
+      transition: all 0.2s ease;
       cursor: pointer;
 
       &:hover,
       &:active {
         background-color: var(--color-brand-dark);
+      }
+    }
+  }
+
+  .signupWrapper {
+    margin: var(--spacing-lg) 0;
+    .signup {
+      font-family: var(--font-fira-sans), sans-serif;
+      font-weight: var(--font-weight-light);
+      text-align: center;
+
+      .signupLink {
+        text-decoration: underline;
+        text-decoration-color: var(--color-brand);
+
+        &:hover {
+          color: var(--color-brand);
+        }
+      }
+    }
+  }
+
+  .altSignupWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-lg);
+    .line {
+      height: 1px;
+      display: block;
+      width: 100px;
+      background-color: var(--login-text-color);
+    }
+
+    .title {
+      margin: 0 var(--spacing-sm);
+      font-family: var(--font-roboto);
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-regular);
+    }
+  }
+
+  .altButton {
+    .googleButton {
+      width: 350px;
+      height: var(--spacing-xxl);
+      margin: auto;
+      background-color: transparent;
+      border: 1px solid var(--color-brand);
+      border-radius: var(--spacing-sm);
+      transition: all 0.2s ease;
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--color-brand);
+      }
+
+      svg {
+        height: 30px;
+        width: 30px;
+        background-color: transparent;
+        margin: auto;
       }
     }
   }
