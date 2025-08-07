@@ -1,5 +1,5 @@
 "use server";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "@/lib/auth";
 import {
 	getUserFromEmail,
@@ -11,7 +11,7 @@ import {
 import { generateAccessToken } from "@/lib/jwt";
 import { timeStringToSeconds } from "@/lib/helper";
 
-const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "15m");
+const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "60m");
 const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(
 	process.env.REFRESH_TOKEN_EXPIRY || "7d",
 );
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 		value: accessToken,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "lax", // More compatible than strict
+		sameSite: "strict", // More compatible than strict
 		path: "/",
 		maxAge: JWT_EXPIRY, // 15 minutes (matches access token expiry)
 	});
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 		value: refreshToken,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "lax",
+		sameSite: "strict",
 		path: "/",
 		maxAge: REFRESH_TOKEN_EXPIRY, // 7 days (matches refresh token expiry)
 	});
