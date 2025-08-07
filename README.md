@@ -39,6 +39,7 @@ pm2 to auto start
 * on login userid isn't defined until refresh
 * add salt
 * fix ability to send messages with expired tokens.
+* on new user creation. validate they have valid api key or only let user use limited features.
 
 ## Tests
 * Implement some test classes
