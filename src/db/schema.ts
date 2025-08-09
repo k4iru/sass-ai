@@ -97,7 +97,7 @@ export const apiKeys = pgTable("api_keys", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
 	userId: uuid("user_id")
 		.notNull()
-		.references(() => usersTable.id),
+		.references(() => usersTable.id, { onDelete: "cascade" }),
 	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
 	LlmProvider: llmProviderEnum("llm_provider").default("openai").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
