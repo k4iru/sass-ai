@@ -30,8 +30,6 @@ export async function GET(req: NextRequest) {
 	const url = new URL(req.url);
 	const code = url.searchParams.get("code");
 
-	// sanitize state
-
 	if (!code) {
 		return NextResponse.json({ error: "No code provided" }, { status: 400 });
 	}
@@ -78,7 +76,15 @@ export async function GET(req: NextRequest) {
 
 	const profile = await peopleRes.json();
 
-	// check if user exists in DB, otherwise create new user.
+	console.log(profile);
+
+	// ensure email is verified
+	if (!profile.emailAddresses?.[0]?.metadata?.verified) {
+		return NextResponse.json(
+			{ error: "Google account email not verified" },
+			{ status: 400 },
+		);
+	}
 
 	// Extract useful info
 	const user = {
@@ -97,8 +103,10 @@ export async function GET(req: NextRequest) {
 
 		// prep new user to insert into db
 		const insertUser: typeof schema.usersTable.$inferInsert = {
-			name: `${user.first} ${user.last}`,
+			first: user.first,
+			last: user.last,
 			email: user.email,
+			emailVerified: true,
 			password: hashedPassword,
 		};
 
@@ -122,7 +130,6 @@ export async function GET(req: NextRequest) {
 	}
 
 	// TODO: Save to DB, create session, etc.
-	console.log("User:", user);
 
 	const accessToken = await generateAccessToken({ id: userObj.id });
 	const refreshToken = await generateRefreshToken();
@@ -150,7 +157,6 @@ export async function GET(req: NextRequest) {
 		path: "/",
 		maxAge: REFRESH_TOKEN_EXPIRY, // 7 days (matches refresh token expiry)
 	});
-	console.log(profile);
 
 	return res;
 
