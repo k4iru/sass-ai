@@ -10,6 +10,13 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const loginProviderEnum = pgEnum("login_provider", ["email", "google"]);
+export const llmProviderEnum = pgEnum("llm_provider", [
+	"openai",
+	"anthropic",
+	"deepseek",
+	"google",
+]);
+
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
 	first: varchar("first_name", { length: 100 }),
@@ -92,6 +99,6 @@ export const apiKeys = pgTable("api_keys", {
 		.notNull()
 		.references(() => usersTable.id),
 	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
-	provider: varchar("provider", { length: 255 }).notNull(),
+	LlmProvider: llmProviderEnum("llm_provider").default("openai").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
