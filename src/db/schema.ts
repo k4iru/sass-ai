@@ -1,4 +1,8 @@
 import {
+	AVAILABLE_LLM_PROVIDERS,
+	AVAILABLE_LOGIN_PROVIDERS,
+} from "@/lib/constants";
+import {
 	timestamp,
 	pgTable,
 	varchar,
@@ -9,13 +13,11 @@ import {
 	pgEnum,
 } from "drizzle-orm/pg-core";
 
-export const loginProviderEnum = pgEnum("login_provider", ["email", "google"]);
-export const llmProviderEnum = pgEnum("llm_provider", [
-	"openai",
-	"anthropic",
-	"deepseek",
-	"google",
-]);
+export const loginProviderEnum = pgEnum(
+	"login_provider",
+	AVAILABLE_LOGIN_PROVIDERS,
+);
+export const llmProviderEnum = pgEnum("llm_provider", AVAILABLE_LLM_PROVIDERS);
 
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -99,6 +101,5 @@ export const apiKeys = pgTable("api_keys", {
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
 	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
-	LlmProvider: llmProviderEnum("llm_provider").default("openai").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });
