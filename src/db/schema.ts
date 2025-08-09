@@ -24,7 +24,7 @@ export const usersTable = pgTable("users", {
 	first: varchar("first_name", { length: 100 }).notNull(),
 	last: varchar("last_name", { length: 100 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
-	password: varchar("password", { length: 255 }).notNull(),
+	password: varchar("password", { length: 255 }),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	loginProvider: loginProviderEnum("login_provider").default("email").notNull(),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -101,5 +101,6 @@ export const apiKeys = pgTable("api_keys", {
 		.notNull()
 		.references(() => usersTable.id, { onDelete: "cascade" }),
 	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
+	llmProvider: llmProviderEnum("llm_provider").default("openai").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
 });

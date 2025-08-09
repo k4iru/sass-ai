@@ -99,7 +99,6 @@ export async function GET(req: NextRequest) {
 		console.log("Creating new user");
 
 		// random string for password
-		const hashedPassword = await hashPassword(uuid().toString());
 
 		// prep new user to insert into db
 		const insertUser: typeof schema.usersTable.$inferInsert = {
@@ -107,10 +106,11 @@ export async function GET(req: NextRequest) {
 			last: user.last,
 			email: user.email,
 			emailVerified: true,
-			password: hashedPassword,
+			loginProvider: "google",
+			password: null,
 		};
 
-		// insert into db
+		// insert into db // move this into a helper function later.
 		const result = await db.insert(schema.usersTable).values(insertUser);
 
 		if (!result) {
