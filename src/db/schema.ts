@@ -19,8 +19,8 @@ export const llmProviderEnum = pgEnum("llm_provider", [
 
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
-	first: varchar("first_name", { length: 100 }),
-	last: varchar("last_name", { length: 100 }),
+	first: varchar("first_name", { length: 100 }).notNull(),
+	last: varchar("last_name", { length: 100 }).notNull(),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	password: varchar("password", { length: 255 }).notNull(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
