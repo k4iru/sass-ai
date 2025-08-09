@@ -9,7 +9,8 @@ const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 function Signup() {
 	const [formData, setFormData] = useState({
-		name: "",
+		first: "",
+		last: "",
 		email: "",
 		password: "",
 		passwordVerification: "",
@@ -83,12 +84,23 @@ function Signup() {
 			<h1 className="text-center pt-6">Sign Up</h1>
 			<form onSubmit={handleSubmit}>
 				<div>
-					<label htmlFor="name">Name:</label>
+					<label htmlFor="first">First:</label>
 					<input
 						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="text"
-						name="name"
-						value={formData.name}
+						name="first"
+						value={formData.first}
+						onChange={handleChange}
+						required
+					/>
+				</div>
+				<div>
+					<label htmlFor="last">Last:</label>
+					<input
+						className="bg-gray-400 rounded-md ml-2 mb-2"
+						type="text"
+						name="last"
+						value={formData.last}
 						onChange={handleChange}
 						required
 					/>

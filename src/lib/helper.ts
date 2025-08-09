@@ -17,6 +17,7 @@ import {
 	SystemMessage,
 } from "@langchain/core/messages";
 import { REFRESH_TOKEN_EXPIRY } from "@/lib/constants";
+import { AVAILABLE_LLM_PROVIDERS } from "@/lib/constants";
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
@@ -175,10 +176,19 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 	return true;
 }
 
+export function isValidLlmProvider(
+	val: string,
+): val is (typeof AVAILABLE_LLM_PROVIDERS)[number] {
+	return AVAILABLE_LLM_PROVIDERS.includes(
+		val as (typeof AVAILABLE_LLM_PROVIDERS)[number],
+	);
+}
+
 export async function getApiKey(
 	userId: string,
 	provider: string,
 ): Promise<string | null> {
+	if (!isValidLlmProvider(provider)) throw new Error("Invalid provider");
 	try {
 		const apiKeys = await db
 			.select()
@@ -186,7 +196,7 @@ export async function getApiKey(
 			.where(
 				and(
 					eq(schema.apiKeys.userId, userId),
-					eq(schema.apiKeys.provider, provider),
+					eq(schema.apiKeys.llmProvider, provider),
 				),
 			);
 
@@ -194,6 +204,7 @@ export async function getApiKey(
 
 		return apiKeys[0].encryptedKey;
 	} catch (error) {
+		console.log(error);
 		return null;
 	}
 }

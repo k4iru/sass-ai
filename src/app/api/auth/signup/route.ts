@@ -5,7 +5,8 @@ import { signupSchema } from "@/lib/validation/signupSchema";
 import { response, isExistingUser } from "@/lib/helper";
 
 interface SignupRequestBody {
-	name: string;
+	first: string;
+	last: string;
 	email: string;
 	password: string;
 }
@@ -33,12 +34,13 @@ export async function POST(req: NextRequest) {
 
 		// prep new user to insert into db
 		const user: typeof schema.usersTable.$inferInsert = {
-			name: body.name,
+			first: body.first,
+			last: body.last,
 			email: body.email,
 			password: hashedPassword,
 		};
 
-		// insert into db
+		// insert into db // move this into a helper function later.
 		const result = await db.insert(schema.usersTable).values(user);
 
 		// TODO set refresh id, access token and redirect to dashboard.
