@@ -5,13 +5,20 @@ import {
 	uuid,
 	smallint,
 	integer,
+	boolean,
+	pgEnum,
 } from "drizzle-orm/pg-core";
 
+export const loginProviderEnum = pgEnum("login_provider", ["email", "google"]);
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
-	name: varchar("name", { length: 255 }).notNull(),
+	first: varchar("first_name", { length: 100 }),
+	last: varchar("last_name", { length: 100 }),
 	email: varchar("email", { length: 255 }).notNull().unique(),
 	password: varchar("password", { length: 255 }).notNull(),
+	emailVerified: boolean("email_verified").default(false).notNull(),
+	loginProvider: loginProviderEnum("login_provider").default("email").notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const refreshTokensTable = pgTable("refresh_tokens", {
