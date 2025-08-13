@@ -1,8 +1,13 @@
 import type { NextRequest } from "next/server";
-import { hashPassword } from "@/lib/auth";
+import { Resend } from "resend";
 import { db, schema } from "@/db";
+import { hashPassword } from "@/lib/auth";
+import {
+	generateRandomAccessCode,
+	isExistingUser,
+	response,
+} from "@/lib/helper";
 import { signupSchema } from "@/lib/validation/signupSchema";
-import { response, isExistingUser } from "@/lib/helper";
 
 interface SignupRequestBody {
 	first: string;
@@ -47,6 +52,18 @@ export async function POST(req: NextRequest) {
 		if (!result) {
 			throw new Error("Failed to insert user into the database");
 		}
+
+		// send validation email
+		const resend = new Resend(process.env.RESEND_API_KEY);
+
+		const accessCode = generateRandomAccessCode();
+
+		resend.emails.send({
+			from: "Keppel <verification@noreply.kylecheung.ca>",
+			to: "devbykylecheung@gmail.com",
+			subject: "Verify your email",
+			html: `<p>Thank you for signing up. Use the access code to verify your email.</p> <p>Access code: <strong>${accessCode}</strong></p>`,
+		});
 	} catch (err) {
 		// gracefully exit;
 		console.error(

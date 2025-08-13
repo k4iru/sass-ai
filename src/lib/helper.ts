@@ -1,23 +1,22 @@
+import crypto from "node:crypto";
+import {
+	AIMessage,
+	type BaseMessage,
+	HumanMessage,
+	SystemMessage,
+} from "@langchain/core/messages";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
-import { eq, and, desc, asc, sql, gte, lte, gt, lt } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { AVAILABLE_LLM_PROVIDERS, REFRESH_TOKEN_EXPIRY } from "@/lib/constants";
 import type {
 	Chat,
 	ChatContext,
 	Message,
-	User,
-	RefreshToken,
 	MessageHistory,
+	RefreshToken,
+	User,
 } from "@/lib/types";
-import {
-	type BaseMessage,
-	type BaseMessageLike,
-	HumanMessage,
-	AIMessage,
-	SystemMessage,
-} from "@langchain/core/messages";
-import { REFRESH_TOKEN_EXPIRY } from "@/lib/constants";
-import { AVAILABLE_LLM_PROVIDERS } from "@/lib/constants";
 
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
@@ -482,6 +481,17 @@ export async function createSummary(
 	return true;
 }
 
+export function generateRandomAccessCode(length = 8): string {
+	const characters =
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	const bytes = crypto.randomBytes(length);
+	let result = "";
+	for (let i = 0; i < length; i++) {
+		result += characters[bytes[i] % characters.length];
+	}
+	return result;
+}
+
 export async function createChatRoom(
 	userId: string,
 	roomName: string,
@@ -616,8 +626,7 @@ export async function insertRefreshToken(
 ): Promise<boolean> {
 	try {
 		console.log("in inserting refresh token");
-		const ms =
-			new Date().getTime() + Number.parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
+		const ms = Date.now() + Number.parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
 		const expiryDate = new Date(ms);
 
 		const newRefreshTokenRow: typeof schema.refreshTokensTable.$inferInsert = {

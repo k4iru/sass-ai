@@ -1,10 +1,11 @@
 "use client";
-
-import { useState } from "react";
+import { redirect } from "next/navigation";
 import type React from "react";
 import type { FormEvent } from "react";
+import { useState } from "react";
 import { signupSchema } from "@/lib/validation/signupSchema";
-import { redirect } from "next/navigation";
+import styles from "./signup.module.scss";
+
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 function Signup() {
@@ -66,7 +67,9 @@ function Signup() {
 				return;
 			}
 		} catch (error) {
-			setMessage("Error submitting form.");
+			setMessage(
+				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 			setLoading(false);
 
 			return;
@@ -80,13 +83,12 @@ function Signup() {
 		// handle message
 	};
 	return (
-		<div className="signup-form max-w-3xl bg-gray-600 mx-auto my-auto p-8 flex flex-col">
-			<h1 className="text-center pt-6">Sign Up</h1>
+		<div className={styles.signupContainer}>
+			<h1 className={styles.header}>Register</h1>
 			<form onSubmit={handleSubmit}>
-				<div>
-					<label htmlFor="first">First:</label>
+				<div className={styles.input}>
+					<label htmlFor="first">First name</label>
 					<input
-						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="text"
 						name="first"
 						value={formData.first}
@@ -94,10 +96,9 @@ function Signup() {
 						required
 					/>
 				</div>
-				<div>
-					<label htmlFor="last">Last:</label>
+				<div className={styles.input}>
+					<label htmlFor="last">Last name</label>
 					<input
-						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="text"
 						name="last"
 						value={formData.last}
@@ -105,10 +106,9 @@ function Signup() {
 						required
 					/>
 				</div>
-				<div>
-					<label htmlFor="email">Email:</label>
+				<div className={styles.input}>
+					<label htmlFor="email">Email</label>
 					<input
-						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="email"
 						name="email"
 						value={formData.email}
@@ -116,10 +116,9 @@ function Signup() {
 						required
 					/>
 				</div>
-				<div>
-					<label htmlFor="password">Password:</label>
+				<div className={styles.input}>
+					<label htmlFor="password">Password</label>
 					<input
-						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="password"
 						name="password"
 						value={formData.password}
@@ -127,10 +126,9 @@ function Signup() {
 						required
 					/>
 				</div>
-				<div>
-					<label htmlFor="passwordVerification">Verify Password:</label>
+				<div className={styles.input}>
+					<label htmlFor="passwordVerification">Verify Password</label>
 					<input
-						className="bg-gray-400 rounded-md ml-2 mb-2"
 						type="password"
 						name="passwordVerification"
 						value={formData.passwordVerification}
