@@ -1,6 +1,6 @@
+import { JWTExpired } from "jose/errors";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateToken } from "./lib/jwt";
-import { JWTExpired } from "jose/errors";
 
 export async function middleware(req: NextRequest) {
 	console.log("in middleware");
@@ -38,5 +38,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-	matcher: "/dashboard/:path*",
+	matcher: [
+		"/chat/:path*", // matches /chat and anything after
+		"/dashboard/:path*", // matches /dashboard and anything after
+	],
 };
