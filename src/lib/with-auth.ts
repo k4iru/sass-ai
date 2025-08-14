@@ -6,7 +6,7 @@ export function withAuth(
 ) {
 	return async (req: NextRequest) => {
 		try {
-			await authenticate(req);
+			await authenticate();
 			return await handler(req);
 		} catch (error) {
 			console.error("Authentication error:", error);
