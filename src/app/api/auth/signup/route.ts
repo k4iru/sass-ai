@@ -1,20 +1,13 @@
 import type { NextRequest } from "next/server";
-import { Resend } from "resend";
-import { db, schema } from "@/db";
-import { hashPassword } from "@/lib/auth";
+import { hashPassword, sendValidationEmail } from "@/lib/auth";
 import {
 	generateRandomAccessCode,
+	insertUser,
 	isExistingUser,
 	response,
 } from "@/lib/helper";
+import type { SignupRequestBody } from "@/lib/types";
 import { signupSchema } from "@/lib/validation/signupSchema";
-
-interface SignupRequestBody {
-	first: string;
-	last: string;
-	email: string;
-	password: string;
-}
 
 export async function POST(req: NextRequest) {
 	try {
@@ -36,34 +29,24 @@ export async function POST(req: NextRequest) {
 
 		// hash password
 		const hashedPassword = await hashPassword(body.password);
+		const accessCode = generateRandomAccessCode();
 
-		// prep new user to insert into db
-		const user: typeof schema.usersTable.$inferInsert = {
-			first: body.first,
-			last: body.last,
-			email: body.email,
-			password: hashedPassword,
-		};
-
-		// insert into db // move this into a helper function later.
-		const result = await db.insert(schema.usersTable).values(user);
+		const user = await insertUser(
+			body.first,
+			body.last,
+			body.email,
+			hashedPassword,
+			"email",
+		);
 
 		// TODO set refresh id, access token and redirect to dashboard.
-		if (!result) {
+		if (!user) {
 			throw new Error("Failed to insert user into the database");
 		}
 
-		// send validation email
-		const resend = new Resend(process.env.RESEND_API_KEY);
+		await sendValidationEmail(user.id, body.email, accessCode);
 
-		const accessCode = generateRandomAccessCode();
-
-		resend.emails.send({
-			from: "Keppel <verification@noreply.kylecheung.ca>",
-			to: "devbykylecheung@gmail.com",
-			subject: "Verify your email",
-			html: `<p>Thank you for signing up. Use the access code to verify your email.</p> <p>Access code: <strong>${accessCode}</strong></p>`,
-		});
+		// set access token / refresh token in cookies. redirect to dashboard.
 	} catch (err) {
 		// gracefully exit;
 		console.error(
