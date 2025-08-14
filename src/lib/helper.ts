@@ -8,8 +8,14 @@ import {
 import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import { type NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
-import { AVAILABLE_LLM_PROVIDERS, REFRESH_TOKEN_EXPIRY } from "@/lib/constants";
+import {
+	AVAILABLE_LLM_PROVIDERS,
+	AVAILABLE_LOGIN_PROVIDERS,
+	REFRESH_TOKEN_EXPIRY,
+	VERIFICATION_TYPES,
+} from "@/lib/constants";
 import type {
+	AccessCode,
 	Chat,
 	ChatContext,
 	Message,
@@ -175,19 +181,156 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 	return true;
 }
 
-export function isValidLlmProvider(
+export function isValidEnum<T extends readonly string[]>(
 	val: string,
-): val is (typeof AVAILABLE_LLM_PROVIDERS)[number] {
-	return AVAILABLE_LLM_PROVIDERS.includes(
-		val as (typeof AVAILABLE_LLM_PROVIDERS)[number],
-	);
+	enumArray: T,
+): val is T[number] {
+	return enumArray.includes(val as T[number]);
+}
+
+export async function deleteAccessCode(
+	userId: string,
+	type: string,
+): Promise<boolean> {
+	try {
+		if (!isValidEnum(type, VERIFICATION_TYPES)) {
+			throw new Error("Invalid verification type");
+		}
+		const result = await db
+			.delete(schema.accessCodes)
+			.where(
+				and(
+					eq(schema.accessCodes.userId, userId),
+					eq(schema.accessCodes.verificationType, type),
+				),
+			);
+
+		if (result.rowCount === 0)
+			throw new Error("No access code found to delete");
+
+		return true;
+	} catch (error) {
+		console.log(
+			`Error getting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return false;
+	}
+}
+
+export async function getAccessCode(
+	userId: string,
+	type: string,
+): Promise<AccessCode | null> {
+	try {
+		if (!isValidEnum(type, VERIFICATION_TYPES)) {
+			throw new Error("Invalid verification type");
+		}
+		const accessCodes = await db
+			.select()
+			.from(schema.accessCodes)
+			.where(
+				and(
+					eq(schema.accessCodes.userId, userId),
+					eq(schema.accessCodes.verificationType, type),
+				),
+			)
+			.orderBy(desc(schema.accessCodes.createdAt));
+
+		if (!accessCodes.length) throw new Error("Can't get apiKey");
+
+		const accessCode: AccessCode = {
+			id: accessCodes[0].id,
+			userId: accessCodes[0].userId,
+			accessCode: accessCodes[0].accessCode,
+			verificationType: accessCodes[0].verificationType,
+			createdAt: accessCodes[0].createdAt,
+			expiryDate: accessCodes[0].expiryDate,
+		};
+
+		return accessCode;
+	} catch (error) {
+		console.log(
+			`Error getting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return null;
+	}
+}
+
+export async function insertUser(
+	first: string,
+	last: string,
+	email: string,
+	password: string,
+	loginProvider: string,
+): Promise<User | null> {
+	try {
+		if (!isValidEnum(loginProvider, AVAILABLE_LOGIN_PROVIDERS)) {
+			throw new Error("Invalid verification type");
+		}
+
+		const user: typeof schema.usersTable.$inferInsert = {
+			first: first,
+			last: last,
+			email: email,
+			password: password,
+			loginProvider: loginProvider,
+		};
+
+		const result = await db.insert(schema.usersTable).values(user).returning();
+
+		if (!result.length) {
+			throw new Error("Failed to insert user into the database");
+		}
+
+		return result[0];
+	} catch (error) {
+		console.log(
+			`Error inserting user: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return null;
+	}
+}
+
+export async function insertAccessCode(
+	userId: string,
+	accessCode: string,
+	type: string,
+): Promise<boolean> {
+	try {
+		// ensure valid type
+		if (!isValidEnum(type, VERIFICATION_TYPES)) {
+			throw new Error("Invalid verification type");
+		}
+
+		const newAccessCodeRow: typeof schema.accessCodes.$inferInsert = {
+			userId: userId,
+			accessCode: accessCode, // this should always be encrypted
+			verificationType: type,
+			createdAt: new Date(),
+			expiryDate: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
+		};
+
+		const result = await db.insert(schema.accessCodes).values(newAccessCodeRow);
+
+		if (!result) {
+			throw new Error("Error inserting access code into table");
+		}
+
+		return true;
+	} catch (error) {
+		console.log(
+			`Error inserting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return false;
+	}
 }
 
 export async function getApiKey(
 	userId: string,
 	provider: string,
 ): Promise<string | null> {
-	if (!isValidLlmProvider(provider)) throw new Error("Invalid provider");
+	if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS))
+		throw new Error("Invalid provider");
 	try {
 		const apiKeys = await db
 			.select()
@@ -260,7 +403,7 @@ export async function deleteChat(
 	chatId: string,
 ): Promise<boolean> {
 	try {
-		// Optional: Ensure the chat belongs to the user
+		// Ensure the chat belongs to the user
 		const chat = await db
 			.select()
 			.from(schema.chats)
