@@ -2,9 +2,25 @@
 
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
-import { validateToken } from "./jwt";
-import { getRefreshToken } from "./helper";
-import { config } from "dotenv";
+import type { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
+import {
+	deleteAccessCode,
+	generateRefreshToken,
+	getClientIP,
+	getRefreshToken,
+	insertAccessCode,
+	insertRefreshToken,
+	timeStringToSeconds,
+} from "@/lib/helper";
+import { generateAccessToken, validateToken } from "./jwt";
+
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+if (!RESEND_API_KEY) {
+	throw new Error("RESEND_API_KEY is not defined in the environment variables");
+}
+
+const resend = new Resend(RESEND_API_KEY);
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -32,6 +48,91 @@ export async function verifyPassword(
 			`Error comparing password: ${err instanceof Error ? err.message : "Unknown error"}`,
 		);
 	}
+}
+
+export async function sendValidationEmail(
+	userId: string,
+	recipient: string,
+	accessCode: string,
+): Promise<boolean> {
+	try {
+		if (!userId || !recipient || !accessCode)
+			throw new Error("Invalid parameters for sending validation email");
+
+		// delete existing access code if it exists
+		await deleteAccessCode(userId, "email");
+
+		// create new access code
+		const accessCodeInserted = await insertAccessCode(
+			userId,
+			accessCode,
+			"email",
+		);
+
+		if (!accessCodeInserted) {
+			throw new Error("Failed to insert access code into the database");
+		}
+
+		resend.emails.send({
+			from: "Keppel <verification@noreply.kylecheung.ca>",
+			to: recipient,
+			subject: "Verify your email",
+			html: `<p>Thank you for signing up. Use the access code to verify your email.</p> <p>Access code: <strong>${accessCode}</strong></p>`,
+		});
+		return true;
+	} catch (error) {
+		console.error("Failed to send validation email:", error);
+		return false;
+	}
+}
+
+export async function createSession(
+	res: NextResponse,
+	req: NextRequest,
+	userId: string,
+): Promise<{
+	accessToken: string;
+	refreshToken: string;
+}> {
+	const ip = getClientIP(req);
+	const accessToken = await generateAccessToken({ id: userId });
+	const refreshToken = await generateRefreshToken();
+
+	const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "60m");
+	const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(
+		process.env.REFRESH_TOKEN_EXPIRY || "7d",
+	);
+
+	const result = await insertRefreshToken(
+		refreshToken,
+		userId,
+		accessToken,
+		ip,
+	);
+
+	if (!result) throw new Error("Failed to insert refresh token");
+
+	res.cookies.set({
+		name: "accessToken",
+		value: accessToken,
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "strict",
+		path: "/",
+		maxAge: JWT_EXPIRY,
+	});
+
+	res.cookies.set({
+		name: "refreshToken",
+		value: refreshToken,
+		httpOnly: true,
+		secure: process.env.NODE_ENV === "production",
+		sameSite: "strict",
+		path: "/",
+		maxAge: REFRESH_TOKEN_EXPIRY,
+	});
+
+	return { accessToken, refreshToken };
 }
 
 export async function authenticate(): Promise<void> {
