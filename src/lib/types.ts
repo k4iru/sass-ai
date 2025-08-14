@@ -1,10 +1,15 @@
-import type { BaseMessage } from "@langchain/core/messages";
 import type { schema } from "@/db";
+import type { VERIFICATION_TYPES } from "./constants";
 
 export type User = typeof schema.usersTable.$inferSelect;
 export type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 export type MessageHistory = typeof schema.messages.$inferSelect;
 export type Summary = typeof schema.summaries.$inferInsert;
+
+export interface AuthUser {
+	id: string;
+	emailVerified: boolean;
+}
 
 export type Message = {
 	id: string;
@@ -17,6 +22,15 @@ export type Message = {
 	provider: string;
 	tokens?: number;
 	messageOrder: number;
+};
+
+export type AccessCode = {
+	id: string;
+	userId: string;
+	accessCode: string;
+	verificationType: (typeof VERIFICATION_TYPES)[number];
+	createdAt: Date;
+	expiryDate: Date;
 };
 
 export type MessageResponse = {
@@ -45,3 +59,10 @@ export type Theme = {
 	theme: "light" | "dark";
 	toggleTheme: () => void;
 };
+
+export interface SignupRequestBody {
+	first: string;
+	last: string;
+	email: string;
+	password: string;
+}
