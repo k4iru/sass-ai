@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 import type React from "react";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { getApiUrl } from "@/lib/constants";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import styles from "./signup.module.scss";
 
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = getApiUrl();
 
-function Signup() {
+const Signup = () => {
 	const [formData, setFormData] = useState({
 		first: "",
 		last: "",
@@ -51,7 +52,7 @@ function Signup() {
 
 		// handle post
 		try {
-			const response = await fetch(`${ApiUrl}/api/auth/signup`, {
+			const response = await fetch(`${API_URL}/api/auth/signup`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -63,7 +64,6 @@ function Signup() {
 			if (!response.ok) {
 				setMessage("Something went wrong.");
 				setLoading(false);
-
 				return;
 			}
 		} catch (error) {
@@ -77,7 +77,7 @@ function Signup() {
 
 		// since redirect throws an error this needs to be outside the try catch block.
 		setLoading(false);
-		redirect("/dashboard");
+		redirect("/chat");
 		return;
 
 		// handle message
@@ -149,6 +149,6 @@ function Signup() {
 			</form>
 		</div>
 	);
-}
+};
 
 export default Signup;
