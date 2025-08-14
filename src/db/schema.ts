@@ -1,23 +1,28 @@
 import {
+	boolean,
+	integer,
+	pgEnum,
+	pgTable,
+	smallint,
+	timestamp,
+	uuid,
+	varchar,
+} from "drizzle-orm/pg-core";
+import {
 	AVAILABLE_LLM_PROVIDERS,
 	AVAILABLE_LOGIN_PROVIDERS,
+	VERIFICATION_TYPES,
 } from "@/lib/constants";
-import {
-	timestamp,
-	pgTable,
-	varchar,
-	uuid,
-	smallint,
-	integer,
-	boolean,
-	pgEnum,
-} from "drizzle-orm/pg-core";
 
 export const loginProviderEnum = pgEnum(
 	"login_provider",
 	AVAILABLE_LOGIN_PROVIDERS,
 );
 export const llmProviderEnum = pgEnum("llm_provider", AVAILABLE_LLM_PROVIDERS);
+export const verificationTypeEnum = pgEnum(
+	"verification_type",
+	VERIFICATION_TYPES,
+);
 
 export const usersTable = pgTable("users", {
 	id: uuid("id").primaryKey().defaultRandom().notNull(),
@@ -103,4 +108,17 @@ export const apiKeys = pgTable("api_keys", {
 	encryptedKey: varchar("encrypted_key", { length: 500 }).notNull(),
 	llmProvider: llmProviderEnum("llm_provider").default("openai").notNull(),
 	createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const accessCodes = pgTable("access_codes", {
+	id: uuid("id").primaryKey().defaultRandom().notNull(),
+	userId: uuid("user_id")
+		.notNull()
+		.references(() => usersTable.id, { onDelete: "cascade" }),
+	accessCode: varchar("access_code", { length: 255 }).notNull(),
+	verificationType: verificationTypeEnum("verification_type")
+		.default("email")
+		.notNull(),
+	createdAt: timestamp("created_at").defaultNow().notNull(),
+	expiryDate: timestamp("expiry_date").notNull(),
 });

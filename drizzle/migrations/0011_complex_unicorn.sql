@@ -1,0 +1,1 @@
+ALTER TABLE "access_codes" DROP COLUMN "verification_type";

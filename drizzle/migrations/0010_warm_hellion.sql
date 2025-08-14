@@ -1,0 +1,1 @@
+ALTER TABLE "access_codes" RENAME COLUMN "type" TO "verification_type";
