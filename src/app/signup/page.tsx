@@ -1,8 +1,9 @@
 "use client";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { getApiUrl } from "@/lib/constants";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import styles from "./signup.module.scss";
@@ -19,6 +20,8 @@ const Signup = () => {
 	});
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
+	const router = useRouter();
+	const { setCurrUser } = useAuth();
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -66,6 +69,22 @@ const Signup = () => {
 				setLoading(false);
 				return;
 			}
+
+			const data = await response.json();
+
+			if (!data.success) {
+				setMessage(data.message || "Failed to sign up");
+				setLoading(false);
+				return;
+			}
+
+			if (data.success && data.user) {
+				console.log("User signed up successfully:", data.user);
+				setCurrUser(data.user);
+				setLoading(false);
+				router.push("/verify-email");
+				return;
+			}
 		} catch (error) {
 			setMessage(
 				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -74,13 +93,6 @@ const Signup = () => {
 
 			return;
 		}
-
-		// since redirect throws an error this needs to be outside the try catch block.
-		setLoading(false);
-		redirect("/chat");
-		return;
-
-		// handle message
 	};
 	return (
 		<div className={styles.signupContainer}>
