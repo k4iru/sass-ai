@@ -5,6 +5,11 @@ import { AllChatsProvider } from "@/context/AllChatsContext";
 import { ChatProvider } from "@/context/ChatContext";
 import styles from "./layout.module.scss";
 
+export const metadata = {
+	title: "Chat",
+	description: "Chat with your AI assistant",
+};
+
 const ChatLayout = ({ children }: { children: React.ReactNode }) => {
 	return (
 		<AllChatsProvider>
