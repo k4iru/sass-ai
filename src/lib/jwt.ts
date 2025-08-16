@@ -62,15 +62,12 @@ export function getUserSubFromJWT(token: string): string | null {
 	}
 }
 
-export const validateToken = async (accessToken?: string): Promise<boolean> => {
-	const { JWT_AUD, JWT_ISS } = getJwtConfig();
-	if (!accessToken) return false;
+export const validateToken = async (
+	accessToken?: string,
+): Promise<JWTPayload | null> => {
+	if (!accessToken) return null;
 
-	const { payload } = await jwtVerify<CustomJwtPayload>(
-		accessToken,
-		getJwtSecret(),
-	);
+	const { payload } = await jwtVerify<JWTPayload>(accessToken, getJwtSecret());
 
-	if (payload.aud !== JWT_AUD || payload.iss !== JWT_ISS) return false;
-	return true;
+	return payload;
 };
