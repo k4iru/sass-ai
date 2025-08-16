@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type React from "react";
 import { type FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { getGoogleOAuthURL } from "@/lib/auth";
 import styles from "./login.module.scss";
-import Link from "next/link";
 
 function Login() {
 	const router = useRouter();
@@ -54,7 +54,9 @@ function Login() {
 		try {
 			await login(formData.email, formData.password);
 		} catch (error) {
-			setMessage("Error submitting form.");
+			setMessage(
+				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
+			);
 			setLoading(false);
 
 			return;
@@ -152,7 +154,7 @@ function Login() {
 						</button>
 					</div>
 				) : (
-					<></>
+					<div></div>
 				)}
 			</form>
 		</div>
