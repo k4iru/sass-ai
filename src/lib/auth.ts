@@ -13,7 +13,7 @@ import {
 	insertRefreshToken,
 	timeStringToSeconds,
 } from "@/lib/helper";
-import { generateAccessToken, validateToken } from "./jwt";
+import { generateAccessToken, getJwtConfig, validateToken } from "./jwt";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 if (!RESEND_API_KEY) {
@@ -73,9 +73,17 @@ export async function sendValidationEmail(
 			throw new Error("Failed to insert access code into the database");
 		}
 
+		console.log(
+			`Access code inserted for user ${userId}: ${accessCodeInserted}`,
+		);
+
+		// for mocking send to same email for now.
 		resend.emails.send({
 			from: "Keppel <verification@noreply.kylecheung.ca>",
-			to: recipient,
+			to:
+				process.env.NODE_ENV === "production"
+					? recipient
+					: "devbykylecheung@gmail.com",
 			subject: "Verify your email",
 			html: `<p>Thank you for signing up. Use the access code to verify your email.</p> <p>Access code: <strong>${accessCode}</strong></p>`,
 		});
@@ -117,7 +125,7 @@ export async function createSession(
 		value: accessToken,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
+		sameSite: "lax",
 		path: "/",
 		maxAge: JWT_EXPIRY,
 	});
@@ -127,15 +135,18 @@ export async function createSession(
 		value: refreshToken,
 		httpOnly: true,
 		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
+		sameSite: "lax",
 		path: "/",
 		maxAge: REFRESH_TOKEN_EXPIRY,
 	});
 
+	console.log("session created");
 	return { accessToken, refreshToken };
 }
 
-export async function authenticate(): Promise<void> {
+export async function authenticate(userId: string): Promise<void> {
+	const { JWT_AUD, JWT_ISS } = getJwtConfig();
+
 	const cookieStore = await cookies();
 	const accessToken = cookieStore.get("accessToken")?.value;
 	const refreshToken = cookieStore.get("refreshToken")?.value;
@@ -143,12 +154,20 @@ export async function authenticate(): Promise<void> {
 	if (!accessToken || !refreshToken) throw new Error("Unauthorized");
 
 	try {
-		const verified = await validateToken(accessToken);
+		const payload = await validateToken(accessToken);
+		if (!payload) throw new Error("Unauthorized");
+
+		console.log("Payload:", payload);
 		// add additional verification for checking refresh token. since this allows anyone with any access token to run.
+		if (
+			payload.aud !== JWT_AUD ||
+			payload.iss !== JWT_ISS ||
+			payload.sub !== userId
+		)
+			throw new Error("Unauthorized");
 
-		const refreshTokenExists = await getRefreshToken(refreshToken);
-
-		if (!verified || !refreshTokenExists) throw new Error("Unauthorized");
+		// if refresh throws then token is invalid
+		await getRefreshToken(refreshToken);
 	} catch (err) {
 		console.log(err);
 		throw new Error("Unauthorized");

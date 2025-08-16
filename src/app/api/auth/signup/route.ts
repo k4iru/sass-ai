@@ -1,12 +1,11 @@
-import type { NextRequest } from "next/server";
-import { hashPassword, sendValidationEmail } from "@/lib/auth";
+import { type NextRequest, NextResponse } from "next/server";
+import { createSession, hashPassword, sendValidationEmail } from "@/lib/auth";
 import {
 	generateRandomAccessCode,
 	insertUser,
 	isExistingUser,
-	response,
 } from "@/lib/helper";
-import type { SignupRequestBody } from "@/lib/types";
+import type { AuthUser, SignupRequestBody } from "@/lib/types";
 import { signupSchema } from "@/lib/validation/signupSchema";
 
 export async function POST(req: NextRequest) {
@@ -20,12 +19,15 @@ export async function POST(req: NextRequest) {
 			const errors = validationResult.error.errors
 				.map((err) => err.message)
 				.join(", ");
-			return response(false, errors, 400);
+			return NextResponse.json({ success: false, message: errors });
 		}
 
 		// check if user is already in db
 		if (await isExistingUser(body.email))
-			return response(false, "User already exists", 409);
+			return NextResponse.json({
+				success: false,
+				message: "User already exists",
+			});
 
 		// hash password
 		const hashedPassword = await hashPassword(body.password);
@@ -44,7 +46,18 @@ export async function POST(req: NextRequest) {
 			throw new Error("Failed to insert user into the database");
 		}
 
+		// data transfer object, so we don't send full user object back over internet
+		const authUser: AuthUser = {
+			id: user.id,
+			emailVerified: user.emailVerified,
+		};
+
 		await sendValidationEmail(user.id, body.email, accessCode);
+		console.log("sent validation email to user", body.email);
+
+		const res = NextResponse.json({ success: true, user: authUser });
+		await createSession(res, req, user.id);
+		return res;
 
 		// set access token / refresh token in cookies. redirect to dashboard.
 	} catch (err) {
@@ -52,8 +65,6 @@ export async function POST(req: NextRequest) {
 		console.error(
 			`Error: ${err instanceof Error ? err.message : "unknown error"}`,
 		);
-		return response(false, "Internal server error", 500);
+		return NextResponse.json({ success: false, message: "Can't sign up" });
 	}
-
-	return response(true, "Form submitted successfully!", 200);
 }

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getUserFromSub } from "@/lib/helper";
 import { getUserSubFromJWT, validateToken } from "@/lib/jwt";
+import type { AuthUser } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
 	try {
@@ -23,10 +24,9 @@ export async function POST(req: NextRequest) {
 
 		if (!userObject) throw new Error("Invalid");
 
-		const user = {
+		const user: AuthUser = {
 			id: userObject.id,
-			email: userObject.email,
-			accessToken: accessToken,
+			emailVerified: userObject.emailVerified,
 		};
 
 		return NextResponse.json({ user }, { status: 200 });
