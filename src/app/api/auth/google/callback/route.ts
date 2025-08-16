@@ -1,20 +1,8 @@
 "use server";
 import { type NextRequest, NextResponse } from "next/server";
-
-import { generateAccessToken } from "@/lib/jwt";
-import {
-	generateRefreshToken,
-	getUserFromEmail,
-	timeStringToSeconds,
-} from "@/lib/helper";
-import { hashPassword } from "@/lib/auth";
-import { v4 as uuid } from "uuid";
 import { db, schema } from "@/db";
-
-const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "60m");
-const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(
-	process.env.REFRESH_TOKEN_EXPIRY || "7d",
-);
+import { createSession } from "@/lib/auth";
+import { getUserFromEmail } from "@/lib/helper";
 
 // sets cookies + adds session id into session db.
 export async function GET(req: NextRequest) {
@@ -131,34 +119,8 @@ export async function GET(req: NextRequest) {
 
 	// TODO: Save to DB, create session, etc.
 
-	const accessToken = await generateAccessToken({ id: userObj.id });
-	const refreshToken = await generateRefreshToken();
-
 	const res = NextResponse.redirect(new URL("/chat", req.url));
-
-	// Access token cookie
-	res.cookies.set({
-		name: "accessToken",
-		value: accessToken,
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict", // More compatible than strict
-		path: "/",
-		maxAge: JWT_EXPIRY, // 15 minutes (matches access token expiry)
-	});
-
-	// Refresh token cookie
-	res.cookies.set({
-		name: "refreshToken",
-		value: refreshToken,
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
-		path: "/",
-		maxAge: REFRESH_TOKEN_EXPIRY, // 7 days (matches refresh token expiry)
-	});
-
+	await createSession(res, req, userObj.id);
+	console.log("cookies for user set");
 	return res;
-
-	// do stuff with profile. Either log in or create new user.
 }
