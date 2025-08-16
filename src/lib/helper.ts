@@ -256,6 +256,26 @@ export async function getAccessCode(
 	}
 }
 
+export async function emailVerified(userId: string): Promise<boolean> {
+	try {
+		const result = await db
+			.update(schema.usersTable)
+			.set({ emailVerified: true })
+			.where(eq(schema.usersTable.id, userId));
+
+		if (result.rowCount === 0) {
+			throw new Error("User not found or email already verified");
+		}
+
+		return true;
+	} catch (error) {
+		console.log(
+			`Error checking email verification: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return false;
+	}
+}
+
 export async function insertUser(
 	first: string,
 	last: string,
@@ -768,7 +788,6 @@ export async function insertRefreshToken(
 	ip: string,
 ): Promise<boolean> {
 	try {
-		console.log("in inserting refresh token");
 		const ms = Date.now() + Number.parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
 		const expiryDate = new Date(ms);
 
