@@ -1,15 +1,15 @@
 "use client";
-import Link from "next/link";
 import clsx from "clsx";
-import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
-import styles from "./Header.module.scss";
+import { ArrowLeftToLine, Menu, UserRound } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import { UserRound, Menu, ArrowLeftToLine } from "lucide-react";
 import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
+import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import { Input } from "@/components/ui/Input/Input";
-import { ChatListPanel } from "../ChatListPanel/ChatListPanel";
 import useChatMenuController from "@/hooks/useChatMenuController";
+import { ChatListPanel } from "../ChatListPanel/ChatListPanel";
+import styles from "./Header.module.scss";
 
 export const Header = () => {
 	const controller = useChatMenuController();
