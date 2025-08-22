@@ -89,7 +89,7 @@ export const Header = () => {
 							handleDelete={controller.handleDelete}
 						/>
 					) : (
-						<></>
+						<div />
 					)}
 				</div>
 				<div className={clsx(styles.overlay, isMenuOpen && styles.open)} />
