@@ -1,7 +1,7 @@
 "use client";
 import { Settings } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import styles from "./SettingsMenu.module.scss";
 
@@ -54,7 +54,7 @@ export const SettingsMenu = () => {
 								</Link>
 							</li>
 							<li>
-								<Link href="/api" className={styles.menuItem}>
+								<Link href="/api-keys" className={styles.menuItem}>
 									API Keys
 								</Link>
 							</li>
