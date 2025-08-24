@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { addApiKey } from "@/actions/addApikey";
+import { useAuth } from "@/context/AuthContext";
 import { AVAILABLE_LLM_PROVIDERS } from "@/lib/constants";
 import styles from "./apikeys.module.scss";
 
@@ -17,6 +20,14 @@ const emptyApiKeys: Record<Provider, string> = AVAILABLE_LLM_PROVIDERS.reduce(
 const ApiKeys = () => {
 	const [apiKeys, setApiKeys] =
 		useState<Record<Provider, string>>(emptyApiKeys);
+	const { user } = useAuth();
+	const router = useRouter();
+
+	useEffect(() => {
+		if (!user) {
+			router.push("/login");
+		}
+	});
 
 	// update the correct provider when typing
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,9 +35,18 @@ const ApiKeys = () => {
 		setApiKeys((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleClick = (provider: keyof typeof apiKeys) => {
+	const handleClick = async (provider: keyof typeof apiKeys) => {
 		console.log("Name:", provider);
 		console.log("Value:", apiKeys[provider]);
+
+		if (!user) throw new Error("Invalid user");
+		const { success } = await addApiKey(user.id, provider, apiKeys[provider]);
+
+		if (success) {
+			console.log("good");
+		} else {
+			console.log("bad");
+		}
 	};
 	return (
 		<div className={styles.wrapper}>

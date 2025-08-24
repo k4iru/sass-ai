@@ -236,7 +236,7 @@ export async function getAccessCode(
 			)
 			.orderBy(desc(schema.accessCodes.createdAt));
 
-		if (!accessCodes.length) throw new Error("Can't get apiKey");
+		if (!accessCodes.length) throw new Error("Can't get access code");
 
 		const accessCode: AccessCode = {
 			id: accessCodes[0].id,
@@ -779,6 +779,61 @@ export async function deleteRefreshToken(
 	}
 
 	return true;
+}
+
+export async function deleteApiKey(
+	userId: string,
+	provider: string,
+): Promise<boolean> {
+	try {
+		if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS)) {
+			throw new Error("Invalid provider");
+		}
+
+		const result = await db
+			.delete(schema.apiKeys)
+			.where(
+				and(
+					eq(schema.apiKeys.userId, userId),
+					eq(schema.apiKeys.llmProvider, provider),
+				),
+			);
+
+		if (result.rowCount === 0) throw new Error("No api key found to delete");
+		return true;
+	} catch (error) {
+		console.log(
+			`Error deleting API key: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return false;
+	}
+}
+
+export async function insertApiKey(
+	userId: string,
+	provider: string,
+	encryptedKey: string,
+): Promise<boolean> {
+	try {
+		if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS)) {
+			throw new Error("Invalid provider");
+		}
+
+		const newApiKeyRow: typeof schema.apiKeys.$inferInsert = {
+			userId: userId,
+			llmProvider: provider,
+			encryptedKey: encryptedKey,
+		};
+
+		const result = await db.insert(schema.apiKeys).values(newApiKeyRow);
+		if (!result) throw new Error("Error inserting API key into table");
+		return true;
+	} catch (error) {
+		console.error(
+			`Error adding API key: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
+		return false;
+	}
 }
 
 export async function insertRefreshToken(
