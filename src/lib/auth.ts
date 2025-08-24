@@ -157,7 +157,6 @@ export async function authenticate(userId: string): Promise<void> {
 		const payload = await validateToken(accessToken);
 		if (!payload) throw new Error("Unauthorized");
 
-		console.log("Payload:", payload);
 		// add additional verification for checking refresh token. since this allows anyone with any access token to run.
 		if (
 			payload.aud !== JWT_AUD ||
