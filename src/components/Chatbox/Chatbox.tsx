@@ -1,26 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
-import styles from "@/components/Chatbox/Chatbox.module.scss";
-import { FilePlus, ArrowBigRight, ChevronDown } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { ArrowBigRight, ChevronDown, FilePlus } from "lucide-react";
+import { useParams, useRouter } from "next/navigation"; // App Router
+import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import styles from "@/components/Chatbox/Chatbox.module.scss";
+import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import type { Message } from "@/lib/types";
-import { useRouter } from "next/navigation"; // App Router
-
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const {
-		pushMessage,
-		skipInitialize,
-		setSkipInitialize,
-		pushInitialMessage,
-		messages,
-	} = useChat();
+	const { pushMessage, setSkipInitialize, pushInitialMessage, messages } =
+		useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
