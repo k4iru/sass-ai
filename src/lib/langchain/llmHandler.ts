@@ -1,5 +1,4 @@
-import type { Message, MessageHistory } from "@/lib/types";
-import { v4 as uuidv4 } from "uuid";
+import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import type {
 	BaseChatModel,
 	BaseChatModelCallOptions,
@@ -7,34 +6,34 @@ import type {
 import {
 	type AIMessage,
 	type AIMessageChunk,
-	type BaseMessageLike,
 	type BaseMessage,
+	type BaseMessageLike,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
+import type { ChatPromptTemplate } from "@langchain/core/prompts";
+import type { Runnable } from "@langchain/core/runnables";
+import {
+	Annotation,
+	END,
+	MemorySaver,
+	START,
+	StateGraph,
+} from "@langchain/langgraph";
+import { v4 as uuidv4 } from "uuid";
+import type { Message, MessageHistory } from "@/lib/types";
 import {
 	convertToBaseMessageArray,
 	createChatContext,
 	insertMessage,
 	updateTokenUsage,
 } from "../helper";
-import {
-	StateGraph,
-	START,
-	END,
-	Annotation,
-	MemorySaver,
-} from "@langchain/langgraph";
-import type { Runnable } from "@langchain/core/runnables";
-import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
-import type { ChatPromptTemplate } from "@langchain/core/prompts";
-import { toolNode, tools } from "./tools";
-import { updateSummaryPrompt, createChatPrompt } from "./prompts";
-import { calculateApproxTokens } from "./llmHelper";
 import { chatContextManager } from "../services/chatContextManager";
+import { calculateApproxTokens } from "./llmHelper";
+import { createChatPrompt } from "./prompts";
+import { toolNode, tools } from "./tools";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
 
-const TOKEN_LIMIT = 8192; // 8k tokens
 const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
 
 // define state for langgraph
@@ -160,8 +159,6 @@ const askQuestion = async function* (
 
 		chatContextManager.setChatContext(userId, chatId, chatContext);
 	}
-
-	console.log(chatContext);
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
