@@ -1,12 +1,15 @@
 "use client";
 
+import clsx from "clsx";
 import { ArrowBigRight, ChevronDown, FilePlus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation"; // App Router
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
+import useUpload from "@/hooks/useUpload";
 import type { Message } from "@/lib/types";
 
 export const Chatbox = () => {
@@ -19,7 +22,36 @@ export const Chatbox = () => {
 	const [text, setText] = useState<string>("");
 	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const { handleUpload } = useUpload();
 
+	const onDrop = useCallback(
+		(acceptedFiles: File[]) => {
+			const file = acceptedFiles[0];
+			console.log(file);
+
+			if (file && user) {
+				handleUpload(file, user.id);
+			}
+		},
+		[user, handleUpload],
+	);
+
+	const {
+		getRootProps,
+		getInputProps,
+		open,
+		isDragActive,
+		isFocused,
+		isDragAccept,
+	} = useDropzone({
+		onDrop,
+		maxFiles: 1,
+		accept: {
+			"application/pdf": [".pdf"],
+		},
+		noClick: true, // disables auto click on dropzone
+		noKeyboard: true, // optional: disables keyboard events
+	});
 	// resize the textarea based on its content
 	// and limit its height to a maximum of 160px / 10rem
 	// onInput for side effects
@@ -115,23 +147,35 @@ export const Chatbox = () => {
 	}, [resizeTextarea]);
 
 	return (
-		<div className={styles.chatbox}>
-			<div className={styles.input}>
-				<textarea
-					aria-label="Chat input"
-					placeholder="Type your message here..."
-					ref={textareaRef}
-					className={styles.textarea}
-					onInput={resizeTextarea}
-					onKeyDown={handleKeyDown}
-					onChange={(e) => setText(e.target.value)}
-					rows={1}
-					value={text}
-				/>
-			</div>
+		<div
+			{...getRootProps()}
+			className={clsx(
+				styles.chatbox,
+				isFocused || isDragAccept ? styles.chatboxActive : "",
+			)}
+		>
+			{isDragActive ? (
+				<div>in drag mode</div>
+			) : (
+				<div className={styles.input}>
+					<textarea
+						aria-label="Chat input"
+						placeholder="Type your message here..."
+						ref={textareaRef}
+						className={styles.textarea}
+						onInput={resizeTextarea}
+						onKeyDown={handleKeyDown}
+						onChange={(e) => setText(e.target.value)}
+						rows={1}
+						value={text}
+					/>
+				</div>
+			)}
+
 			<div className={styles.bottom}>
-				<button type="button" className={styles.fileButton}>
+				<button type="button" className={styles.fileButton} onClick={open}>
 					<FilePlus className={styles.fileIcon} />
+					<input {...getInputProps()} />
 				</button>
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
