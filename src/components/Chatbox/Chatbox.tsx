@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowBigRight, ChevronDown, FilePlus } from "lucide-react";
+import { ArrowBigRight, ChevronDown, FilePlus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation"; // App Router
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -14,27 +14,26 @@ import type { Message } from "@/lib/types";
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const { pushMessage, setSkipInitialize, pushInitialMessage, messages } =
-		useChat();
+	const { pushMessage, pushInitialMessage, messages } = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
 	const [text, setText] = useState<string>("");
+	const [fileName, setFileName] = useState<string | null>(null);
+	const [fileData, setFileData] = useState<null | File>(null);
 	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const { handleUpload } = useUpload();
 
-	const onDrop = useCallback(
-		(acceptedFiles: File[]) => {
-			const file = acceptedFiles[0];
-			console.log(file);
+	const onDrop = (acceptedFiles: File[]) => {
+		setFileName(acceptedFiles[0].name);
+		setFileData(acceptedFiles[0]);
+	};
 
-			if (file && user) {
-				handleUpload(file, user.id);
-			}
-		},
-		[user, handleUpload],
-	);
+	const handleCloseFile = () => {
+		setFileName(null);
+		setFileData(null);
+	};
 
 	const {
 		getRootProps,
@@ -49,9 +48,10 @@ export const Chatbox = () => {
 		accept: {
 			"application/pdf": [".pdf"],
 		},
-		noClick: true, // disables auto click on dropzone
-		noKeyboard: true, // optional: disables keyboard events
+		noClick: true,
+		noKeyboard: true,
 	});
+
 	// resize the textarea based on its content
 	// and limit its height to a maximum of 160px / 10rem
 	// onInput for side effects
@@ -100,7 +100,6 @@ export const Chatbox = () => {
 
 			pushMessage(newMessage);
 			pushInitialMessage(newMessage); // push to websocket
-			setSkipInitialize(true);
 			router.push(`/chat/${newChatId}`);
 
 			setText(""); // clear the input after sending
@@ -158,6 +157,14 @@ export const Chatbox = () => {
 				<div>in drag mode</div>
 			) : (
 				<div className={styles.input}>
+					{fileName ? (
+						<div className={styles.buttonRow}>
+							<div className={styles.uploadedFile}>{fileName}</div>
+							<button type="button" onClick={handleCloseFile}>
+								<X className={styles.icon} />
+							</button>
+						</div>
+					) : null}
 					<textarea
 						aria-label="Chat input"
 						placeholder="Type your message here..."
