@@ -1,10 +1,9 @@
 "use client";
 
-import { useChat } from "@/context/ChatContext";
-import { useEffect, useRef } from "react";
-import { use } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { use, useEffect, useRef } from "react";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
+import { useAuth } from "@/context/AuthContext";
+import { useChat } from "@/context/ChatContext";
 import styles from "./chatid.module.scss";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
@@ -17,17 +16,7 @@ const ChatPage = ({ params }: Props) => {
 	const bottom = useRef<HTMLSpanElement>(null);
 	const chatId = use(params).chatId;
 	const { user } = useAuth(); // Assuming user is provided by ChatContext or AuthContext
-	const {
-		messages,
-		pushMessage,
-		popMessage,
-		initializeMessages,
-		removePlaceholderMessages,
-		skipInitialize,
-		setSkipInitialize,
-		pendingInitialMessages,
-		setPendingInitialMessages,
-	} = useChat();
+	const { messages, initializeMessages, skipInitialize } = useChat();
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: need messages as a dependency to update run when new chat added
 	useEffect(() => {
