@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { validateToken } from "@/lib/jwt";
+import { type NextRequest, NextResponse } from "next/server";
+import { authenticate } from "@/lib/auth";
 import { getAWSSignedUrl, getFileUrl } from "@/lib/s3";
 
 // TODO move s3client to a separate helper file
@@ -10,9 +10,7 @@ export async function POST(req: NextRequest) {
 		const body = await req.json();
 		const { userId, fileName, fileType } = body;
 
-		const verified = validateToken(req.cookies.get("accessToken")?.value);
-		if (!verified)
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		await authenticate(userId);
 
 		if (!userId || !fileName || !fileType) {
 			return NextResponse.json(
