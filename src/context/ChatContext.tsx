@@ -9,6 +9,8 @@ type ChatContextType = {
 	messages: Message[];
 	pushMessage: (msg: Message) => void;
 	popMessage: () => void;
+	fileKey: string | null;
+	setFileKey: (key: string | null) => void;
 	initializeMessages: (initialMessages: Message[]) => void;
 	removePlaceholderMessages: () => void;
 	skipInitialize: boolean;
@@ -50,6 +52,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 		messages,
 		pushMessage,
 		popMessage,
+		fileKey,
+		setFileKey,
 		initializeMessages,
 		removePlaceholderMessages,
 	} = useWebSocket(
@@ -62,6 +66,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 				messages,
 				pushMessage,
 				popMessage,
+				fileKey,
+				setFileKey,
 				initializeMessages,
 				removePlaceholderMessages,
 				skipInitialize,

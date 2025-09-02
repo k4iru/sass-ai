@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Message } from "@/lib/types";
-const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
+	const [fileKey, setFileKey] = useState<null | string>(null);
 	const socketRef = useRef<WebSocket | null>(null);
 	const pendingQueueRef = useRef<Message[]>([]);
 
@@ -65,6 +65,7 @@ function useWebSocket(url: string | null) {
 		};
 
 		socket.onclose = () => {
+			setFileKey(null);
 			console.log("WebSocket closed.");
 		};
 
@@ -108,6 +109,8 @@ function useWebSocket(url: string | null) {
 	return {
 		messages,
 		pushMessage,
+		fileKey,
+		setFileKey,
 		popMessage,
 		initializeMessages,
 		removePlaceholderMessages,

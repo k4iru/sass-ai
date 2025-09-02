@@ -21,6 +21,8 @@ function useUpload() {
 		setIsLoading(true);
 		setError(null);
 
+		// TODO: rework this portion. no longer needed to upload to aws for pdf viewing.
+
 		try {
 			if (!file?.type || !file?.name) {
 				throw new Error("Invalid file object");
@@ -63,7 +65,6 @@ function useUpload() {
 				throw new Error("S3 upload failed");
 			}
 
-			const key = `${userId}/${fileId}`;
 			// generate embeddings server action
 			setFileId(fileId);
 		} catch (err) {

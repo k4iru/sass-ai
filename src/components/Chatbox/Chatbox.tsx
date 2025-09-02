@@ -23,7 +23,7 @@ export const Chatbox = () => {
 	const [fileData, setFileData] = useState<null | File>(null);
 	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
-	const { handleUpload } = useUpload();
+	const { handleUpload, fileId } = useUpload();
 
 	const onDrop = (acceptedFiles: File[]) => {
 		setFileName(acceptedFiles[0].name);
@@ -97,6 +97,12 @@ export const Chatbox = () => {
 				createdAt: new Date(),
 				messageOrder: messages.length,
 			};
+
+			// upload file asynchronously first. once file is uploaded, can send message with docId to query with history aware chain.
+
+			if (fileData) {
+				await handleUpload(fileData, user.id);
+			}
 
 			pushMessage(newMessage);
 			pushInitialMessage(newMessage); // push to websocket
