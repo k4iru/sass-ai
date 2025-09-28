@@ -1,19 +1,21 @@
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
 import crypto from "node:crypto";
+import { IV_LENGTH } from "../constants";
+import { serverEnv } from "../env";
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "";
-const IV_LENGTH = 16;
-
-if (ENCRYPTION_KEY === "") {
-	throw new Error("Missing Encryption Key");
+function getEncryptionKey(): string {
+	if (serverEnv.ENCRYPTION_KEY.length !== 64) {
+		throw new Error(
+			"Encryption key must be 32 bytes in hex format (64 characters)",
+		);
+	}
+	return serverEnv.ENCRYPTION_KEY;
 }
 
 export function encrypt(text: string): string {
 	const iv = crypto.randomBytes(IV_LENGTH);
 	const cipher = crypto.createCipheriv(
 		"aes-256-cbc",
-		Buffer.from(ENCRYPTION_KEY, "hex"),
+		Buffer.from(getEncryptionKey(), "hex"),
 		iv,
 	);
 	const encrypted = Buffer.concat([
@@ -29,7 +31,7 @@ export function decrypt(text: string): string {
 	const encryptedText = Buffer.from(encryptedHex, "hex");
 	const decipher = crypto.createDecipheriv(
 		"aes-256-cbc",
-		Buffer.from(ENCRYPTION_KEY, "hex"),
+		Buffer.from(getEncryptionKey(), "hex"),
 		iv,
 	);
 	const decrypted = Buffer.concat([
