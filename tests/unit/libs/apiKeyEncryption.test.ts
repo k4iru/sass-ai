@@ -10,7 +10,7 @@ describe("apiKeyEncryption", () => {
 		);
 	});
 
-	test("encrpytion works", () => {
+	test("test encrypt / decrypt", () => {
 		const text = "Hello, World!";
 		const encrypted = encrypt(text);
 		expect(encrypted).not.toBe(text);
