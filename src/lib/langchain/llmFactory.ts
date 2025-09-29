@@ -1,10 +1,11 @@
-import { getApiKey } from "../helper";
-import { decrypt } from "../encryption/apiKeyEncryption";
-import { LRUCache } from "lru-cache";
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatGroq } from "@langchain/groq";
 import { ChatAnthropic } from "@langchain/anthropic";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { ChatGroq } from "@langchain/groq";
+import { ChatOpenAI } from "@langchain/openai";
+import { LRUCache } from "lru-cache";
+import { decrypt } from "@/lib/encryption/apiKeyEncryption";
+import { getApiKey } from "@/lib/helper";
+import { logger } from "@/lib/logger";
 
 type LLMProvider = "openai" | "groq" | "anthropic";
 
@@ -22,11 +23,11 @@ export async function getChatModel(
 
 	const cached = chatModelCache.get(cacheKey);
 	if (cached) {
-		console.log("cache hit for", provider);
+		logger.info("cache hit for", provider);
 		return cached;
 	}
 
-	console.log("not in cache, fetching API key for", provider);
+	logger.info("not in cache, fetching API key for", provider);
 	const apiKey = await getApiKey(userId, provider);
 
 	// invalid api key
