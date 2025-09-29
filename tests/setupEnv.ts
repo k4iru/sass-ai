@@ -1,10 +1,10 @@
-// tests/setupEnv.ts
-
 import path from "node:path";
 import { config } from "dotenv";
+import { vi } from "vitest";
 
-// Load .env.test explicitly
+// suppress logger output during tests
+// to unsuppress alter logger mock in __mocks__/@lib/logger.ts
+vi.mock("@/lib/logger");
+
+// Load .env.test file
 config({ path: path.resolve(process.cwd(), ".env.test") });
-
-// Optional: import your Zod-validated env to fail fast if something is missing
-import { clientEnv, serverEnv } from "@/lib/env";
