@@ -17,6 +17,7 @@ pm2 to auto start
 * preload messages for faster ui
 * redis caching
 * automate deployment
+* implement an actual logger
 
 ## websocket
 * heartbeat/ping implementation to detect dropped connections
