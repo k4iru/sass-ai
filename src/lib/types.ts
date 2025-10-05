@@ -5,6 +5,8 @@ export type User = typeof schema.usersTable.$inferSelect;
 export type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 export type MessageHistory = typeof schema.messages.$inferSelect;
 export type Summary = typeof schema.summaries.$inferInsert;
+export type LLMProvider = "openai" | "groq" | "anthropic";
+
 
 export interface AuthUser {
 	id: string;

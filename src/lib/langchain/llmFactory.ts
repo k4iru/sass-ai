@@ -6,14 +6,14 @@ import { LRUCache } from "lru-cache";
 import { decrypt } from "@/lib/encryption/apiKeyEncryption";
 import { getApiKey } from "@/lib/helper";
 import { logger } from "@/lib/logger";
+import { LLMProvider } from "@/lib/types";			
 
-type LLMProvider = "openai" | "groq" | "anthropic";
-
-const chatModelCache = new LRUCache<string, [BaseChatModel, BaseChatModel]>({
+export const chatModelCache = new LRUCache<string, [BaseChatModel, BaseChatModel]>({
 	max: 100,
 	ttl: 1000 * 60 * 15,
 	allowStale: false,
 });
+
 
 export async function getChatModel(
 	userId: string,
