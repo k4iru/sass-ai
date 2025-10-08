@@ -1,9 +1,9 @@
-import { WebSocketServer, WebSocket } from "ws";
-import { config } from "dotenv";
 import { parse } from "node:url";
-import { askQuestion } from "@/lib/langchain/llmHandler";
-import { getChatModel } from "@/lib/langchain/llmFactory";
+import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
+import { WebSocket, WebSocketServer } from "ws";
+import { getChatModel } from "@/lib/langchain/llmFactory";
+import { askQuestion } from "@/lib/langchain/llmHandler";
 
 type ChatRooms = {
 	[key: string]: WebSocket;
@@ -62,8 +62,8 @@ export function startWebSocketServer(): void {
 				let streamedText = "";
 
 				const AiMessageId = uuidv4();
-				for await (const chunkk of askQuestion(msg, model, summaryProvider)) {
-					const token = chunkk.text || "";
+				for await (const chunk of askQuestion(msg, model, summaryProvider)) {
+					const token = chunk.text || "";
 					streamedText += token;
 
 					if (ws.readyState === WebSocket.OPEN) {
