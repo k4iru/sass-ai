@@ -1,7 +1,41 @@
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import type { ChatContext } from "../types";
-import { updateSummaryPrompt } from "./prompts";
-import { updateSummary } from "../helper";
+import type {
+	AIMessage,
+	BaseMessage,
+	BaseMessageLike,
+} from "@langchain/core/messages";
+import { Annotation, END } from "@langchain/langgraph";
+import { updateSummary } from "@/lib/helper";
+import { updateSummaryPrompt } from "@/lib/langchain/prompts";
+import type { ChatContext } from "@/lib/types";
+
+// define state for langgraph
+export const StateAnnotation = Annotation.Root({
+	messages: Annotation<BaseMessageLike[]>({
+		reducer: (x, y) => x.concat(y),
+	}),
+	summary: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
+	recent_messages: Annotation<BaseMessage[]>({
+		reducer: (x, y) => y ?? x,
+	}),
+	input: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
+});
+
+export const routeMessage = (state: typeof StateAnnotation.State) => {
+	const { messages } = state;
+	const lastMessage = messages[messages.length - 1] as AIMessage;
+
+	// If no tools are called, we can finish (respond to the user)
+	if (!lastMessage?.tool_calls?.length) {
+		return END;
+	}
+	// Otherwise if there is, we continue and call the tools
+	return "tools";
+};
 
 export const calculateApproxTokens = (content: string): number => {
 	const overhead = 12;

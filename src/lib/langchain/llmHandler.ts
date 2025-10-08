@@ -4,22 +4,18 @@ import type {
 	BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
 import {
-	type AIMessage,
 	type AIMessageChunk,
-	type BaseMessage,
-	type BaseMessageLike,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
 import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { Runnable } from "@langchain/core/runnables";
-import {
-	Annotation,
-	END,
-	MemorySaver,
-	START,
-	StateGraph,
-} from "@langchain/langgraph";
+import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
+import {
+	calculateApproxTokens,
+	routeMessage,
+	StateAnnotation,
+} from "@/lib/langchain/llmHelper";
 import type { Message, MessageHistory } from "@/lib/types";
 import {
 	convertToBaseMessageArray,
@@ -28,43 +24,12 @@ import {
 	updateTokenUsage,
 } from "../helper";
 import { chatContextManager } from "../services/chatContextManager";
-import { calculateApproxTokens } from "./llmHelper";
 import { createChatPrompt } from "./prompts";
 import { toolNode, tools } from "./tools";
 
 // https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
 
 const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
-
-// define state for langgraph
-const StateAnnotation = Annotation.Root({
-	messages: Annotation<BaseMessageLike[]>({
-		reducer: (x, y) => x.concat(y),
-	}),
-	summary: Annotation<string>({
-		reducer: (x, y) => y ?? x,
-	}),
-	recent_messages: Annotation<BaseMessage[]>({
-		reducer: (x, y) => y ?? x,
-	}),
-	input: Annotation<string>({
-		reducer: (x, y) => y ?? x,
-	}),
-});
-
-// message router. if tool call, call tool node else END
-// TODO create more tools
-const routeMessage = (state: typeof StateAnnotation.State) => {
-	const { messages } = state;
-	const lastMessage = messages[messages.length - 1] as AIMessage;
-
-	// If no tools are called, we can finish (respond to the user)
-	if (!lastMessage?.tool_calls?.length) {
-		return END;
-	}
-	// Otherwise if there is, we continue and call the tools
-	return "tools";
-};
 
 // agent node
 const handleCallModel = (
@@ -98,6 +63,7 @@ const handleCallModel = (
 		return { messages: [responseMessage] };
 	};
 };
+
 const handleWorkFlow = (
 	llmProvider: Runnable<
 		BaseLanguageModelInput,
