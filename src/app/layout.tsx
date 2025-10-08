@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import "@/styles/globals.scss";
-import { AuthProvider } from "../context/AuthContext";
-import { ThemeProvider } from "@/context/ThemeContext";
-import { roboto, firaSans } from "@/fonts/_fonts";
 import { AuthHydrator } from "@/components/AuthHydrator/AuthHydrator";
-import { Header } from "@/components/Header/Header";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { firaSans, roboto } from "@/fonts/_fonts";
+import { AuthProvider } from "../context/AuthContext";
 
 export const metadata: Metadata = {
 	title: "Create Next App",

@@ -1,6 +1,6 @@
 import { tool } from "@langchain/core/tools";
-import { z } from "zod";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
+import { z } from "zod";
 
 // separate tools. add web search tool eventually.
 const searchTool = tool(
