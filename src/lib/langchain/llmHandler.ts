@@ -53,6 +53,7 @@ const StateAnnotation = Annotation.Root({
 });
 
 // message router. if tool call, call tool node else END
+// TODO create more tools
 const routeMessage = (state: typeof StateAnnotation.State) => {
 	const { messages } = state;
 	const lastMessage = messages[messages.length - 1] as AIMessage;
