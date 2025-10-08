@@ -1,4 +1,7 @@
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { schema } from "@/db";
+import type { chatContextManager } from "@/lib/services/chatContextManager";
 import type { VERIFICATION_TYPES } from "./constants";
 
 export type User = typeof schema.usersTable.$inferSelect;
@@ -6,7 +9,6 @@ export type RefreshToken = typeof schema.refreshTokensTable.$inferSelect;
 export type MessageHistory = typeof schema.messages.$inferSelect;
 export type Summary = typeof schema.summaries.$inferInsert;
 export type LLMProvider = "openai" | "groq" | "anthropic";
-
 
 export interface AuthUser {
 	id: string;
@@ -67,4 +69,21 @@ export interface SignupRequestBody {
 	last: string;
 	email: string;
 	password: string;
+}
+
+export interface AgentDeps {
+	chatContextManager: typeof chatContextManager;
+	insertMessage: (messages: Message[]) => Promise<void> | void;
+	updateTokenUsage: (userId: string, chatId: string, tokens: number) => void;
+	createChatContext: (message: Message) => Promise<any>;
+	calculateApproxTokens: (text: string) => number;
+	createChatPrompt: () => ChatPromptTemplate;
+	routeMessage: "__end__" | "tools";
+	tools: Record<string, unknown>;
+}
+
+export interface AgentInit {
+	chatProvider: BaseChatModel;
+	summaryProvider: BaseChatModel;
+	deps: AgentDeps;
 }
