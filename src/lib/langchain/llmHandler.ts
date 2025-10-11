@@ -15,6 +15,7 @@ import type { AgentDeps } from "@/lib/container";
 import { routeMessage, StateAnnotation } from "@/lib/langchain/llmHelper";
 import type { Message, MessageHistory } from "@/lib/types";
 import { convertToBaseMessageArray } from "../helper";
+import { logger } from "../logger";
 import { getOrCreateChatContext } from "./getOrCreateChatContext";
 import { createChatPrompt } from "./prompts";
 import { toolNode, tools } from "./tools";
@@ -56,6 +57,28 @@ const handleCallModel = (
 	};
 };
 
+const bindToolsToChatProvider = (
+	chatProvider: BaseChatModel,
+): Runnable<
+	BaseLanguageModelInput,
+	AIMessageChunk,
+	BaseChatModelCallOptions
+> | null => {
+	// bind the provider to available tools
+
+	try {
+		const boundChatProvider =
+			typeof chatProvider.bindTools === "function"
+				? chatProvider.bindTools(tools)
+				: null;
+
+		return boundChatProvider;
+	} catch (error) {
+		logger.error("Error binding tools to chat provider:", error);
+		return null;
+	}
+};
+
 const handleWorkFlow = (
 	llmProvider: Runnable<
 		BaseLanguageModelInput,
@@ -95,22 +118,17 @@ const askQuestion = async function* (
 		calculateApproxTokens,
 	} = askQuestionDeps;
 
-	// bind the provider to available tools
-	const boundChatProvider =
-		typeof chatProvider.bindTools === "function"
-			? chatProvider.bindTools(tools)
-			: null;
-
-	if (!boundChatProvider) {
-		throw new Error("Chat provider does not support binding tools.");
-	}
-
-	const { agent } = handleWorkFlow(boundChatProvider);
-
 	const chatContext = await getOrCreateChatContext(message, {
 		manager: chatContextManager,
 		createChatContext,
 	});
+
+	const boundChatProvider = bindToolsToChatProvider(chatProvider);
+	if (boundChatProvider == null) {
+		throw new Error("Failed to bind tools to chat provider.");
+	}
+
+	const { agent } = handleWorkFlow(boundChatProvider);
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
