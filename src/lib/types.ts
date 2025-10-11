@@ -70,20 +70,3 @@ export interface SignupRequestBody {
 	email: string;
 	password: string;
 }
-
-export interface AgentDeps {
-	chatContextManager: typeof chatContextManager;
-	insertMessage: (messages: Message[]) => Promise<void> | void;
-	updateTokenUsage: (userId: string, chatId: string, tokens: number) => void;
-	createChatContext: (message: Message) => Promise<any>;
-	calculateApproxTokens: (text: string) => number;
-	createChatPrompt: () => ChatPromptTemplate;
-	routeMessage: "__end__" | "tools";
-	tools: Record<string, unknown>;
-}
-
-export interface AgentInit {
-	chatProvider: BaseChatModel;
-	summaryProvider: BaseChatModel;
-	deps: AgentDeps;
-}

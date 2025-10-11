@@ -11,19 +11,10 @@ import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { Runnable } from "@langchain/core/runnables";
 import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
-import {
-	calculateApproxTokens,
-	routeMessage,
-	StateAnnotation,
-} from "@/lib/langchain/llmHelper";
+import { routeMessage, StateAnnotation } from "@/lib/langchain/llmHelper";
 import type { Message, MessageHistory } from "@/lib/types";
-import {
-	convertToBaseMessageArray,
-	createChatContext,
-	insertMessage,
-	updateTokenUsage,
-} from "../helper";
-import { chatContextManager } from "../services/chatContextManager";
+import { convertToBaseMessageArray, createChatContext } from "../helper";
+import type { chatContextManager } from "../services/chatContextManager";
 import { createChatPrompt } from "./prompts";
 import { toolNode, tools } from "./tools";
 
@@ -92,6 +83,7 @@ const askQuestion = async function* (
 	message: Message,
 	chatProvider: BaseChatModel,
 	summaryProvider: BaseChatModel,
+	deps: AgentDeps,
 ): AsyncGenerator<AIMessageChunk> {
 	const { role, chatId, userId, content, provider } = message;
 

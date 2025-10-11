@@ -2,6 +2,7 @@ import { parse } from "node:url";
 import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { WebSocket, WebSocketServer } from "ws";
+import { container } from "@/lib/container";
 import { getChatModel } from "@/lib/langchain/llmFactory";
 import { askQuestion } from "@/lib/langchain/llmHandler";
 
@@ -61,8 +62,18 @@ export function startWebSocketServer(): void {
 
 				let streamedText = "";
 
+				const askQuestionDeps = {
+					chatContextManager: container.chatContextManager,
+					insertMessage: container.insertMessage,
+				};
+
 				const AiMessageId = uuidv4();
-				for await (const chunk of askQuestion(msg, model, summaryProvider)) {
+				for await (const chunk of askQuestion(
+					msg,
+					model,
+					summaryProvider,
+					askQuestionDeps,
+				)) {
 					const token = chunk.text || "";
 					streamedText += token;
 
