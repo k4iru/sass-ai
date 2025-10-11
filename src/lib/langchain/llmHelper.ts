@@ -80,7 +80,6 @@ export const summarizeMessages = async (
 			chatContext.lastSummaryIndex === 0 ? "" : chatContext.summary,
 		new_messages: new_messages,
 	});
-	console.log(formattedSummaryPrompt);
 
 	const reply = await summaryProvider.invoke(formattedSummaryPrompt);
 	updateSummary(
