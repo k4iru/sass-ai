@@ -28,7 +28,7 @@ UPDATED SUMMARY:`,
 	]);
 };
 
-export const createChatPrompt = () => {
+export const createChatPrompt = (): ChatPromptTemplate => {
 	return ChatPromptTemplate.fromMessages([
 		[
 			"system",

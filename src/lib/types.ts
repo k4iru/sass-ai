@@ -1,7 +1,5 @@
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { schema } from "@/db";
-import type { chatContextManager } from "@/lib/services/chatContextManager";
 import type { VERIFICATION_TYPES } from "./constants";
 
 export type User = typeof schema.usersTable.$inferSelect;
@@ -69,4 +67,25 @@ export interface SignupRequestBody {
 	last: string;
 	email: string;
 	password: string;
+}
+
+export interface ChatContextManager {
+	getChatContext(userId: string, chatId: string): ChatContext | undefined;
+	setChatContext(
+		userId: string,
+		chatId: string,
+		chatContext: ChatContext,
+	): void;
+	updateSummaryInBackground(
+		userId: string,
+		chatId: string,
+		summaryProvider: BaseChatModel,
+	): Promise<void>;
+	isPendingSummarization(chatId: string): boolean;
+	deleteChatContext(chatId: string): boolean;
+	getCacheStats(): {
+		size: number;
+		max: number;
+		pendingSummarizations: number;
+	};
 }

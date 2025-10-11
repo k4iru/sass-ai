@@ -11,10 +11,11 @@ import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { Runnable } from "@langchain/core/runnables";
 import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
+import type { AgentDeps } from "@/lib/container";
 import { routeMessage, StateAnnotation } from "@/lib/langchain/llmHelper";
 import type { Message, MessageHistory } from "@/lib/types";
-import { convertToBaseMessageArray, createChatContext } from "../helper";
-import type { chatContextManager } from "../services/chatContextManager";
+import { convertToBaseMessageArray } from "../helper";
+import { getOrCreateChatContext } from "./getOrCreateChatContext";
 import { createChatPrompt } from "./prompts";
 import { toolNode, tools } from "./tools";
 
@@ -83,9 +84,16 @@ const askQuestion = async function* (
 	message: Message,
 	chatProvider: BaseChatModel,
 	summaryProvider: BaseChatModel,
-	deps: AgentDeps,
+	askQuestionDeps: AgentDeps,
 ): AsyncGenerator<AIMessageChunk> {
-	const { role, chatId, userId, content, provider } = message;
+	const { chatId, userId, content, provider } = message;
+	const {
+		chatContextManager,
+		insertMessage,
+		updateTokenUsage,
+		createChatContext,
+		calculateApproxTokens,
+	} = askQuestionDeps;
 
 	// bind the provider to available tools
 	const boundChatProvider =
@@ -99,25 +107,10 @@ const askQuestion = async function* (
 
 	const { agent } = handleWorkFlow(boundChatProvider);
 
-	let chatContext = chatContextManager.getChatContext(userId, chatId);
-
-	if (!chatContext) {
-		// { messages: context, totalTokens: contextTokens, summary: summary, lastSummaryIndex: lastIndex }
-		chatContext = await createChatContext(message);
-		chatContextManager.setChatContext(userId, chatId, chatContext);
-	} else {
-		console.log(`Using cached chat context for ${userId}-${chatId}`);
-
-		if (chatContext.messages.length > 0 && chatContext.lastSummaryIndex > 0) {
-			while (
-				chatContext.messages.length > 0 &&
-				chatContext.messages[0].messageOrder <= chatContext.lastSummaryIndex
-			)
-				chatContext.messages.shift();
-		}
-
-		chatContextManager.setChatContext(userId, chatId, chatContext);
-	}
+	const chatContext = await getOrCreateChatContext(message, {
+		manager: chatContextManager,
+		createChatContext,
+	});
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(

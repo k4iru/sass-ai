@@ -1,23 +1,56 @@
-// src/lib/container.ts
+import type { ChatPromptTemplate } from "@langchain/core/prompts";
+import type { DynamicStructuredTool } from "@langchain/core/tools";
+import type { END } from "@langchain/langgraph";
+import type { ZodObject, ZodString, ZodTypeAny } from "zod";
 import {
 	createChatContext,
 	insertMessage,
 	updateTokenUsage,
 } from "@/lib/helper";
-import { calculateApproxTokens, routeMessage } from "@/lib/langchain/llmHelper";
+import {
+	calculateApproxTokens,
+	routeMessage,
+	type StateAnnotation,
+} from "@/lib/langchain/llmHelper";
 import { createChatPrompt } from "@/lib/langchain/prompts";
 import { tools } from "@/lib/langchain/tools";
 import { chatContextManager } from "@/lib/services/chatContextManager";
+import type { ChatContext, Message } from "./types";
 
 export interface AgentDeps {
 	chatContextManager: typeof chatContextManager;
-	insertMessage: typeof insertMessage;
-	updateTokenUsage: typeof updateTokenUsage;
-	createChatContext: typeof createChatContext;
-	calculateApproxTokens: typeof calculateApproxTokens;
-	createChatPrompt: typeof createChatPrompt;
-	routeMessage: typeof routeMessage;
-	tools: typeof tools;
+	insertMessage(messages: Message[]): Promise<boolean>;
+	updateTokenUsage(
+		userId: string,
+		chatId: string,
+		tokensUsed: number,
+	): Promise<void>;
+	calculateApproxTokens(content: string): number;
+	createChatPrompt(): ChatPromptTemplate;
+	routeMessage(state: typeof StateAnnotation.State): string | typeof END;
+	createChatContext(message: Message): Promise<ChatContext>;
+	tools: DynamicStructuredTool<
+		ZodObject<
+			{
+				query: ZodString;
+			},
+			"strip",
+			ZodTypeAny,
+			{
+				query: string;
+			},
+			{
+				query: string;
+			}
+		>,
+		{
+			query: string;
+		},
+		{
+			query: string;
+		},
+		string
+	>[];
 }
 
 export const container: AgentDeps = {
