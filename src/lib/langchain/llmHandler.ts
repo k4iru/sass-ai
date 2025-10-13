@@ -129,7 +129,7 @@ const askQuestion = async function* (
 		throw new Error("Failed to bind tools to chat provider.");
 	} */
 
-	const { agent } = handleWorkFlow(boundChatProvider);
+	const { agent } = handleWorkFlow(chatProvider);
 
 	// changes messages to be first part summary. 2nd part last 3 message turns verbatim if enough tokens. then prompt inside a prompt template.
 	const stream = await agent.stream(
