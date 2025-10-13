@@ -13,7 +13,12 @@ import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
 import type { AgentDeps } from "@/lib/container";
 import { routeMessage, StateAnnotation } from "@/lib/langchain/llmHelper";
-import type { Message, MessageHistory } from "@/lib/types";
+import type {
+	ChatContext,
+	ChatContextManager,
+	Message,
+	MessageHistory,
+} from "@/lib/types";
 import { convertToBaseMessageArray } from "../helper";
 import { logger } from "../logger";
 import { getOrCreateChatContext } from "./getOrCreateChatContext";
@@ -102,6 +107,57 @@ const handleWorkFlow = (
 	return { agent };
 };
 
+const updateChatContext = (
+	context: ChatContext,
+	contextManager: ChatContextManager,
+	humanMessage: Message,
+	aiMessage: Message,
+	summaryProvider: BaseChatModel,
+	calculateApproxTokens: (text: string) => number,
+): void => {
+	context.messages.push(humanMessage);
+	context.messages.push(aiMessage);
+
+	context.approximateTotalTokens +=
+		calculateApproxTokens(humanMessage.content) +
+		calculateApproxTokens(aiMessage.content);
+
+	if (
+		context.approximateTotalTokens > 4096 ||
+		context.messages.length > MAX_MESSAGE_TURNS
+	) {
+		contextManager.updateSummaryInBackground(
+			humanMessage.userId,
+			humanMessage.chatId,
+			summaryProvider,
+		);
+	}
+
+	contextManager.setChatContext(
+		humanMessage.userId,
+		humanMessage.chatId,
+		context,
+	);
+};
+
+const updateDatabase = async (
+	humanMessage: Message,
+	aiMessage: Message,
+	exactTokenUsage: number,
+	insertMessage: (msgs: Message[]) => Promise<boolean>,
+	updateTokenUsage: (
+		userId: string,
+		chatId: string,
+		token: number,
+	) => Promise<void>,
+): Promise<void> => {
+	// insert messages
+	insertMessage([humanMessage, aiMessage]);
+
+	// update exact token usage for billing purposes
+	updateTokenUsage(humanMessage.userId, humanMessage.chatId, exactTokenUsage);
+};
+
 //TODO add persistence still to chat
 const askQuestion = async function* (
 	message: Message,
@@ -109,7 +165,7 @@ const askQuestion = async function* (
 	summaryProvider: BaseChatModel,
 	askQuestionDeps: AgentDeps,
 ): AsyncGenerator<AIMessageChunk> {
-	const { chatId, userId, content, provider } = message;
+	const { chatId, content } = message;
 	const {
 		chatContextManager,
 		insertMessage,
@@ -163,72 +219,56 @@ const askQuestion = async function* (
 
 	// if stream is done try and get metadata
 	console.log("Stream done, fetching metadata...");
+
+	// get final state for approximating and updating context and also updating db. split this into more parts
+
+	// still need to getState for exact token usage from provider, since openai doesn't provide it while streaming.
+
 	try {
 		const finalState = await agent.getState({
 			configurable: { thread_id: chatId },
 		});
 
-		if (finalState.values?.messages) {
-			const lastMessage =
-				finalState.values.messages[finalState.values.messages.length - 1];
+		const lastMessage =
+			finalState.values.messages[finalState.values.messages.length - 1];
+		const exactTokenUsage = lastMessage.response_metadata?.usage?.total_tokens;
+		const approxPromptTokens = calculateApproxTokens(message.content);
 
-			if (lastMessage.response_metadata) {
-				// calculate how many tokens in the prompt.
+		const humanMessageWithTokens = {
+			...message,
+			tokens: approxPromptTokens,
+		};
 
-				const promptTokens = calculateApproxTokens(message.content);
+		const aiMessage: Message = {
+			id: uuidv4(),
+			role: "ai",
+			chatId: message.chatId,
+			userId: message.userId,
+			content: lastMessage.content,
+			provider: message.provider || "",
+			createdAt: new Date(),
+			tokens: calculateApproxTokens(lastMessage.content),
+			messageOrder: message.messageOrder + 1,
+		};
 
-				const humanMessageWithTokens = {
-					...message,
-					tokens: promptTokens,
-				};
+		await updateDatabase(
+			humanMessageWithTokens,
+			aiMessage,
+			exactTokenUsage || 0,
+			insertMessage,
+			updateTokenUsage,
+		);
 
-				const aiResponse = chunks.map((c) => c.content).join("");
-
-				const aiMessage: Message = {
-					id: uuidv4(),
-					role: "ai",
-					chatId: chatId,
-					userId: userId,
-					content: aiResponse,
-					provider: provider || "",
-					createdAt: new Date(),
-					tokens: calculateApproxTokens(aiResponse),
-					messageOrder: message.messageOrder + 1,
-				};
-
-				chatContext.messages.push(humanMessageWithTokens);
-				chatContext.messages.push(aiMessage);
-
-				chatContext.approximateTotalTokens +=
-					calculateApproxTokens(humanMessageWithTokens.content) +
-					calculateApproxTokens(aiMessage.content);
-
-				// insert messages
-				insertMessage([humanMessageWithTokens, aiMessage]);
-				updateTokenUsage(
-					userId,
-					chatId,
-					lastMessage.response_metadata.usage.total_tokens,
-				);
-
-				// re summarize
-				if (
-					chatContext.approximateTotalTokens > 4096 ||
-					chatContext.messages.length > MAX_MESSAGE_TURNS
-				) {
-					chatContextManager.updateSummaryInBackground(
-						userId,
-						chatId,
-						summaryProvider,
-					);
-				}
-
-				// update context
-				chatContextManager.setChatContext(userId, chatId, chatContext);
-			}
-		}
+		updateChatContext(
+			chatContext,
+			chatContextManager,
+			humanMessageWithTokens,
+			aiMessage,
+			summaryProvider,
+			calculateApproxTokens,
+		);
 	} catch (error) {
-		console.error("Error fetching metadata:", error);
+		logger.error("Error in post-stream processing:", error);
 	}
 };
 
