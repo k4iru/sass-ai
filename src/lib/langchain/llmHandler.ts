@@ -123,10 +123,11 @@ const askQuestion = async function* (
 		createChatContext,
 	});
 
+	/* no bound tools for now. wait until updating with search feature
 	const boundChatProvider = bindToolsToChatProvider(chatProvider);
 	if (boundChatProvider == null) {
 		throw new Error("Failed to bind tools to chat provider.");
-	}
+	} */
 
 	const { agent } = handleWorkFlow(boundChatProvider);
 
