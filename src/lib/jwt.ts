@@ -40,7 +40,7 @@ export async function generateAccessToken(user: {
 	})
 		.setProtectedHeader({ alg: "HS256" })
 		.setIssuedAt()
-		.setExpirationTime(`${JWT_EXPIRY}`)
+		.setExpirationTime(`${JWT_EXPIRY}s`)
 		.sign(getJwtSecret());
 }
 
