@@ -1,7 +1,7 @@
 "use server";
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession, verifyPassword } from "@/lib/auth";
-import { getUserFromEmail, response } from "@/lib/helper";
+import { getUserFromEmail } from "@/lib/helper";
 import type { AuthUser } from "@/lib/types";
 
 // sets cookies + adds session id into session db.
@@ -11,7 +11,10 @@ export async function POST(req: NextRequest) {
 
 	// check user exists
 	if (user === null || !user.password) {
-		return response(false, "malformed data", 401);
+		return NextResponse.json(
+			{ success: false, message: "Invalid email or password" },
+			{ status: 401 },
+		);
 	}
 
 	const authUser: AuthUser = {
@@ -20,7 +23,11 @@ export async function POST(req: NextRequest) {
 	};
 	// check password matches
 	const valid = verifyPassword(password, user.password);
-	if (!valid) return response(false, "Invalid email or password", 401);
+	if (!valid)
+		return NextResponse.json(
+			{ success: false, message: "Invalid email or password" },
+			{ status: 401 },
+		);
 
 	const res = NextResponse.json({ success: true, userObj: authUser });
 	await createSession(res, req, user.id);
