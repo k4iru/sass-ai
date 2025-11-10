@@ -4,6 +4,8 @@ import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { edgeEnv } from "@/lib/env/env.edge";
+import { serverEnv } from "@/lib/env/env.server";
 import {
 	deleteAccessCode,
 	generateRefreshToken,
@@ -12,9 +14,8 @@ import {
 	insertAccessCode,
 	insertRefreshToken,
 } from "@/lib/helper";
-import { edgeEnv } from "./env/env.edge";
-import { serverEnv } from "./env/env.server";
-import { generateAccessToken, getJwtConfig, validateToken } from "./jwt";
+import { generateAccessToken, getJwtConfig, validateToken } from "@/lib/jwt";
+import { logger } from "@/lib/logger";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 
@@ -23,6 +24,7 @@ export async function hashPassword(password: string): Promise<string> {
 	try {
 		const saltRounds = 10;
 		const hashedPassword = await bcrypt.hash(password, saltRounds);
+		// salt is included in the hashed password so no need to store separately
 		return hashedPassword;
 	} catch (err) {
 		throw new Error(
@@ -31,7 +33,6 @@ export async function hashPassword(password: string): Promise<string> {
 	}
 }
 
-// Compare password
 export async function verifyPassword(
 	password: string,
 	hashedPassword: string,
@@ -46,6 +47,8 @@ export async function verifyPassword(
 	}
 }
 
+// TODO: currently in testing.
+// swap to send to actual user email once verified.
 export async function sendValidationEmail(
 	userId: string,
 	recipient: string,
@@ -69,11 +72,11 @@ export async function sendValidationEmail(
 			throw new Error("Failed to insert access code into the database");
 		}
 
-		console.log(
-			`Access code inserted for user ${userId}: ${accessCodeInserted}`,
-		);
+		logger.info(`Access code inserted for user ${userId}`);
 
-		// for mocking send to same email for now.
+		// TODO: change to user email when verified.
+		// once domain is bought swap to official email, using subdomain for now.
+		// also work on styling email later
 		resend.emails.send({
 			from: "Keppel <verification@noreply.kylecheung.ca>",
 			to:
@@ -85,11 +88,15 @@ export async function sendValidationEmail(
 		});
 		return true;
 	} catch (error) {
-		console.error("Failed to send validation email:", error);
+		logger.error(
+			`Failed to send validation email: ${error instanceof Error ? error.message : "Unknown error"}`,
+		);
 		return false;
 	}
 }
 
+// currently only checking using ip address for meta data
+// change to also use user agent etc later on for better security
 export async function createSession(
 	res: NextResponse,
 	req: NextRequest,
@@ -134,36 +141,46 @@ export async function createSession(
 		maxAge: REFRESH_TOKEN_EXPIRY,
 	});
 
-	console.log("session created");
+	logger.info(`Created session for user ${userId} from IP ${ip}`);
 	return { accessToken, refreshToken };
 }
 
+// this is used to authenticate server side requests
+// middleware has a refresh-token which should ensure that users have both valid access and refresh tokens
 export async function authenticate(userId: string): Promise<void> {
 	const { JWT_AUD, JWT_ISS } = getJwtConfig();
 
 	const cookieStore = await cookies();
 	const accessToken = cookieStore.get("accessToken")?.value;
-	const refreshToken = cookieStore.get("refreshToken")?.value;
+	const refreshTokenId = cookieStore.get("refreshToken")?.value;
 
-	if (!accessToken || !refreshToken) throw new Error("Unauthorized");
+	if (!accessToken || !refreshTokenId) throw new Error("malformed tokens");
 
 	try {
-		const payload = await validateToken(accessToken);
-		if (!payload) throw new Error("Unauthorized");
-
-		// add additional verification for checking refresh token. since this allows anyone with any access token to run.
+		// cross validate tokens
+		const refreshToken = await getRefreshToken(refreshTokenId);
 		if (
+			!refreshToken ||
+			refreshToken.userId !== userId ||
+			refreshToken.accessToken !== accessToken
+		)
+			throw new Error("invalid refresh token");
+
+		const payload = await validateToken(accessToken);
+		if (
+			!payload ||
 			payload.aud !== JWT_AUD ||
 			payload.iss !== JWT_ISS ||
 			payload.sub !== userId
 		)
-			throw new Error("Unauthorized");
-
-		// if refresh throws then token is invalid
-		await getRefreshToken(refreshToken);
+			throw new Error("invalid access token");
 	} catch (err) {
-		console.log(err);
-		throw new Error("Unauthorized");
+		logger.error(
+			`Authentication failed for ${userId}: ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
+		throw new Error(
+			`Unauthorized, ${err instanceof Error ? err.message : "Unknown error"}`,
+		);
 	}
 }
 
