@@ -6,7 +6,7 @@ import {
 	SystemMessage,
 } from "@langchain/core/messages";
 import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { db, schema } from "@/db";
 import {
 	AVAILABLE_LLM_PROVIDERS,
@@ -32,41 +32,6 @@ export function getClientIP(req: NextRequest): string {
 		req.headers.get("cf-connecting-ip") || // Cloudflare
 		"Unknown IP";
 	return ip;
-}
-
-// deprecated, check api routes and remove soon
-export const response = (
-	success: boolean,
-	message: string,
-	status: number,
-): NextResponse => {
-	return NextResponse.json({ success, message }, { status });
-};
-
-export function timeStringToSeconds(input: string): number {
-	const timeMatch = input.match(/^(\d+)([smhd])$/);
-
-	if (!timeMatch) {
-		throw new Error(
-			`Invalid time format: ${input}. Use format like "15m" or "7d"`,
-		);
-	}
-
-	const value = Number.parseInt(timeMatch[1]);
-	const unit = timeMatch[2];
-
-	const conversionRates: { [key: string]: number } = {
-		s: 1, // seconds
-		m: 60, // minutes → seconds
-		h: 60 * 60, // hours → seconds
-		d: 24 * 60 * 60, // days → seconds
-	};
-
-	if (!conversionRates[unit]) {
-		throw new Error(`Invalid time unit: ${unit}. Use s/m/h/d`);
-	}
-
-	return value * conversionRates[unit];
 }
 
 export async function getRecentMessages(
