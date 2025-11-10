@@ -11,16 +11,12 @@ import {
 	getRefreshToken,
 	insertAccessCode,
 	insertRefreshToken,
-	timeStringToSeconds,
 } from "@/lib/helper";
+import { edgeEnv } from "./env/env.edge";
+import { serverEnv } from "./env/env.server";
 import { generateAccessToken, getJwtConfig, validateToken } from "./jwt";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-if (!RESEND_API_KEY) {
-	throw new Error("RESEND_API_KEY is not defined in the environment variables");
-}
-
-const resend = new Resend(RESEND_API_KEY);
+const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -106,10 +102,8 @@ export async function createSession(
 	const accessToken = await generateAccessToken({ id: userId });
 	const refreshToken = await generateRefreshToken();
 
-	const JWT_EXPIRY = timeStringToSeconds(process.env.JWT_EXPIRY || "60m");
-	const REFRESH_TOKEN_EXPIRY = timeStringToSeconds(
-		process.env.REFRESH_TOKEN_EXPIRY || "7d",
-	);
+	const JWT_EXPIRY = parseInt(edgeEnv.JWT_EXPIRY);
+	const REFRESH_TOKEN_EXPIRY = parseInt(serverEnv.REFRESH_TOKEN_EXPIRY);
 
 	const result = await insertRefreshToken(
 		refreshToken,
@@ -174,15 +168,10 @@ export async function authenticate(userId: string): Promise<void> {
 }
 
 export async function getGoogleOAuthURL() {
-	if (
-		process.env.GOOGLE_REDIRECT_URI === undefined ||
-		process.env.GOOGLE_CLIENT_ID === undefined
-	)
-		throw new Error("invalid env config");
 	const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 	const options = {
-		redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-		client_id: process.env.GOOGLE_CLIENT_ID,
+		redirect_uri: serverEnv.GOOGLE_REDIRECT_URI,
+		client_id: serverEnv.GOOGLE_CLIENT_ID,
 		access_type: "offline",
 		response_type: "code",
 		prompt: "consent",
