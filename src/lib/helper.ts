@@ -24,6 +24,8 @@ import type {
 	User,
 } from "@/lib/types";
 
+const rateCalls = new Map<string, { count: number; lastReset: number }>();
+
 // TODO split this helper file into separate files and group functions
 export function getClientIP(req: NextRequest): string {
 	const ip =
@@ -831,4 +833,24 @@ export async function insertRefreshToken(
 		);
 		return false;
 	}
+}
+
+export function rateLimiter(
+	key: string,
+	limit = 5,
+	windowMs = 60_000,
+): boolean {
+	const now = Date.now();
+	const entry = rateCalls.get(key) || { count: 0, lastReset: now };
+
+	// reset window
+	if (now - entry.lastReset > windowMs) {
+		entry.count = 0;
+		entry.lastReset = now;
+	}
+
+	entry.count++;
+	rateCalls.set(key, entry);
+
+	return entry.count <= limit;
 }
