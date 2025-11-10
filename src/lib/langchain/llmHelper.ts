@@ -1,29 +1,129 @@
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import type {
-	AIMessage,
-	BaseMessage,
-	BaseMessageLike,
-} from "@langchain/core/messages";
-import { Annotation, END } from "@langchain/langgraph";
+	BaseChatModel,
+	BaseChatModelCallOptions,
+} from "@langchain/core/language_models/chat_models";
+import type { AIMessage, AIMessageChunk } from "@langchain/core/messages";
+import type { ChatPromptTemplate } from "@langchain/core/prompts";
+import type { Runnable } from "@langchain/core/runnables";
+import { END, MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { updateSummary } from "@/lib/helper";
-import { updateSummaryPrompt } from "@/lib/langchain/prompts";
-import type { ChatContext } from "@/lib/types";
+import { createChatPrompt, updateSummaryPrompt } from "@/lib/langchain/prompts";
+import type {
+	ChatContext,
+	ChatContextManager,
+	CompiledAgent,
+	Message,
+} from "@/lib/types";
+import { StateAnnotation } from "@/lib/types";
+import { toolNode } from "./tools";
 
-// define state for langgraph
-export const StateAnnotation = Annotation.Root({
-	messages: Annotation<BaseMessageLike[]>({
-		reducer: (x, y) => x.concat(y),
-	}),
-	summary: Annotation<string>({
-		reducer: (x, y) => y ?? x,
-	}),
-	recent_messages: Annotation<BaseMessage[]>({
-		reducer: (x, y) => y ?? x,
-	}),
-	input: Annotation<string>({
-		reducer: (x, y) => y ?? x,
-	}),
-});
+const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
+
+export const updateChatContext = (
+	context: ChatContext,
+	contextManager: ChatContextManager,
+	humanMessage: Message,
+	aiMessage: Message,
+	summaryProvider: BaseChatModel,
+	calculateApproxTokens: (text: string) => number,
+): void => {
+	context.messages.push(humanMessage);
+	context.messages.push(aiMessage);
+
+	context.approximateTotalTokens +=
+		calculateApproxTokens(humanMessage.content) +
+		calculateApproxTokens(aiMessage.content);
+
+	if (
+		context.approximateTotalTokens > 4096 ||
+		context.messages.length > MAX_MESSAGE_TURNS
+	) {
+		contextManager.updateSummaryInBackground(
+			humanMessage.userId,
+			humanMessage.chatId,
+			summaryProvider,
+		);
+	}
+
+	contextManager.setChatContext(
+		humanMessage.userId,
+		humanMessage.chatId,
+		context,
+	);
+};
+
+export const handleWorkFlow = (
+	llmProvider: Runnable<
+		BaseLanguageModelInput,
+		AIMessageChunk,
+		BaseChatModelCallOptions
+	>,
+): { agent: CompiledAgent } => {
+	const checkpointer = new MemorySaver();
+	const prompt = createChatPrompt();
+
+	const workflow = new StateGraph(StateAnnotation)
+		.addNode("agent", handleCallModel(llmProvider, prompt))
+		.addNode("tools", toolNode)
+		.addEdge(START, "agent")
+		.addConditionalEdges("agent", routeMessage)
+		.addEdge("tools", "agent");
+
+	const agent = workflow.compile({ checkpointer });
+
+	return { agent };
+};
+
+export const handleCallModel = (
+	llmProvider: Runnable<
+		BaseLanguageModelInput,
+		AIMessageChunk,
+		BaseChatModelCallOptions
+	>,
+	prompt: ChatPromptTemplate,
+) => {
+	return async (state: typeof StateAnnotation.State) => {
+		const { messages, summary, recent_messages, input } = state;
+
+		if (
+			summary !== undefined &&
+			recent_messages !== undefined &&
+			input !== undefined
+		) {
+			const formattedPrompt = await prompt.formatMessages({
+				summary,
+				recent_messages,
+				input,
+			});
+			// console.log(formattedPrompt);
+			const responseMessage = await llmProvider.invoke(formattedPrompt);
+			return { messages: [responseMessage] };
+		}
+
+		// fallback if no summary / recent_messages
+		const responseMessage = await llmProvider.invoke(messages);
+		return { messages: [responseMessage] };
+	};
+};
+
+export const updateDatabase = async (
+	humanMessage: Message,
+	aiMessage: Message,
+	exactTokenUsage: number,
+	insertMessage: (msgs: Message[]) => Promise<boolean>,
+	updateTokenUsage: (
+		userId: string,
+		chatId: string,
+		token: number,
+	) => Promise<void>,
+): Promise<void> => {
+	// insert messages
+	insertMessage([humanMessage, aiMessage]);
+
+	// update exact token usage for billing purposes
+	updateTokenUsage(humanMessage.userId, humanMessage.chatId, exactTokenUsage);
+};
 
 export const routeMessage = (state: typeof StateAnnotation.State) => {
 	const { messages } = state;

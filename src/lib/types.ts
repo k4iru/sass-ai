@@ -1,4 +1,6 @@
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
+import { Annotation, type CompiledStateGraph } from "@langchain/langgraph";
 import type { schema } from "@/db";
 import type { VERIFICATION_TYPES } from "./constants";
 
@@ -56,6 +58,29 @@ export type Chat = {
 	model: string;
 	createdAt: Date;
 };
+
+// define state for langgraph
+export const StateAnnotation = Annotation.Root({
+	messages: Annotation<BaseMessageLike[]>({
+		reducer: (x, y) => x.concat(y),
+	}),
+	summary: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
+	recent_messages: Annotation<BaseMessage[]>({
+		reducer: (x, y) => y ?? x,
+	}),
+	input: Annotation<string>({
+		reducer: (x, y) => y ?? x,
+	}),
+});
+
+// Type alias for the compiled graph
+export type CompiledAgent = CompiledStateGraph<
+	typeof StateAnnotation.State,
+	Partial<typeof StateAnnotation.Update>,
+	"__start__" | "agent" | "tools"
+>;
 
 export type Theme = {
 	theme: "light" | "dark";

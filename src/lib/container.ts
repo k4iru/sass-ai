@@ -1,3 +1,4 @@
+import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { DynamicStructuredTool } from "@langchain/core/tools";
 import type { END } from "@langchain/langgraph";
@@ -10,12 +11,18 @@ import {
 import {
 	calculateApproxTokens,
 	routeMessage,
-	type StateAnnotation,
+	updateChatContext,
+	updateDatabase,
 } from "@/lib/langchain/llmHelper";
 import { createChatPrompt } from "@/lib/langchain/prompts";
 import { tools } from "@/lib/langchain/tools";
 import { chatContextManager } from "@/lib/services/chatContextManager";
-import type { ChatContext, Message } from "./types";
+import type {
+	ChatContext,
+	ChatContextManager,
+	Message,
+	StateAnnotation,
+} from "./types";
 
 export interface AgentDeps {
 	chatContextManager: typeof chatContextManager;
@@ -51,6 +58,25 @@ export interface AgentDeps {
 		},
 		string
 	>[];
+	updateChatContext(
+		context: ChatContext,
+		contextManager: ChatContextManager,
+		humanMessage: Message,
+		aiMessage: Message,
+		summaryProvider: BaseChatModel,
+		calculateApproxTokens: (text: string) => number,
+	): void;
+	updateDatabase(
+		humanMessage: Message,
+		aiMessage: Message,
+		exactTokenUsage: number,
+		insertMessage: (msgs: Message[]) => Promise<boolean>,
+		updateTokenUsage: (
+			userId: string,
+			chatId: string,
+			token: number,
+		) => Promise<void>,
+	): Promise<void>;
 }
 
 export const container: AgentDeps = {
@@ -62,4 +88,6 @@ export const container: AgentDeps = {
 	createChatPrompt: createChatPrompt,
 	routeMessage: routeMessage,
 	tools: tools,
+	updateChatContext: updateChatContext,
+	updateDatabase: updateDatabase,
 };

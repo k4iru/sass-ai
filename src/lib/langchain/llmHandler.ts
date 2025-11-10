@@ -7,61 +7,17 @@ import {
 	type AIMessageChunk,
 	isAIMessageChunk,
 } from "@langchain/core/messages";
-import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { Runnable } from "@langchain/core/runnables";
-import { MemorySaver, START, StateGraph } from "@langchain/langgraph";
 import { v4 as uuidv4 } from "uuid";
 import type { AgentDeps } from "@/lib/container";
-import { routeMessage, StateAnnotation } from "@/lib/langchain/llmHelper";
-import type {
-	ChatContext,
-	ChatContextManager,
-	Message,
-	MessageHistory,
-} from "@/lib/types";
+import type { Message, MessageHistory } from "@/lib/types";
 import { convertToBaseMessageArray } from "../helper";
 import { logger } from "../logger";
 import { getOrCreateChatContext } from "./getOrCreateChatContext";
-import { createChatPrompt } from "./prompts";
-import { toolNode, tools } from "./tools";
+import { handleWorkFlow } from "./llmHelper";
+import { tools } from "./tools";
 
-// https://langchain-ai.github.io/langgraphjs/how-tos/stream-tokens
-
-const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
-
-// agent node
-const handleCallModel = (
-	llmProvider: Runnable<
-		BaseLanguageModelInput,
-		AIMessageChunk,
-		BaseChatModelCallOptions
-	>,
-	prompt: ChatPromptTemplate,
-) => {
-	return async (state: typeof StateAnnotation.State) => {
-		const { messages, summary, recent_messages, input } = state;
-
-		if (
-			summary !== undefined &&
-			recent_messages !== undefined &&
-			input !== undefined
-		) {
-			const formattedPrompt = await prompt.formatMessages({
-				summary,
-				recent_messages,
-				input,
-			});
-			// console.log(formattedPrompt);
-			const responseMessage = await llmProvider.invoke(formattedPrompt);
-			return { messages: [responseMessage] };
-		}
-
-		// fallback if no summary / recent_messages
-		const responseMessage = await llmProvider.invoke(messages);
-		return { messages: [responseMessage] };
-	};
-};
-
+// not currently binding tools. future TODO when more are added
 const bindToolsToChatProvider = (
 	chatProvider: BaseChatModel,
 ): Runnable<
@@ -84,80 +40,6 @@ const bindToolsToChatProvider = (
 	}
 };
 
-const handleWorkFlow = (
-	llmProvider: Runnable<
-		BaseLanguageModelInput,
-		AIMessageChunk,
-		BaseChatModelCallOptions
-	>,
-) => {
-	const checkpointer = new MemorySaver();
-	const prompt = createChatPrompt();
-
-	// orchestration
-	const workflow = new StateGraph(StateAnnotation)
-		.addNode("agent", handleCallModel(llmProvider, prompt))
-		.addNode("tools", toolNode)
-		.addEdge(START, "agent")
-		.addConditionalEdges("agent", routeMessage)
-		.addEdge("tools", "agent");
-
-	const agent = workflow.compile({ checkpointer });
-
-	return { agent };
-};
-
-const updateChatContext = (
-	context: ChatContext,
-	contextManager: ChatContextManager,
-	humanMessage: Message,
-	aiMessage: Message,
-	summaryProvider: BaseChatModel,
-	calculateApproxTokens: (text: string) => number,
-): void => {
-	context.messages.push(humanMessage);
-	context.messages.push(aiMessage);
-
-	context.approximateTotalTokens +=
-		calculateApproxTokens(humanMessage.content) +
-		calculateApproxTokens(aiMessage.content);
-
-	if (
-		context.approximateTotalTokens > 4096 ||
-		context.messages.length > MAX_MESSAGE_TURNS
-	) {
-		contextManager.updateSummaryInBackground(
-			humanMessage.userId,
-			humanMessage.chatId,
-			summaryProvider,
-		);
-	}
-
-	contextManager.setChatContext(
-		humanMessage.userId,
-		humanMessage.chatId,
-		context,
-	);
-};
-
-const updateDatabase = async (
-	humanMessage: Message,
-	aiMessage: Message,
-	exactTokenUsage: number,
-	insertMessage: (msgs: Message[]) => Promise<boolean>,
-	updateTokenUsage: (
-		userId: string,
-		chatId: string,
-		token: number,
-	) => Promise<void>,
-): Promise<void> => {
-	// insert messages
-	insertMessage([humanMessage, aiMessage]);
-
-	// update exact token usage for billing purposes
-	updateTokenUsage(humanMessage.userId, humanMessage.chatId, exactTokenUsage);
-};
-
 //TODO add persistence still to chat
 const askQuestion = async function* (
 	message: Message,
@@ -172,6 +54,8 @@ const askQuestion = async function* (
 		updateTokenUsage,
 		createChatContext,
 		calculateApproxTokens,
+		updateChatContext,
+		updateDatabase,
 	} = askQuestionDeps;
 
 	const chatContext = await getOrCreateChatContext(message, {
@@ -251,14 +135,6 @@ const askQuestion = async function* (
 			messageOrder: message.messageOrder + 1,
 		};
 
-		await updateDatabase(
-			humanMessageWithTokens,
-			aiMessage,
-			exactTokenUsage || 0,
-			insertMessage,
-			updateTokenUsage,
-		);
-
 		updateChatContext(
 			chatContext,
 			chatContextManager,
@@ -267,6 +143,16 @@ const askQuestion = async function* (
 			summaryProvider,
 			calculateApproxTokens,
 		);
+
+		await updateDatabase(
+			humanMessageWithTokens,
+			aiMessage,
+			exactTokenUsage || 0,
+			insertMessage,
+			updateTokenUsage,
+		);
+
+		// TODO implement blocker to prevent user from immediately sending another message until db is updated
 	} catch (error) {
 		logger.error("Error in post-stream processing:", error);
 	}
