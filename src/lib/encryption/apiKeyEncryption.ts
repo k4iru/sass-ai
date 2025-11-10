@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
+import { serverEnv } from "@/lib/env/env.server";
 import { IV_LENGTH } from "../constants";
-import { serverEnv } from "../env";
 
 function getEncryptionKey(): string {
 	if (serverEnv.ENCRYPTION_KEY.length !== 64) {
