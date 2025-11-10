@@ -1,4 +1,5 @@
 import { decodeJwt, type JWTPayload, jwtVerify, SignJWT } from "jose";
+import { logger } from "@/lib/logger";
 
 // Type definitions for JWT payload
 interface CustomJwtPayload extends JWTPayload {
@@ -54,7 +55,7 @@ export function getUserSubFromJWT(token: string): string | null {
 
 		return decoded.sub;
 	} catch (err) {
-		console.error(
+		logger.error(
 			"Token decoding failed:",
 			err instanceof Error ? err.message : "Unknown error",
 		);
