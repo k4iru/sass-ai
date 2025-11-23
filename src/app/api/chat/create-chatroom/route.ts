@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { validateToken } from "@/lib/jwt";
+import { type NextRequest, NextResponse } from "next/server";
 import { createChatRoom, insertMessage } from "@/lib/helper";
+import { getJwtConfig } from "@/lib/jwtConfig";
+import { validateToken } from "@/shared/lib/jwt";
 
 // TODO move s3client to a separate helper file
 
@@ -10,7 +11,10 @@ export async function POST(req: NextRequest) {
 		const body = await req.json();
 		const { chatObj, message } = body;
 
-		const verified = validateToken(req.cookies.get("accessToken")?.value);
+		const verified = validateToken(
+			getJwtConfig(),
+			req.cookies.get("accessToken")?.value,
+		);
 		if (!verified)
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

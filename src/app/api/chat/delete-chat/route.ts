@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { validateToken } from "@/lib/jwt";
+import { type NextRequest, NextResponse } from "next/server";
 import { deleteChat } from "@/lib/helper";
+import { getJwtConfig } from "@/lib/jwtConfig";
+import { validateToken } from "@/shared/lib/jwt";
 
 // TODO move s3client to a separate helper file
 
@@ -13,7 +14,10 @@ export async function POST(req: NextRequest) {
 		console.log(userId);
 		console.log(pendingDeleteId);
 
-		const verified = validateToken(req.cookies.get("accessToken")?.value);
+		const verified = validateToken(
+			getJwtConfig(),
+			req.cookies.get("accessToken")?.value,
+		);
 		if (!verified)
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

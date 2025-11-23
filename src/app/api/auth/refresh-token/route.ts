@@ -6,8 +6,8 @@ import {
 	getRefreshToken,
 	insertRefreshToken,
 } from "@/lib/helper";
-import { generateAccessToken, getUserSubFromJWT } from "@/lib/jwt";
 import { logger } from "@/lib/logger";
+import { generateAccessToken, getUserSubFromJWT } from "@/shared/lib/jwt";
 
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || "900");
 const REFRESH_TOKEN_EXPIRY = parseInt(

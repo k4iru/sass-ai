@@ -1,7 +1,7 @@
-import { authenticate } from "@/lib/auth";
-import { verifyToken } from "@/lib/jwt";
-import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { ListObjectsV2Command, S3Client } from "@aws-sdk/client-s3";
 import { type NextRequest, NextResponse } from "next/server";
+import { authenticate } from "@/lib/auth";
+import { verifyToken } from "@/shared/lib/jwt";
 
 const s3Client = new S3Client({
 	region: process.env.AWS_REGION,

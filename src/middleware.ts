@@ -1,6 +1,7 @@
 import { JWTExpired } from "jose/errors";
 import { type NextRequest, NextResponse } from "next/server";
-import { validateToken } from "./lib/jwt";
+import { getJwtConfig } from "@/lib/jwtConfig";
+import { validateToken } from "@/shared/lib/jwt";
 
 export async function middleware(req: NextRequest) {
 	console.log("in middleware");
@@ -19,7 +20,7 @@ export async function middleware(req: NextRequest) {
 
 		// if this doesn't throw than we are good.
 		// throws if token expired or invalid token
-		const validToken = await validateToken(accessToken);
+		const validToken = await validateToken(getJwtConfig(), accessToken);
 
 		// Optional: Add additional security checks
 		if (!validToken) {

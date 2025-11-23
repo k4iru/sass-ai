@@ -15,8 +15,9 @@ import {
 	insertRefreshToken,
 	rateLimiter,
 } from "@/lib/helper";
-import { generateAccessToken, getJwtConfig, validateToken } from "@/lib/jwt";
+import { getJwtConfig } from "@/lib/jwtConfig";
 import { logger } from "@/lib/logger";
+import { generateAccessToken, validateToken } from "@/shared/lib/jwt";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 
@@ -108,6 +109,7 @@ export async function createSession(
 }> {
 	const ip = getClientIP(req);
 	const accessToken = await generateAccessToken({ id: userId });
+	const accessToken = await generateAccessToken({ id: userId }, getJwtConfig());
 	const refreshToken = await generateRefreshToken();
 
 	const JWT_EXPIRY = parseInt(edgeEnv.JWT_EXPIRY);
@@ -174,6 +176,7 @@ export async function authenticate(userId: string): Promise<void> {
 			throw new Error("invalid refresh token");
 
 		const payload = await validateToken(accessToken);
+		const payload = await validateToken(getJwtConfig(), accessToken);
 		if (
 			!payload ||
 			payload.aud !== JWT_AUD ||

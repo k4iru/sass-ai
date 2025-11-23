@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getUserFromSub } from "@/lib/helper";
-import { getUserSubFromJWT, validateToken } from "@/lib/jwt";
 import type { AuthUser } from "@/lib/types";
+import { getUserSubFromJWT, validateToken } from "@/shared/lib/jwt";
 
 export async function POST(req: NextRequest) {
 	try {
