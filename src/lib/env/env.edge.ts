@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+//import { logger } from "@/lib/logger";
 import { edgeSchema } from "./schema";
 
 const parsed = edgeSchema.safeParse({
@@ -9,7 +9,7 @@ const parsed = edgeSchema.safeParse({
 });
 
 if (!parsed.success) {
-	logger.error("Invalid edge environment variables");
+	//logger.error("Invalid edge environment variables");
 	throw new Error("Invalid edge environment");
 }
 
