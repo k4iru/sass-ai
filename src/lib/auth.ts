@@ -108,7 +108,6 @@ export async function createSession(
 	refreshToken: string;
 }> {
 	const ip = getClientIP(req);
-	const accessToken = await generateAccessToken({ id: userId });
 	const accessToken = await generateAccessToken({ id: userId }, getJwtConfig());
 	const refreshToken = await generateRefreshToken();
 
@@ -175,7 +174,6 @@ export async function authenticate(userId: string): Promise<void> {
 		)
 			throw new Error("invalid refresh token");
 
-		const payload = await validateToken(accessToken);
 		const payload = await validateToken(getJwtConfig(), accessToken);
 		if (
 			!payload ||
