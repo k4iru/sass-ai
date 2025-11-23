@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/with-auth";
-import type { Message } from "@/lib/types";
 import { insertMessage } from "@/lib/helper";
 import { askQuestion } from "@/lib/langchain";
+import type { Message } from "@/lib/types";
+import { withAuth } from "@/lib/withAuth";
 
 async function handler(req: NextRequest) {
 	// expect a Message object in the request body
