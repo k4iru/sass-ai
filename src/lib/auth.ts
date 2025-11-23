@@ -150,7 +150,8 @@ export async function createSession(
 // middleware has a refresh-tokens endpoint run client side which should ensure that users have both valid access and refresh tokens
 export async function authenticate(userId: string): Promise<void> {
 	// 10 requests per 30 seconds
-	if (!rateLimiter(userId, 10, 60 * 1000)) {
+	// this works for single server instance deployments for scaling think about using redis later
+	if (!rateLimiter(userId, 10, 30 * 1000)) {
 		throw new Error("Too many authentication attempts. Try again later.");
 	}
 
