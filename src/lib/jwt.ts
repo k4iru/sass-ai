@@ -1,4 +1,5 @@
 import { decodeJwt, type JWTPayload, jwtVerify, SignJWT } from "jose";
+import { edgeEnv } from "@/lib/env/env.edge";
 
 // Type definitions for JWT payload
 interface CustomJwtPayload extends JWTPayload {
@@ -9,10 +10,10 @@ interface CustomJwtPayload extends JWTPayload {
 }
 
 export const getJwtConfig = () => {
-	const JWT_SECRET = process.env.JWT_SECRET;
-	const JWT_EXPIRY = process.env.JWT_EXPIRY;
-	const JWT_AUD = process.env.JWT_AUD;
-	const JWT_ISS = process.env.JWT_ISS;
+	const JWT_SECRET = edgeEnv.JWT_SECRET;
+	const JWT_EXPIRY = edgeEnv.JWT_EXPIRY;
+	const JWT_AUD = edgeEnv.JWT_AUD;
+	const JWT_ISS = edgeEnv.JWT_ISS;
 
 	if (!JWT_SECRET || !JWT_EXPIRY || !JWT_AUD || !JWT_ISS) {
 		throw new Error(
