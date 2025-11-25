@@ -15,5 +15,3 @@ export const getJwtConfig = (): JwtConfig => {
 
 	return { JWT_SECRET, JWT_EXPIRY, JWT_AUD, JWT_ISS };
 };
-
-console.log("JWT Config Loaded:", getJwtConfig());
