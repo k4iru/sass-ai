@@ -2,13 +2,13 @@
 
 import {
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
-	useCallback,
 } from "react";
-import type { Chat } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
+import type { Chat } from "@/lib/types";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -31,7 +31,9 @@ export const useAllChatsContext = (): AllChatsContextType => {
 
 export const AllChatsProvider: React.FC<{ children: React.ReactNode }> = ({
 	children,
-}: { children: React.ReactNode }) => {
+}: {
+	children: React.ReactNode;
+}) => {
 	const { user, loading } = useAuth();
 	const [chats, setChats] = useState<Chat[]>([]);
 
