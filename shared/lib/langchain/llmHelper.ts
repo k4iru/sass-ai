@@ -7,16 +7,19 @@ import type { AIMessage, AIMessageChunk } from "@langchain/core/messages";
 import type { ChatPromptTemplate } from "@langchain/core/prompts";
 import type { Runnable } from "@langchain/core/runnables";
 import { END, MemorySaver, START, StateGraph } from "@langchain/langgraph";
-import { updateSummary } from "@/lib/helper";
-import { createChatPrompt, updateSummaryPrompt } from "@/lib/langchain/prompts";
+import {
+	createChatPrompt,
+	updateSummaryPrompt,
+} from "@/shared/lib/langchain/prompts";
+import { toolNode } from "@/shared/lib/langchain/tools";
 import type {
 	ChatContext,
 	ChatContextManager,
 	CompiledAgent,
 	Message,
-} from "@/lib/types";
-import { StateAnnotation } from "@/lib/types";
-import { toolNode } from "./tools";
+} from "@/shared/lib/types";
+import { StateAnnotation } from "@/shared/lib/types";
+import { updateSummary } from "@/shared/lib/utils";
 
 const MAX_MESSAGE_TURNS = 6; // 12 messages. any more and should summarize again.
 

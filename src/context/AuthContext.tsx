@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useContext, useState } from "react";
-import { getApiUrl } from "@/lib/constants";
-import type { AuthUser } from "@/lib/types";
+import { getApiUrl } from "@/shared/constants";
+import type { AuthUser } from "@/shared/lib/types";
 
 type authContextType = {
 	user: AuthUser | null;
@@ -63,6 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			setLoading(true);
 			setUser(user);
 			setLoading(false);
+			console.log("Set current user in context");
+			console.log(user);
 			return true;
 		} catch (err) {
 			console.error(err instanceof Error ? err.message : "Unknown error");

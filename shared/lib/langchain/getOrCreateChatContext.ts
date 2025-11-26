@@ -1,4 +1,8 @@
-import type { ChatContext, ChatContextManager, Message } from "@/lib/types";
+import type {
+	ChatContext,
+	ChatContextManager,
+	Message,
+} from "@/shared/lib/types";
 
 export interface ChatContextDeps {
 	createChatContext(message: Message): Promise<ChatContext>;

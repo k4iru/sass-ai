@@ -60,7 +60,7 @@ export function getUserSubFromJWT(
 
 export const validateToken = async (
 	config: JwtConfig,
-	accessToken?: string,
+	accessToken: string,
 ): Promise<JWTPayload | null> => {
 	if (!config) throw new Error("JWT config is required");
 	if (!accessToken) return null;

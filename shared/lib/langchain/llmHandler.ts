@@ -9,13 +9,13 @@ import {
 } from "@langchain/core/messages";
 import type { Runnable } from "@langchain/core/runnables";
 import { v4 as uuidv4 } from "uuid";
-import type { AgentDeps } from "@/lib/container";
-import type { Message, MessageHistory } from "@/lib/types";
-import { convertToBaseMessageArray } from "../helper";
-import { logger } from "../logger";
-import { getOrCreateChatContext } from "./getOrCreateChatContext";
-import { handleWorkFlow } from "./llmHelper";
-import { tools } from "./tools";
+import type { AgentDeps } from "@/shared/lib/container";
+import { getOrCreateChatContext } from "@/shared/lib/langchain/getOrCreateChatContext";
+import { handleWorkFlow } from "@/shared/lib/langchain/llmHelper";
+import { tools } from "@/shared/lib/langchain/tools";
+import type { Message, MessageHistory } from "@/shared/lib/types";
+import { convertToBaseMessageArray } from "@/shared/lib/utils";
+import { logger } from "@/shared/logger";
 
 // not currently binding tools. future TODO when more are added
 const bindToolsToChatProvider = (

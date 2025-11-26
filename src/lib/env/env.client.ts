@@ -1,4 +1,4 @@
-import { logger } from "@/lib/logger";
+import { logger } from "@/shared/logger";
 import { clientSchema } from "./schema";
 
 const parsed = clientSchema.safeParse({

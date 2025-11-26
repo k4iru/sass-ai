@@ -4,8 +4,8 @@ import type React from "react";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getApiUrl } from "@/lib/constants";
 import { signupSchema } from "@/lib/validation/signupSchema";
+import { getApiUrl } from "@/shared/constants";
 import styles from "./signup.module.scss";
 
 const API_URL = getApiUrl();

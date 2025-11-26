@@ -1,8 +1,8 @@
 "use server";
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession, verifyPassword } from "@/lib/auth";
-import { getUserFromEmail } from "@/lib/helper";
-import type { AuthUser } from "@/lib/types";
+import { getUserFromEmail } from "@/lib/nextUtils";
+import type { AuthUser } from "@/shared/lib/types";
 
 // sets cookies + adds session id into session db.
 export async function POST(req: NextRequest) {

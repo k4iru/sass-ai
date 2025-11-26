@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getApiUrl } from "@/lib/constants";
+import { getApiUrl } from "@/shared/constants";
 
 const VerifyEmail = () => {
 	const [accessCodeString, setAccessCodeString] = useState("");

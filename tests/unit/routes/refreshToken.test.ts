@@ -1,7 +1,7 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getJwtConfig } from "@/lib/jwtConfig";
-import type { RefreshToken } from "@/lib/types";
+import type { RefreshToken } from "@/shared/lib/types";
 
 const fakeRefreshToken: RefreshToken = {
 	id: "refreshtoken-id-string",
@@ -18,7 +18,7 @@ vi.mocked(helperMock.getRefreshToken).mockResolvedValue(fakeRefreshToken);
 
 // imoprt after mocks
 import { POST } from "@/app/api/auth/refresh-token/route";
-import * as helperMock from "@/lib/helper";
+import * as helperMock from "@/lib/nextUtils";
 import * as jwtMock from "@/shared/lib/jwt";
 
 describe("api/auth/refresh-token", () => {

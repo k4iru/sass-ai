@@ -1,6 +1,6 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
-import type { Theme } from "@/lib/types";
+import { createContext, useContext, useEffect, useState } from "react";
+import type { Theme } from "@/shared/lib/types";
 
 const defaultTheme: Theme = {
 	theme: "light",

@@ -1,5 +1,7 @@
 "use client";
 
+import { Loader2Icon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
 	type FormEvent,
 	useEffect,
@@ -7,15 +9,13 @@ import {
 	useState,
 	useTransition,
 } from "react";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Loader2Icon } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "next/navigation";
-import useWebSocket from "@/hooks/useWebSocket";
-import type { Message } from "@/lib/types";
 import { askQuestion } from "@/actions/askQuestion";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
+import { useAuth } from "@/context/AuthContext";
+import useWebSocket from "@/hooks/useWebSocket";
+import type { Message } from "@/shared/lib/types";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 

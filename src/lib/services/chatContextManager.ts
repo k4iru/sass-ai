@@ -1,7 +1,7 @@
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { LRUCache } from "lru-cache";
-import type { ChatContext } from "@/lib/types";
-import { summarizeMessages } from "../langchain/llmHelper";
+import { summarizeMessages } from "@/shared/lib/langchain/llmHelper";
+import type { ChatContext } from "@/shared/lib/types";
 
 class ChatContextManager {
 	private static instance: ChatContextManager;

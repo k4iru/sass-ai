@@ -10,7 +10,7 @@ import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import useUpload from "@/hooks/useUpload";
-import type { Message } from "@/lib/types";
+import type { Message } from "@/shared/lib/types";
 
 export const Chatbox = () => {
 	const router = useRouter();

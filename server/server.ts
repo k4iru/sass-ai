@@ -5,9 +5,9 @@ import { parse } from "node:url";
 import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { WebSocket, WebSocketServer } from "ws";
-import { type AgentDeps, container } from "@/lib/container";
-import { getChatModel } from "@/lib/langchain/llmFactory";
-import { askQuestion } from "@/lib/langchain/llmHandler";
+import { type AgentDeps, container } from "@/shared/lib/container";
+import { getChatModel } from "@/shared/lib/langchain/llmFactory";
+import { askQuestion } from "@/shared/lib/langchain/llmHandler";
 import { getJwtConfig } from "./lib/jwtConfig";
 
 type ChatRooms = {

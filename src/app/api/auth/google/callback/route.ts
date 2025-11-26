@@ -1,8 +1,8 @@
 "use server";
 import { type NextRequest, NextResponse } from "next/server";
-import { db, schema } from "@/db";
 import { createSession } from "@/lib/auth";
-import { getUserFromEmail } from "@/lib/helper";
+import { getUserFromEmail } from "@/lib/nextUtils";
+import { db, schema } from "@/shared/db";
 
 // sets cookies + adds session id into session db.
 export async function GET(req: NextRequest) {

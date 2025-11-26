@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
+import type { Chat } from "@/shared/lib/types";
 import { ChatListItem } from "../ChatListItem/ChatListItem";
-import type { Chat } from "@/lib/types";
 import { ConfirmModal } from "../ConfirmModal/ConfirmModal";
 
 export const ChatListPanel = ({

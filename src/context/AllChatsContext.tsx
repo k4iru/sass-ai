@@ -8,7 +8,7 @@ import {
 	useState,
 } from "react";
 import { useAuth } from "@/context/AuthContext";
-import type { Chat } from "@/lib/types";
+import type { Chat } from "@/shared/lib/types";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 

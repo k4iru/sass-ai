@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type * as actualLoggerModule from "@/lib/logger";
+import type * as actualLoggerModule from "@/shared/logger";
 
 vi.mock("@/lib/logger", async () => {
 	const actual: typeof actualLoggerModule =

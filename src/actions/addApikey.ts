@@ -2,7 +2,7 @@
 
 import { authenticate } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption/apiKeyEncryption";
-import { deleteApiKey, insertApiKey } from "@/lib/helper";
+import { deleteApiKey, insertApiKey } from "@/lib/nextUtils";
 
 // this server action is implemented as a showcase. Generally I prefer using regular http routes for flexibility,
 // but react server actions are a nice clean way to add simple form submits

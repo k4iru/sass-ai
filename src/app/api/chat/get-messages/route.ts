@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getMessages } from "@/lib/helper";
+import { getMessages } from "@/lib/nextUtils";
 import { validateToken } from "@/shared/lib/jwt";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {

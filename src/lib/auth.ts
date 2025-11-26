@@ -6,6 +6,7 @@ import type { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { edgeEnv } from "@/lib/env/env.edge";
 import { serverEnv } from "@/lib/env/env.server";
+import { getJwtConfig } from "@/lib/jwtConfig";
 import {
 	deleteAccessCode,
 	generateRefreshToken,
@@ -14,10 +15,9 @@ import {
 	insertAccessCode,
 	insertRefreshToken,
 	rateLimiter,
-} from "@/lib/helper";
-import { getJwtConfig } from "@/lib/jwtConfig";
-import { logger } from "@/lib/logger";
+} from "@/lib/nextUtils";
 import { generateAccessToken, validateToken } from "@/shared/lib/jwt";
+import { logger } from "@/shared/logger";
 
 const resend = new Resend(serverEnv.RESEND_API_KEY);
 

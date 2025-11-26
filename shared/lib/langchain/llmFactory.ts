@@ -4,9 +4,9 @@ import { ChatGroq } from "@langchain/groq";
 import { ChatOpenAI } from "@langchain/openai";
 import { LRUCache } from "lru-cache";
 import { decrypt } from "@/lib/encryption/apiKeyEncryption";
-import { getApiKey } from "@/lib/helper";
-import { logger } from "@/lib/logger";
-import type { LLMProvider } from "@/lib/types";
+import { getApiKey } from "@/lib/nextUtils";
+import type { LLMProvider } from "@/shared/lib/types";
+import { logger } from "@/shared/logger";
 
 // TODO - split get model and model creation into separate functions
 // lrucache is not shared between servers. Maybe move to redis or memcache

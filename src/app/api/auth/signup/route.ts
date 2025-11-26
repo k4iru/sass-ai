@@ -4,9 +4,9 @@ import {
 	generateRandomAccessCode,
 	insertUser,
 	isExistingUser,
-} from "@/lib/helper";
-import type { AuthUser, SignupRequestBody } from "@/lib/types";
+} from "@/lib/nextUtils";
 import { signupSchema } from "@/lib/validation/signupSchema";
+import type { AuthUser, SignupRequestBody } from "@/shared/lib/types";
 
 export async function POST(req: NextRequest) {
 	try {

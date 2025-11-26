@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Message } from "@/lib/types";
+import type { Message } from "@/shared/lib/types";
 
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);

@@ -5,8 +5,8 @@ import {
 	emailVerified,
 	getAccessCode,
 	getUserFromSub,
-} from "@/lib/helper";
-import type { AuthUser } from "@/lib/types";
+} from "@/lib/nextUtils";
+import type { AuthUser } from "@/shared/lib/types";
 
 const ACCESS_CODE_TYPE = "email";
 

@@ -7,22 +7,22 @@ import {
 	createChatContext,
 	insertMessage,
 	updateTokenUsage,
-} from "@/lib/helper";
+} from "@/lib/nextUtils";
+import { chatContextManager } from "@/lib/services/chatContextManager";
 import {
 	calculateApproxTokens,
 	routeMessage,
 	updateChatContext,
 	updateDatabase,
-} from "@/lib/langchain/llmHelper";
-import { createChatPrompt } from "@/lib/langchain/prompts";
-import { tools } from "@/lib/langchain/tools";
-import { chatContextManager } from "@/lib/services/chatContextManager";
+} from "@/shared/lib/langchain/llmHelper";
+import { createChatPrompt } from "@/shared/lib/langchain/prompts";
+import { tools } from "@/shared/lib/langchain/tools";
 import type {
 	ChatContext,
 	ChatContextManager,
 	Message,
 	StateAnnotation,
-} from "./types";
+} from "@/shared/lib/types";
 
 export interface AgentDeps {
 	chatContextManager: typeof chatContextManager;

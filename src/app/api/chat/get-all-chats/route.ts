@@ -1,5 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
-import { getAllChats } from "@/lib/helper";
+import { type NextRequest, NextResponse } from "next/server";
+import { getAllChats } from "@/lib/nextUtils";
 import { validateToken } from "@/shared/lib/jwt";
 
 // TODO move s3client to a separate helper file

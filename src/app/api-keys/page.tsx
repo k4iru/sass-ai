@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { addApiKey } from "@/actions/addApikey";
 import { useAuth } from "@/context/AuthContext";
-import { AVAILABLE_LLM_PROVIDERS } from "@/lib/constants";
+import { AVAILABLE_LLM_PROVIDERS } from "@/shared/constants";
 import styles from "./apikeys.module.scss";
 
 type Provider = (typeof AVAILABLE_LLM_PROVIDERS)[number];

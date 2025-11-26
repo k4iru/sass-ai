@@ -5,9 +5,9 @@ import {
 	getClientIP,
 	getRefreshToken,
 	insertRefreshToken,
-} from "@/lib/helper";
-import { logger } from "@/lib/logger";
+} from "@/lib/nextUtils";
 import { generateAccessToken, getUserSubFromJWT } from "@/shared/lib/jwt";
+import { logger } from "@/shared/logger";
 
 const JWT_EXPIRY = parseInt(process.env.JWT_EXPIRY || "900");
 const REFRESH_TOKEN_EXPIRY = parseInt(

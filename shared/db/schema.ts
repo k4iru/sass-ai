@@ -12,7 +12,7 @@ import {
 	AVAILABLE_LLM_PROVIDERS,
 	AVAILABLE_LOGIN_PROVIDERS,
 	VERIFICATION_TYPES,
-} from "@/lib/constants";
+} from "@/shared/constants";
 
 export const loginProviderEnum = pgEnum(
 	"login_provider",

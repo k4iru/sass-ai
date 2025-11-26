@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { deleteRefreshToken } from "@/lib/helper";
+import { deleteRefreshToken } from "@/lib/nextUtils";
 
 export async function POST(req: NextRequest) {
 	try {

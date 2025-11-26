@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { renameChat } from "@/lib/helper";
-import type { Message } from "@/lib/types";
+import { renameChat } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
 
 async function handler(req: NextRequest) {
@@ -9,9 +8,6 @@ async function handler(req: NextRequest) {
 		const body = await req.json();
 		const { userId, chatId, newTitle } = body;
 
-		console.log(userId);
-		console.log(chatId);
-		console.log(newTitle);
 		const success = await renameChat(userId, chatId, newTitle);
 		if (!success) {
 			return NextResponse.json(

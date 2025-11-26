@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import useWebSocket from "@/hooks/useWebSocket";
-import type { Message } from "@/lib/types";
+import type { Message } from "@/shared/lib/types";
 
 type ChatContextType = {
 	messages: Message[];
