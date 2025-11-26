@@ -24,7 +24,8 @@
 			"@/*": ["./src/*", "./server/*"],
 			"@/styles/*": ["./src/styles/*"],
 			"@/hooks/*": ["./src/hooks/*"],
-			"@/shared/*": ["./shared/*"]
+			"@/shared/*": ["./shared/*"],
+			"@/server/*": ["./server/*"]
 		}
 	},
 	"include": [
