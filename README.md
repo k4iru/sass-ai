@@ -22,7 +22,7 @@ pm2 to auto start
 ## websocket
 * heartbeat/ping implementation to detect dropped connections
 * support multiple clients
-* auth check
+* auth check, can currently get authenticated just knowing chatID
 * error handling
 * refactor pushMessage to send through websocket instead of http
 * implement reconnect logic
