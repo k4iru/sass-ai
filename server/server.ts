@@ -1,3 +1,6 @@
+// move these lib imports to shared folder later
+
+import type { IncomingMessage } from "node:http";
 import { parse } from "node:url";
 import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -5,28 +8,87 @@ import { WebSocket, WebSocketServer } from "ws";
 import { type AgentDeps, container } from "@/lib/container";
 import { getChatModel } from "@/lib/langchain/llmFactory";
 import { askQuestion } from "@/lib/langchain/llmHandler";
+import { getJwtConfig } from "./lib/jwtConfig";
 
 type ChatRooms = {
 	[key: string]: WebSocket;
 };
 
+// in memory list of chatrooms. FOr now probably only using a single server instance,
+// but for scaling this can be moved to redis etc
 const chatRooms: ChatRooms = {};
 
 // Load env based on environment
 const envFilePath =
-	process.env.NODE_ENV === "production"
-		? ".env.production.local"
-		: ".env.local";
+	process.env.NODE_ENV === "production" ? ".env.production" : ".env.local";
 config({ path: envFilePath });
+
+function parseCookies(cookieHeader: string | undefined): {
+	[key: string]: string;
+} {
+	if (!cookieHeader) return {};
+
+	return Object.fromEntries(
+		cookieHeader.split(";").map((c) => {
+			const [key, ...v] = c.trim().split("=");
+			return [key, v.join("=")];
+		}),
+	);
+}
+
+async function authenticateWebSocket(req: IncomingMessage): Promise<boolean> {
+	console.log("Authenticating WebSocket connection");
+	const cookies = parseCookies(req.headers.cookie);
+	const accessToken = cookies.accessToken;
+	const refreshToken = cookies.refreshToken;
+
+	console.log("Access Token:", accessToken);
+	console.log("Refresh Token:", refreshToken);
+
+	// validate both tokens.
+	// check for valid session in refresh database
+	return false;
+}
+
+//startWebSocketServer2();
+
+async function startWebSocketServer2(): Promise<void> {
+	console.log("starting websocket server 2");
+	const port = Number(process.env.WS_PORT) || 8080;
+	const wss = new WebSocketServer({ port });
+
+	// events
+	wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
+		console.log("new client connected");
+
+		const authenticated = await authenticateWebSocket(req);
+
+		if (!authenticated) {
+			ws.close(1008, "Unauthorized");
+			return;
+		}
+
+		// do stuff with connection
+		// authenticate httponly cookie here before upgrade
+		const query = parse(req.url || "", true).query;
+		const chatroomId = query.chatroomId as string;
+	});
+}
 
 // Start WebSocket server
 export function startWebSocketServer(): void {
-	console.log("🟢 Starting Web Socket Server");
+	console.log("Starting Web Socket Server");
 	const port = Number(process.env.WS_PORT) || 8080;
 	const wss = new WebSocketServer({ port });
 
 	wss.on("connection", (ws: WebSocket, req) => {
-		console.log("🟢 New client connected");
+		console.log("New client connected");
+
+		// read cookies for access token and refresh token.
+		// edge case where refresh token is valid but access token is expired should be handled client side by calling refresh endpoint
+		// then retry connection if needed
+		// will need to pull jwt decryption and validation into a shared lib folder later
+
 		const query = parse(req.url || "", true).query;
 		const chatroomId = query.chatroomId as string;
 
