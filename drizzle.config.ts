@@ -1,5 +1,5 @@
-import { defineConfig } from "drizzle-kit";
 import { config } from "dotenv";
+import { defineConfig } from "drizzle-kit";
 
 config({ path: ".env.local" });
 
@@ -10,7 +10,7 @@ if (!DATABASE_URL) {
 
 export default defineConfig({
 	out: "./drizzle/migrations",
-	schema: "./src/db/schema.ts",
+	schema: "./shared/db/schema.ts",
 	dialect: "postgresql",
 	dbCredentials: {
 		url: DATABASE_URL,
