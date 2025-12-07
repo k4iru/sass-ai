@@ -36,6 +36,7 @@ pm2 to auto start
 * move message push to db until after api response to get exact token size
 * after deleting chat, redirect chat page
 * debounce sends
+* if no api key in chat check error message and show warning to user
 
 ## auth
 * rework auth logic so that users aren't logged out after 15 minutes of no activity
@@ -44,6 +45,7 @@ pm2 to auto start
 * fix ability to send messages with expired tokens.
 * on new user creation. validate they have valid api key or only let user use limited features.
 * email validation, free trial etc
+* add api key confirmation when entered
 
 ## Tests
 * Implement some test classes
