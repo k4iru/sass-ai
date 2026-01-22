@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getJwtConfig } from "@/lib/jwtConfig";
 import {
 	deleteRefreshToken,
 	generateRefreshToken,
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
 			throw new Error("invalid token");
 		}
 
-		const userId = getUserSubFromJWT(accessToken);
+		const userId = getUserSubFromJWT(accessToken, getJwtConfig());
 		if (userId === null || userId === "")
 			throw new Error("cant get user from token");
 
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
 
 		// create new tokens
 		const [newAccessToken, newRefreshToken] = await Promise.all([
-			generateAccessToken({ id: userId }),
+			generateAccessToken({ id: userId }, getJwtConfig()),
 			generateRefreshToken(),
 		]);
 

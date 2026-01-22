@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { getJwtConfig } from "@/lib/jwtConfig";
 import { getMessages } from "@/lib/nextUtils";
 import { validateToken } from "@/shared/lib/jwt";
 
@@ -6,8 +7,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 	try {
 		const body = await req.json();
 		const { userId, chatId } = body;
+		const token = req.cookies.get("accessToken")?.value ?? "";
 
-		const verified = validateToken(req.cookies.get("accessToken")?.value);
+		const verified = validateToken(getJwtConfig(), token);
 		if (!verified)
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
