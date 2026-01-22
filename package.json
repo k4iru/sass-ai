@@ -7,9 +7,8 @@
 		"dev:ws": "tsx server/server.ts",
 		"dev:next": "next dev --turbopack",
 		"dev": "concurrently \"npm run dev:ws\" \"npm run dev:next\"",
-		"build": "next build && npm run build:ws",
-		"build:ws": "tsc server/server.ts --outDir dist-server --esModuleInterop --module commonjs",
-		"start:ws": "node dist-server/server.js",
+		"build": "next build",
+		"start:ws": "tsx server/server.ts",
 		"start": "next start & npm run start:ws",
 		"lint": "next lint",
 		"test": "vitest"
