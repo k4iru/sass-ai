@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // Use the full server power
+
 import { type NextRequest, NextResponse } from "next/server";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import { getMessages } from "@/lib/nextUtils";

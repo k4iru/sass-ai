@@ -1,4 +1,5 @@
-"use server";
+export const runtime = "nodejs"; // Use the full server power
+
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/auth";
 import { getUserFromEmail } from "@/lib/nextUtils";

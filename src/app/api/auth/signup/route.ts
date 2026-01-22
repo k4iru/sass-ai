@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // Use the full server power
+
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession, hashPassword, sendValidationEmail } from "@/lib/auth";
 import {
