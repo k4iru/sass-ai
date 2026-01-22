@@ -1,3 +1,5 @@
+export const runtime = "nodejs"; // Force full Node.js environment
+
 import { type NextRequest, NextResponse } from "next/server";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import { deleteChat } from "@/lib/nextUtils";
