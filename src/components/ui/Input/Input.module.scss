@@ -1,16 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --header-bg: var(--color-white);
-  --icon-color: var(--color-black);
-  --text-color: var(--color-black);
-}
-
-:global(.dark) {
-  --header-bg: var(--color-black);
-  --icon-color: var(--color-white);
-  --text-color: var(--color-white);
-}
 .input {
   width: 100%;
   padding: var(--spacing-xs);

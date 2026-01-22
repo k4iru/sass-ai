@@ -1,16 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --chatmessage-font-color: var(--color-black);
-  --chatmessage-bg-color: var(--color-white);
-  --chatmessage-border-color: var(--color-brand);
-}
-
-:global(.dark) {
-  --chatmessage-font-color: var(--color-white);
-  --chatmessage-bg-color: var(--color-gray-dark);
-}
-
 .ai {
   pre {
     padding: 1rem 0;

@@ -1,14 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --chatlistitem-bg: var(--color-black);
-
-  --chatlistitem-options-hover: var(--color-gray);
-}
-
-:global(.dark) {
-  --chatlistitem-bg: var(--color-white);
-}
 .item {
   border: 1px solid transparent;
   border-radius: var(--spacing-xs);

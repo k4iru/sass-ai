@@ -1,15 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --chatlist-font-color: var(--color-black);
-  --chatlist-bg-color: var(--color-white);
-}
-
-:global(.dark) {
-  --chatlist-font-color: var(--color-white);
-  --chatlist-bg-color: var(--color-black);
-}
-
 .messageList {
   padding: 2rem 5rem;
   width: 100%;

@@ -1,19 +1,4 @@
 @use "@/styles/tokens" as *;
-:root {
-  --sidebar-bg: var(--color-white);
-  --sidebar-text-color: var(--color-black);
-  --sidebar-icon-color: var(--color-black);
-  --sidebar-icon-color-hover: var(--color-gray-dark);
-  --sidebar-border-color: var(--color-gray);
-  --sidebar-border-color-accent: var(--color-gray-dark);
-}
-
-:global(.dark) {
-  --sidebar-bg: var(--color-black);
-  --sidebar-text-color: var(--color-white);
-  --sidebar-icon-color: var(--color-white);
-  --sidebar-icon-color-hover: var(--color-gray-dark);
-}
 
 .sidebar {
   // hide on mobile. use header component instead

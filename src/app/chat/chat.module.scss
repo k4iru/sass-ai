@@ -1,13 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --chat-text-color: var(--color-black);
-}
-
-:global(.dark) {
-  --chat-text-color: var(--color-black);
-}
-
 .cta {
   display: flex;
   flex-direction: column;
@@ -18,7 +10,7 @@
 }
 
 .newchat {
-  color: var(--chat-text-color);
+  color: var(--text-color);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-light);
   text-align: center;

@@ -27,10 +27,100 @@
   --color-primary: var(--color-white);
   --color-secondary: var(--color-gray-dark);
   --color-secondary-accent: var(--color-gray);
+
+  // header colors
+  --header-bg: var(--color-white);
+  --icon-color: var(--color-black);
+  --text-color: var(--color-black);
+
+  // chat colors
+  --chatbox-bg: var(--color-white);
+  --chatbox-bg-border: var(--color-gray-dark);
+  --chatbox-text-color: var(--color-black);
+
+  // sidebar colors
+  --sidebar-bg: var(--color-white);
+  --sidebar-text-color: var(--color-black);
+  --sidebar-icon-color: var(--color-black);
+  --sidebar-icon-color-hover: var(--color-gray-dark);
+  --sidebar-border-color: var(--color-gray);
+  --sidebar-border-color-accent: var(--color-gray-dark);
+
+  // chat message
+  --chatmessage-font-color: var(--color-black);
+  --chatmessage-bg-color: var(--color-white);
+  --chatmessage-border-color: var(--color-brand);
+
+  // settings menu
+  --settings-icon-color: var(--color-black);
+
+  // chat list item
+  --chatlistitem-bg: var(--color-black);
+  --chatlistitem-options-hover: var(--color-gray);
+
+  // input
+  --header-bg: var(--color-white);
+  --icon-color: var(--color-black);
+  --text-color: var(--color-black);
+
+  // button
+  --button-bg: var(--color-white);
+  --button-text: var(--color-black);
+  --button-hover-bg: var(--color-brand);
+
+  // chat id
+  --chatlist-font-color: var(--color-black);
+  --chatlist-bg-color: var(--color-white);
+
+  // benefit
+  --benefit-header-color: var(--color-black);
 }
 
 :root.dark {
   --color-primary: var(--color-black);
+
+  // header colors
+  --header-bg: var(--color-black);
+  --icon-color: var(--color-white);
+  --text-color: var(--color-white);
+
+  // chat colors
+  --chatbox-bg: var(--color-black);
+  --chatbox-bg-border: var(--color-gray-dark);
+  --chatbox-text-color: var(--color-white);
+
+  // sidebar colors
+  --sidebar-bg: var(--color-black);
+  --sidebar-text-color: var(--color-white);
+  --sidebar-icon-color: var(--color-white);
+  --sidebar-icon-color-hover: var(--color-gray-dark);
+
+  // chat message
+  --chatmessage-font-color: var(--color-white);
+  --chatmessage-bg-color: var(--color-gray-dark);
+
+  // settings menu
+  --settings-icon-color: var(--color-white);
+
+  // chat list item
+  --chatlistitem-bg: var(--color-white);
+
+  // input
+  --header-bg: var(--color-black);
+  --icon-color: var(--color-white);
+  --text-color: var(--color-white);
+
+  // button
+  --button-bg: var(--color-black);
+  --button-text: var(--color-white);
+  --button-hover-bg: var(--color-brand-dark);
+
+  // chat id
+  --chatlist-font-color: var(--color-white);
+  --chatlist-bg-color: var(--color-black);
+
+  // benefit
+  --benefit-header-color: var(--color-white);
 }
 
 html {

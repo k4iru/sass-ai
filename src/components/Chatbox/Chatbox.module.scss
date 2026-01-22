@@ -1,17 +1,5 @@
 @use "@/styles/tokens" as *;
 
-:root {
-  --chatbox-bg: var(--color-white);
-  --chatbox-bg-border: var(--color-gray-dark);
-  --chatbox-text-color: var(--color-black);
-}
-
-:global(.dark) {
-  --chatbox-bg: var(--color-black);
-  --chatbox-bg-border: var(--color-gray-dark);
-  --chatbox-text-color: var(--color-white);
-}
-
 .chatbox {
   border: 1px solid var(--chatbox-bg-border);
   display: flex;

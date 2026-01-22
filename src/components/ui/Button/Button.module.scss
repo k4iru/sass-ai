@@ -1,18 +1,6 @@
 @use "sass:map";
 @use "@/styles/tokens" as *;
 
-:root {
-  --button-bg: var(--color-white);
-  --button-text: var(--color-black);
-  --button-hover-bg: var(--color-brand);
-}
-
-:global(.dark) {
-  --button-bg: var(--color-black);
-  --button-text: var(--color-white);
-  --button-hover-bg: var(--color-brand-dark);
-}
-
 .button {
   display: inline-flex;
   align-items: center;
