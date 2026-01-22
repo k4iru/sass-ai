@@ -43,3 +43,4 @@ next-env.d.ts
 .vercel
 /drizzle/migrations/meta
 /dist
+*.log
