@@ -1,4 +1,5 @@
-export const runtime = "nodejs"; // Use the full server power
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { renameChat } from "@/lib/nextUtils";
