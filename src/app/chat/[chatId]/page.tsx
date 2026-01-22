@@ -59,7 +59,7 @@ const ChatPage = ({ params }: Props) => {
 	return (
 		<>
 			<ul className={styles.messageList}>
-				{messages.map((msg, idx) => (
+				{messages.map((msg) => (
 					<li key={msg.id}>
 						<ChatMessage
 							role={msg.role}
