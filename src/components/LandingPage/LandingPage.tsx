@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import styles from "./LandingPage.module.scss";
-import { Button } from "@/components/ui/Button/Button";
-import { Benefit } from "@/components/ui/Benefit/Benefit";
-import { ArrowLeftRight, Target, DollarSign } from "lucide-react";
+import { ArrowLeftRight, DollarSign, Target } from "lucide-react";
 import Link from "next/link";
+import { Benefit } from "@/components/ui/Benefit/Benefit";
+import { Button } from "@/components/ui/Button/Button";
+import styles from "./LandingPage.module.scss";
 
 export const LandingPage = () => {
 	return (
@@ -19,7 +19,8 @@ export const LandingPage = () => {
 				</p>
 				<p className={clsx(styles.description, "body-xl")}>
 					Use your own API keys for the lowest costs for premium models. Whether
-					you're testing models or crafting prompts, Keppel makes it effortless.
+					you&apos;re testing models or crafting prompts, Keppel makes it
+					effortless.
 				</p>
 			</div>
 			<Link href="/chat">

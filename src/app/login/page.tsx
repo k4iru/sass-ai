@@ -106,7 +106,7 @@ function Login() {
 				</div>
 				<div className={styles.signupWrapper}>
 					<p className={styles.signup}>
-						Don't have an account? Sign up{" "}
+						Don&apos;t have an account? Sign up{" "}
 						<Link href="/signup" className={styles.signupLink}>
 							here
 						</Link>

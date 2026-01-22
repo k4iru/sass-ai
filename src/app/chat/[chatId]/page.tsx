@@ -23,8 +23,6 @@ const ChatPage = ({ params }: Props) => {
 		if (bottom.current) {
 			bottom.current.scrollIntoView({ behavior: "smooth" });
 		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [messages]);
 
 	useEffect(() => {

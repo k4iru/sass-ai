@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.scss";
+import Script from "next/script";
 import { AuthHydrator } from "@/components/AuthHydrator/AuthHydrator";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { firaSans, roboto } from "@/fonts/_fonts";
@@ -22,7 +23,7 @@ export default function RootLayout({
 			suppressHydrationWarning
 		>
 			<head>
-				<script src="/scripts/set-theme.js" />
+				<Script src="/scripts/set-theme.js" />
 			</head>
 			<body className="">
 				<AuthProvider>
