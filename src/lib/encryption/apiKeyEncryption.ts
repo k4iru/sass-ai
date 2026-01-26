@@ -1,8 +1,10 @@
 import crypto from "node:crypto";
-import { serverEnv } from "@/lib/env/env.server";
+import { getServerEnv } from "@/lib/env/env.server";
 import { IV_LENGTH } from "../../../shared/constants";
 
 function getEncryptionKey(): string {
+	const serverEnv = getServerEnv();
+
 	if (serverEnv.ENCRYPTION_KEY.length !== 64) {
 		throw new Error(
 			"Encryption key must be 32 bytes in hex format (64 characters)",

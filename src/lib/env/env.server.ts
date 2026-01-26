@@ -1,29 +1,29 @@
 import { logger } from "@/shared/logger";
-import { serverSchema } from "./schema";
+import { type ServerEnv, serverSchema } from "./schema";
 
-const parsed = serverSchema.safeParse({
-	JWT_SECRET: process.env.JWT_SECRET,
-	ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
-	JWT_EXPIRY: process.env.JWT_EXPIRY,
-	REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY,
-	DATABASE_URL: process.env.DATABASE_URL,
-	AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-	AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-	AWS_REGION: process.env.AWS_REGION,
-	AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME,
-	PINECONE_API_KEY: process.env.PINECONE_API_KEY,
-	OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-	WS_PORT: process.env.WS_PORT,
-	GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-	GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-	GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
-	RESEND_API_KEY: process.env.RESEND_API_KEY,
-});
+let cachedEnv: ServerEnv | undefined;
 
-if (!parsed.success) {
-	logger.error("Invalid server environment variables:");
-	logger.error(parsed.error.format());
-	throw new Error("Invalid server environment variables");
-}
+export const getServerEnv = (): ServerEnv => {
+	// If we've already validated, just return the data
+	if (cachedEnv) return cachedEnv;
 
-export const serverEnv = parsed.data;
+	const parsed = serverSchema.safeParse({
+		ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+		REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY,
+		DATABASE_URL: process.env.DATABASE_URL,
+		WS_PORT: process.env.WS_PORT,
+		GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+		GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+		GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI,
+		RESEND_API_KEY: process.env.RESEND_API_KEY,
+	});
+
+	if (!parsed.success) {
+		// flatten() is often easier to read in logs than format()
+		logger.error(parsed.error.flatten().fieldErrors);
+		throw new Error("Invalid server environment variables");
+	}
+
+	cachedEnv = parsed.data;
+	return cachedEnv;
+};

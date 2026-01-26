@@ -4,8 +4,8 @@ import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-import { edgeEnv } from "@/lib/env/env.edge";
-import { serverEnv } from "@/lib/env/env.server";
+import { getEdgeEnv } from "@/lib/env/env.edge";
+import { getServerEnv } from "@/lib/env/env.server";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import {
 	deleteAccessCode,
@@ -18,8 +18,6 @@ import {
 } from "@/lib/nextUtils";
 import { generateAccessToken, validateToken } from "@/shared/lib/jwt";
 import { logger } from "@/shared/logger";
-
-const resend = new Resend(serverEnv.RESEND_API_KEY);
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -56,6 +54,9 @@ export async function sendValidationEmail(
 	recipient: string,
 	accessCode: string,
 ): Promise<boolean> {
+	const serverEnv = getServerEnv();
+	const resend = new Resend(serverEnv.RESEND_API_KEY);
+
 	try {
 		if (!userId || !recipient || !accessCode)
 			throw new Error("Invalid parameters for sending validation email");
@@ -107,6 +108,9 @@ export async function createSession(
 	accessToken: string;
 	refreshToken: string;
 }> {
+	const serverEnv = getServerEnv();
+	const edgeEnv = getEdgeEnv();
+
 	const ip = getClientIP(req);
 	const accessToken = await generateAccessToken({ id: userId }, getJwtConfig());
 	const refreshToken = await generateRefreshToken();
@@ -193,6 +197,8 @@ export async function authenticate(userId: string): Promise<void> {
 }
 
 export async function getGoogleOAuthURL() {
+	const serverEnv = getServerEnv();
+
 	const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 	const options = {
 		redirect_uri: serverEnv.GOOGLE_REDIRECT_URI,
