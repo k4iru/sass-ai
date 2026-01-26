@@ -1,14 +1,22 @@
 import { logger } from "@/shared/logger";
-import { clientSchema } from "./schema";
+import { type ClientEnv, clientSchema } from "./schema";
 
-const parsed = clientSchema.safeParse({
-	NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-	NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
-});
+let cachedClientEnv: ClientEnv | undefined;
 
-if (!parsed.success) {
-	logger.error("Invalid client environment variables:");
-	throw new Error("Invalid client environment variables");
-}
+export const getClientEnv = (): ClientEnv => {
+	if (cachedClientEnv) return cachedClientEnv;
 
-export const clientEnv = parsed.data;
+	const parsed = clientSchema.safeParse({
+		NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+		NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+	});
+
+	if (!parsed.success) {
+		// Better logging to catch which URL is malformed
+		logger.error(parsed.error.flatten().fieldErrors);
+		throw new Error("Invalid client environment variables");
+	}
+
+	cachedClientEnv = parsed.data;
+	return cachedClientEnv;
+};
