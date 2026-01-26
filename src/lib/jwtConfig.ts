@@ -1,7 +1,8 @@
-import { edgeEnv } from "@/lib/env/env.edge";
+import { getEdgeEnv } from "@/lib/env/env.edge";
 import type { JwtConfig } from "@/shared/lib/types";
 
 export const getJwtConfig = (): JwtConfig => {
+	const edgeEnv = getEdgeEnv();
 	const JWT_SECRET = edgeEnv.JWT_SECRET;
 	const JWT_EXPIRY = edgeEnv.JWT_EXPIRY;
 	const JWT_AUD = edgeEnv.JWT_AUD;
