@@ -22,7 +22,7 @@ function Login() {
 	useEffect(() => {
 		// user already logged in
 		if (user) router.push("/chat");
-	});
+	}, [user, router]);
 
 	// get oauth
 	useEffect(() => {
@@ -52,19 +52,17 @@ function Login() {
 
 		// handle post
 		try {
-			await login(formData.email, formData.password);
+			login(formData.email, formData.password);
 		} catch (error) {
 			setMessage(
 				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
 			);
 			setLoading(false);
-
 			return;
 		}
 
 		// since redirect throws an error this needs to be outside the try catch block.
 		setLoading(false);
-		router.push("/chat");
 		return;
 
 		// handle message
