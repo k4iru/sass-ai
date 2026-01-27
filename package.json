@@ -9,7 +9,7 @@
 		"dev": "concurrently \"npm run dev:ws\" \"npm run dev:next\"",
 		"build": "next build",
 		"start:ws": "tsx server/server.ts",
-		"start": "next start & npm run start:ws",
+		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest"
 	},

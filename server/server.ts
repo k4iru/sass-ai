@@ -1,6 +1,7 @@
 // move these lib imports to shared folder later
 
 import type { IncomingMessage } from "node:http";
+import { createServer } from "node:http"; // Add this
 import { parse } from "node:url";
 import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
@@ -54,7 +55,7 @@ async function authenticateWebSocket(req: IncomingMessage): Promise<boolean> {
 
 async function startWebSocketServer2(): Promise<void> {
 	console.log("starting websocket server 2");
-	const port = Number(process.env.WS_PORT) || 8080;
+	const port = Number(process.env.PORT) || Number(process.env.WS_PORT) || 8080;
 	const wss = new WebSocketServer({ port });
 
 	// events
@@ -78,9 +79,24 @@ async function startWebSocketServer2(): Promise<void> {
 // Start WebSocket server
 export function startWebSocketServer(): void {
 	console.log("Starting Web Socket Server");
-	const port = Number(process.env.WS_PORT) || 8080;
-	const wss = new WebSocketServer({ port });
+	const port = Number(process.env.PORT) || Number(process.env.WS_PORT) || 8080;
 
+	// Create HTTP server to handle health checks
+	const server = createServer((req, res) => {
+		const { pathname } = parse(req.url || "/", true);
+
+		if (pathname === "/health" || pathname === "/healthz") {
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.end("ok");
+			return;
+		}
+
+		// Default 404 for any other HTTP GET requests
+		res.writeHead(404);
+		res.end();
+	});
+
+	const wss = new WebSocketServer({ server });
 	wss.on("connection", (ws: WebSocket, req) => {
 		console.log("New client connected");
 
@@ -175,7 +191,11 @@ export function startWebSocketServer(): void {
 		});
 	});
 
-	console.log(`🚀 WebSocket server running on wss://localhost: ${port}`);
+	server.listen(port, "0.0.0.0", () => {
+		console.log(`Server listening on http://0.0.0.0:${port}`);
+		console.log(`Health check available at http://0.0.0.0:${port}/health`);
+		console.log(`WebSocket endpoint available at ws://localhost:${port}`);
+	});
 }
 
 startWebSocketServer();
