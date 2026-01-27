@@ -149,6 +149,10 @@ export function startWebSocketServer(): void {
 					summaryProvider,
 					askQuestionDeps,
 				)) {
+					if (ws.readyState !== WebSocket.OPEN) {
+						console.log("Client disconnected, aborting LLM stream.");
+						break;
+					}
 					const token = chunk.text || "";
 					streamedText += token;
 
