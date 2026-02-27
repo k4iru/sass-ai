@@ -4,11 +4,11 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev:ws": "tsx server/server.ts",
+		"dev:ws": "node --env-file=.env.local --import tsx/esm server/server.ts",
 		"dev:next": "next dev --turbopack",
 		"dev": "concurrently \"npm run dev:ws\" \"npm run dev:next\"",
 		"build": "next build",
-		"start:ws": "tsx server/server.ts",
+		"start:ws": "node --import tsx/esm server/server.ts",
 		"start": "next start",
 		"lint": "next lint",
 		"test": "vitest"
