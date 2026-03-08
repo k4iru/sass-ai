@@ -46,6 +46,8 @@ pm2 to auto start
 * on new user creation. validate they have valid api key or only let user use limited features.
 * email validation, free trial etc
 * add api key confirmation when entered
+* error message on invalid login
+* on login not redirecting to /chat
 
 ## Tests
 * Implement some test classes
