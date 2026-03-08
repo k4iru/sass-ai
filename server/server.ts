@@ -1,62 +1,51 @@
-// move these lib imports to shared folder later
-
 import type { IncomingMessage } from "node:http";
-import { createServer } from "node:http"; // Add this
+import { createServer } from "node:http";
 import { parse } from "node:url";
-import { config } from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { WebSocket, WebSocketServer } from "ws";
 import { getJwtConfig } from "@/server/lib/jwtConfig";
+import { authenticateWebSocket } from "@/server/lib/util";
 import { type AgentDeps, container } from "@/shared/lib/container";
 import { getChatModel } from "@/shared/lib/langchain/llmFactory";
 import { askQuestion } from "@/shared/lib/langchain/llmHandler";
+import { getLogger } from "@/shared/logger";
 
+const logger = getLogger({ module: "webSocketServer" });
 type ChatRooms = {
 	[key: string]: WebSocket;
 };
 
-// in memory list of chatrooms. FOr now probably only using a single server instance,
+// in memory list of chatrooms. For now probably only using a single server instance,
 // but for scaling this can be moved to redis etc
 const chatRooms: ChatRooms = {};
 
-// Load env based on environment
-const envFilePath =
-	process.env.NODE_ENV === "production" ? ".env.production" : ".env.local";
-config({ path: envFilePath });
-
-function parseCookies(cookieHeader: string | undefined): {
-	[key: string]: string;
-} {
-	if (!cookieHeader) return {};
-
-	return Object.fromEntries(
-		cookieHeader.split(";").map((c) => {
-			const [key, ...v] = c.trim().split("=");
-			return [key, v.join("=")];
-		}),
-	);
-}
-
-async function authenticateWebSocket(req: IncomingMessage): Promise<boolean> {
-	console.log("Authenticating WebSocket connection");
-	const cookies = parseCookies(req.headers.cookie);
-	const accessToken = cookies.accessToken;
-	const refreshToken = cookies.refreshToken;
-
-	console.log("Access Token:", accessToken);
-	console.log("Refresh Token:", refreshToken);
-
-	// validate both tokens.
-	// check for valid session in refresh database
-	return false;
-}
-
-//startWebSocketServer2();
-
+// websocket authentication flow:
+// on connection, check for cookies in the upgrade request. if no cookies, reject connection
+// if cookies, validate access token. if valid, accept connection. if invalid, check refresh token
+// if refresh token is valid, issue new access token and accept connection. if refresh token is invalid, reject connection
 async function startWebSocketServer2(): Promise<void> {
-	console.log("starting websocket server 2");
+	console.log("starting websocket server rebuild");
+
+	// set port from environment. PORT is used by railway
 	const port = Number(process.env.PORT) || Number(process.env.WS_PORT) || 8080;
-	const wss = new WebSocketServer({ port });
+
+	// Create HTTP server to handle health checks for railway.
+	const server = createServer((req, res) => {
+		const { pathname } = parse(req.url || "/", true);
+
+		if (pathname === "/health" || pathname === "/healthz") {
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.end("ok");
+			return;
+		}
+
+		// Default 404 for any other HTTP GET requests
+		res.writeHead(404);
+		res.end();
+	});
+
+	// bind a websocket server to the http server
+	const wss = new WebSocketServer({ server });
 
 	// events
 	wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
@@ -73,6 +62,13 @@ async function startWebSocketServer2(): Promise<void> {
 		// authenticate httponly cookie here before upgrade
 		const query = parse(req.url || "", true).query;
 		const chatroomId = query.chatroomId as string;
+	});
+
+	// listen on specified port
+	server.listen(port, "0.0.0.0", () => {
+		console.log(`Server listening on http://0.0.0.0:${port}`);
+		console.log(`Health check available at http://0.0.0.0:${port}/health`);
+		console.log(`WebSocket endpoint available at ws://localhost:${port}`);
 	});
 }
 
@@ -202,4 +198,4 @@ export function startWebSocketServer(): void {
 	});
 }
 
-startWebSocketServer();
+startWebSocketServer2();
