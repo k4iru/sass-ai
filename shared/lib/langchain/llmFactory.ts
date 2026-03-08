@@ -6,8 +6,9 @@ import { LRUCache } from "lru-cache";
 import { decrypt } from "@/lib/encryption/apiKeyEncryption";
 import { getApiKey } from "@/lib/nextUtils";
 import type { LLMProvider } from "@/shared/lib/types";
-import { logger } from "@/shared/logger";
+import { getLogger } from "@/shared/logger";
 
+const logger = getLogger({ module: "llmFactory" });
 // TODO - split get model and model creation into separate functions
 // lrucache is not shared between servers. Maybe move to redis or memcache
 // but for now since only running on one server should be okay.
@@ -32,7 +33,7 @@ export async function getChatModel(
 		return cached;
 	}
 
-	logger.info("not in cache, fetching API key for", provider);
+	logger.info("not in cache, fetching API key for", { provider: provider });
 	const apiKey = await getApiKey(userId, provider);
 
 	// invalid api key
