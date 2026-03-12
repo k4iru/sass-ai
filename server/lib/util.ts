@@ -16,20 +16,15 @@ export const parseCookies = (
 	);
 };
 
-export const authenticateWebSocket = async (
-	req: IncomingMessage,
-): Promise<boolean> => {
-	const logger = getLogger({ module: "webSocketAuthentication" });
-
-	logger.info("Authenticating WebSocket connection");
-	const cookies = parseCookies(req.headers.cookie);
-	const accessToken = cookies.accessToken;
-	const refreshToken = cookies.refreshToken;
-
-	logger.debug("Access Token: %s", accessToken);
-	logger.debug("Refresh Token: %s", refreshToken);
-
-	// validate both tokens.
-	// check for valid session in refresh database
-	return false;
+export const authenticateViaHttpToken = async (
+	token: string,
+	apiUrl: string,
+): Promise<{ userId: string; chatId: string } | null> => {
+	const res = await fetch(`${apiUrl}/api/auth/verify-ws-token`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ token }),
+	});
+	if (!res.ok) return null;
+	return res.json();
 };
