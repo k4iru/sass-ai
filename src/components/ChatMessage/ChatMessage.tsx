@@ -1,18 +1,8 @@
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeSanitize from "rehype-sanitize";
 import rehypeHighlight from "rehype-highlight";
-import { defaultSchema } from "hast-util-sanitize";
+import remarkGfm from "remark-gfm";
 import styles from "./ChatMessage.module.scss";
 import "highlight.js/styles/atom-one-dark.css"; // or atom-one-light.css
-
-// Extend the schema to support code highlighting classes
-const schema = {
-	...defaultSchema,
-	attributes: {
-		...defaultSchema.attributes,
-	},
-};
 
 interface ChatMessageProps {
 	role: "human" | "ai" | "placeholder";
