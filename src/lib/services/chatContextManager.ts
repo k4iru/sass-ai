@@ -3,6 +3,7 @@ import { LRUCache } from "lru-cache";
 import { summarizeMessages } from "@/shared/lib/langchain/llmHelper";
 import type { ChatContext } from "@/shared/lib/types";
 
+// singleton class to manage chat contexts in memory with LRU caching
 class ChatContextManager {
 	private static instance: ChatContextManager;
 	private cache: LRUCache<string, ChatContext>;
