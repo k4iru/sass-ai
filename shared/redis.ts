@@ -2,6 +2,9 @@
 
 import dotenv from "dotenv";
 import Redis from "ioredis";
+import { getLogger } from "./logger";
+
+const logger = getLogger({ module: "shared/redis" });
 
 const path = process.env.NODE_ENV === "test" ? ".env.local" : ".env.production";
 
@@ -10,18 +13,20 @@ dotenv.config({ path });
 let cachedRedis: Redis | undefined;
 
 export const getRedis = (): Redis => {
-	console.log("Connecting to Redis...");
+	logger.info("Connecting to Redis...");
 	if (cachedRedis) {
-		console.log("Using cached Redis connection");
+		logger.info("Using cached Redis connection");
 		return cachedRedis;
 	}
 
 	const redisUrl = process.env.REDIS_URL;
 	if (!redisUrl) {
+		logger.error("REDIS_URL environment variable is not set");
+
 		throw new Error("REDIS_URL environment variable is not set");
 	}
 
-	console.log("Creating new Redis connection");
+	logger.info("Creating new Redis connection");
 	const redis = new Redis(redisUrl);
 	cachedRedis = redis;
 	return cachedRedis;

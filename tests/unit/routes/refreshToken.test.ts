@@ -1,6 +1,5 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { getJwtConfig } from "@/lib/jwtConfig";
 import type { RefreshToken } from "@/shared/lib/types";
 
 const fakeRefreshToken: RefreshToken = {
@@ -12,14 +11,28 @@ const fakeRefreshToken: RefreshToken = {
 	createdAt: new Date(),
 };
 
-vi.mock("@/lib/helper");
-vi.mock("@/lib/jwt");
-vi.mocked(helperMock.getRefreshToken).mockResolvedValue(fakeRefreshToken);
+vi.mock("@/lib/nextUtils", () => ({
+	getClientIP: vi.fn().mockReturnValue("client-ip-string"),
+	getRefreshToken: vi.fn().mockResolvedValue(null),
+	deleteRefreshToken: vi.fn().mockResolvedValue(true),
+	generateRefreshToken: vi.fn().mockResolvedValue("new-refresh-token"),
+	insertRefreshToken: vi.fn().mockResolvedValue(true),
+}));
 
-// imoprt after mocks
+vi.mock("@/shared/lib/jwt", () => ({
+	getUserSubFromJWT: vi.fn().mockReturnValue("user-id-string"),
+	generateAccessToken: vi.fn().mockResolvedValue("new-access-token"),
+}));
+
+vi.mock("@/lib/jwtConfig", () => ({
+	getJwtConfig: vi.fn().mockReturnValue({}),
+}));
+
+// import after mocks
 import { POST } from "@/app/api/auth/refresh-token/route";
 import * as helperMock from "@/lib/nextUtils";
 import * as jwtMock from "@/shared/lib/jwt";
+import { getJwtConfig } from "@/lib/jwtConfig";
 
 describe("api/auth/refresh-token", () => {
 	// Fake NextRequest
@@ -34,6 +47,15 @@ describe("api/auth/refresh-token", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(jwtMock.getUserSubFromJWT).mockReturnValue("user-id-string");
+		vi.mocked(jwtMock.generateAccessToken).mockResolvedValue("new-access-token");
+		vi.mocked(helperMock.getClientIP).mockReturnValue("client-ip-string");
+		vi.mocked(helperMock.getRefreshToken).mockResolvedValue(fakeRefreshToken);
+		vi.mocked(helperMock.deleteRefreshToken).mockResolvedValue(true);
+		vi.mocked(helperMock.generateRefreshToken).mockResolvedValue(
+			"new-refresh-token",
+		);
+		vi.mocked(helperMock.insertRefreshToken).mockResolvedValue(true);
 	});
 
 	test("validate mock setup", async () => {
@@ -43,10 +65,10 @@ describe("api/auth/refresh-token", () => {
 		);
 		expect(userId).toBe("user-id-string");
 
-		const getRefreshToken = await helperMock.getRefreshToken(
+		const refreshToken = await helperMock.getRefreshToken(
 			"refreshtoken-id-string",
 		);
-		expect(getRefreshToken).toEqual(fakeRefreshToken);
+		expect(refreshToken).toEqual(fakeRefreshToken);
 	});
 
 	test("POST redirects and sets new tokens in cookies", async () => {
