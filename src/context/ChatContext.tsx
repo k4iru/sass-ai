@@ -29,10 +29,12 @@ export const useChat = () => {
 };
 
 export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
+	const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "";
 	const [skipInitialize, setSkipInitialize] = useState(false);
 	const [pendingInitialMessages, setPendingInitialMessages] = useState<
 		Message[]
 	>([]);
+	const [wsUrl, setWsUrl] = useState<string | null>(null);
 
 	const pushInitialMessage = (msg: Message) => {
 		setPendingInitialMessages([msg]);
@@ -45,8 +47,22 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 	useEffect(() => {
 		if (!chatId) {
 			console.warn("ChatProvider initialized without a chatId.");
+			setWsUrl(null);
+			return;
 		}
-	}, [chatId]);
+		fetch("/api/auth/ws-token", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ chatId }),
+		})
+			.then((res) => res.json())
+			.then(({ token }) => {
+				setWsUrl(`${WS_URL}?chatroomId=${chatId}&token=${token}`);
+			})
+			.catch((err) => {
+				console.error("Failed to fetch WS token", err);
+			});
+	}, [chatId, WS_URL]);
 
 	const {
 		messages,
@@ -56,9 +72,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 		setFileKey,
 		initializeMessages,
 		removePlaceholderMessages,
-	} = useWebSocket(
-		chatId ? `${process.env.NEXT_PUBLIC_WS_URL}?chatroomId=${chatId}` : null, // no connection if no chatId
-	);
+	} = useWebSocket(wsUrl);
 
 	return (
 		<ChatContext.Provider
