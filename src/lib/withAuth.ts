@@ -1,7 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getUserSubFromJWT } from "@/shared/lib/jwt";
+import { getLogger } from "@/shared/logger";
 import { authenticate } from "./auth";
 import { getJwtConfig } from "./jwtConfig";
+
+const logger = getLogger({ module: "api auth" });
 
 export function withAuth(
 	handler: (req: NextRequest) => Promise<NextResponse> | Response,
@@ -18,7 +21,7 @@ export function withAuth(
 			await authenticate(userId);
 			return await handler(req);
 		} catch (error) {
-			console.error("Authentication error:", error);
+			logger.error("Authentication error:", error);
 			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 	};
