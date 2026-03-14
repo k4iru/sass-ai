@@ -110,11 +110,6 @@ export const Chatbox = () => {
 
 			setText(""); // clear the input after sending
 			return;
-
-			// send api request to create a new chat. Also change the URL to include the new chatId
-			// on new chatId page. subscribe to the new chatId chatroom with web sockets on postgresl listen / notify
-
-			// fetch `/api/auth/create-chatroom` with the userId and chatId
 		}
 		console.log(`Sending message to chatId: ${chatId}`);
 
