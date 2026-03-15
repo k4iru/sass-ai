@@ -1,4 +1,8 @@
-import type { IncomingMessage } from "http";
+import { v4 as uuidv4 } from "uuid";
+import { WebSocket } from "ws";
+import { type AgentDeps, container } from "@/shared/lib/container";
+import { getChatModel } from "@/shared/lib/langchain/llmFactory";
+import { askQuestion } from "@/shared/lib/langchain/llmHandler";
 import { getLogger } from "@/shared/logger";
 
 export const parseCookies = (
@@ -27,4 +31,78 @@ export const authenticateViaHttpToken = async (
 	});
 	if (!res.ok) return null;
 	return res.json();
+};
+
+export const handleMessage = async (
+	ws: WebSocket,
+	data: Buffer,
+	userId: string,
+	chatroomId: string,
+): Promise<void> => {
+	const logger = getLogger({ module: "handle message" });
+
+	try {
+		const text = data.toString();
+		const msg = JSON.parse(text);
+
+		// get the cached chat model set for user and provider
+		// if not in cache, fetch API key and create new model instance
+		const cache = await getChatModel(userId, "openai");
+
+		if (cache === null) {
+			logger.warn("Chat model not found");
+			ws.send(JSON.stringify({ error: "chat model not found" }));
+			return;
+		}
+		const [model, summaryProvider] = cache;
+
+		let streamedText = "";
+		const askQuestionDeps: AgentDeps = container;
+		const AiMessageId = uuidv4();
+
+		// stream response back to client
+		for await (const chunk of askQuestion(
+			{ ...msg, userId },
+			model,
+			summaryProvider,
+			askQuestionDeps,
+		)) {
+			if (ws.readyState !== WebSocket.OPEN) {
+				logger.info("Client disconnected, aborting LLM stream.");
+				break;
+			}
+			const tokenText = chunk.text || "";
+			streamedText += tokenText;
+
+			if (ws.readyState === WebSocket.OPEN) {
+				ws.send(
+					JSON.stringify({
+						id: AiMessageId,
+						role: "ai",
+						chatId: msg.chatId,
+						userId,
+						content: tokenText,
+						type: "token",
+					}),
+				);
+			}
+		}
+
+		// send final done token
+		if (ws.readyState === WebSocket.OPEN) {
+			ws.send(
+				JSON.stringify({
+					id: AiMessageId,
+					role: "ai",
+					chatId: msg.chatId,
+					userId,
+					content: streamedText,
+					type: "done",
+				}),
+			);
+		}
+	} catch (err) {
+		logger.error("Error processing message: %o", err);
+		ws.send(JSON.stringify({ error: "Invalid message format" }));
+	}
 };

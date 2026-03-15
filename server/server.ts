@@ -1,12 +1,8 @@
 import type { IncomingMessage } from "node:http";
 import { createServer } from "node:http";
 import { parse } from "node:url";
-import { v4 as uuidv4 } from "uuid";
-import { WebSocket, WebSocketServer } from "ws";
-import { authenticateViaHttpToken } from "@/server/lib/util";
-import { type AgentDeps, container } from "@/shared/lib/container";
-import { getChatModel } from "@/shared/lib/langchain/llmFactory";
-import { askQuestion } from "@/shared/lib/langchain/llmHandler";
+import { type WebSocket, WebSocketServer } from "ws";
+import { authenticateViaHttpToken, handleMessage } from "@/server/lib/util";
 import { getLogger } from "@/shared/logger";
 
 const logger = getLogger({ module: "webSocketServer" });
@@ -21,6 +17,7 @@ const chatRooms: ChatRooms = {};
 async function startWebSocketServer(): Promise<void> {
 	logger.info("Starting WebSocket server (v2)");
 
+	// constants
 	const port = Number(process.env.PORT) || Number(process.env.WS_PORT) || 8080;
 	const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -41,6 +38,8 @@ async function startWebSocketServer(): Promise<void> {
 	// instantiate the web socket server on top of the existing http server
 	const wss = new WebSocketServer({ server });
 
+	// helper function to handle incoming messages from clients
+
 	wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
 		logger.info("New client connected");
 
@@ -54,87 +53,40 @@ async function startWebSocketServer(): Promise<void> {
 			return;
 		}
 
-		console.log("test 1");
+		// bSuffer messages that arrive before auth completes
+		const preAuthQueue: Buffer[] = [];
+		let authenticated = false;
+
+		ws.on("message", (data) => {
+			if (!authenticated) {
+				preAuthQueue.push(data as Buffer);
+			} else {
+				handleMessage(ws, data as Buffer, userId, chatroomId);
+			}
+		});
+
 		const authResult = await authenticateViaHttpToken(token, apiUrl);
 		if (!authResult) {
 			ws.close(1008, "Unauthorized");
 			logger.warn("Unauthorized connection attempt with token: %s", token);
-			console.log("test 2");
 			return;
 		}
 
-		console.log("test 3");
 
 		const { userId } = authResult;
+		authenticated = true;
 
+		// chatroom already exists.
 		if (chatRooms[chatroomId]) {
 			logger.info(`Replacing existing WebSocket for chatroom: ${chatroomId}`);
 			chatRooms[chatroomId].close();
 		}
 		chatRooms[chatroomId] = ws;
 
-		ws.on("message", async (data) => {
-			try {
-				const text = data.toString();
-				const msg = JSON.parse(text);
-
-				const cache = await getChatModel(userId, "openai");
-
-				if (cache === null) {
-					logger.warn("Chat model not found");
-					ws.send(JSON.stringify({ error: "chat model not found" }));
-					return;
-				}
-				const [model, summaryProvider] = cache;
-
-				let streamedText = "";
-				const askQuestionDeps: AgentDeps = container;
-				const AiMessageId = uuidv4();
-
-				for await (const chunk of askQuestion(
-					{ ...msg, userId },
-					model,
-					summaryProvider,
-					askQuestionDeps,
-				)) {
-					if (ws.readyState !== WebSocket.OPEN) {
-						logger.info("Client disconnected, aborting LLM stream.");
-						break;
-					}
-					const tokenText = chunk.text || "";
-					streamedText += tokenText;
-
-					if (ws.readyState === WebSocket.OPEN) {
-						ws.send(
-							JSON.stringify({
-								id: AiMessageId,
-								role: "ai",
-								chatId: msg.chatId,
-								userId,
-								content: tokenText,
-								type: "token",
-							}),
-						);
-					}
-				}
-
-				if (ws.readyState === WebSocket.OPEN) {
-					ws.send(
-						JSON.stringify({
-							id: AiMessageId,
-							role: "ai",
-							chatId: msg.chatId,
-							userId,
-							content: streamedText,
-							type: "done",
-						}),
-					);
-				}
-			} catch (err) {
-				logger.error("Error processing message: %o", err);
-				ws.send(JSON.stringify({ error: "Invalid message format" }));
-			}
-		});
+		// Drain any messages that arrived during auth
+		for (const data of preAuthQueue) {
+			handleMessage(ws, data, userId, chatroomId);
+		}
 
 		ws.on("close", () => {
 			logger.info("Client disconnected");
