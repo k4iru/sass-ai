@@ -72,6 +72,15 @@ async function startWebSocketServer(): Promise<void> {
 			return;
 		}
 
+		if (!authResult.chatId || authResult.chatId !== chatroomId) {
+			ws.close(1008, "Invalid chatroomId");
+			logger.warn(
+				"Connection attempt with mismatched chatroomId: %s (expected %s)",
+				chatroomId,
+				authResult.chatId,
+			);
+			return;
+		}
 
 		const { userId } = authResult;
 		authenticated = true;
