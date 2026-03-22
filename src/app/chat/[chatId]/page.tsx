@@ -4,9 +4,11 @@ import { use, useEffect, useRef } from "react";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
+import { getLogger } from "@/shared/logger";
 import styles from "./chatid.module.scss";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+const logger = getLogger({ module: "ChatPage ID" });
 
 type Props = {
 	params: Promise<{ chatId: string }>;
@@ -34,8 +36,11 @@ const ChatPage = ({ params }: Props) => {
 		}
 	}, [messages]);
 
+	// grab messages
 	useEffect(() => {
-		if (skipInitialize) return; // prevent fetch if already initialized
+		// prevent fetch if already initialized
+		// messages are optimistically pushed to context when sending. this prevents flickering by overwriting messages
+		if (skipInitialize) return;
 
 		const fetchMessages = async () => {
 			if (!chatId || !user) return;
@@ -57,6 +62,11 @@ const ChatPage = ({ params }: Props) => {
 				initializeMessages(data);
 			} catch (error) {
 				console.error("Error fetching messages:", error);
+				logger.error("Error fetching messages", {
+					error: error instanceof Error ? error.message : "Unknown error",
+					chatId,
+					userId: user?.id,
+				});
 			}
 		};
 
