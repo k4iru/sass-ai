@@ -2,7 +2,7 @@
 import { createContext, useContext, useState } from "react";
 import { getApiUrl } from "@/shared/constants";
 import type { AuthUser } from "@/shared/lib/types";
-import { getLogger } from "@/shared/logger";
+import { getLogger } from "@/shared/logger.browser";
 
 const logger = getLogger({ module: "AuthContext" });
 

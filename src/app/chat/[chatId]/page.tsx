@@ -4,7 +4,7 @@ import { use, useEffect, useRef } from "react";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
-import { getLogger } from "@/shared/logger";
+import { getLogger } from "@/shared/logger.browser";
 import styles from "./chatid.module.scss";
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";

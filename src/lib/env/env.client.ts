@@ -1,4 +1,6 @@
-import { logger } from "@/shared/logger";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "env.client" });
 import { type ClientEnv, clientSchema } from "./schema";
 
 let cachedClientEnv: ClientEnv | undefined;
