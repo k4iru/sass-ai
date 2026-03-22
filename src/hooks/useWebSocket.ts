@@ -1,5 +1,10 @@
+"use client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Message } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "useWebSocket" });
 
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -10,7 +15,7 @@ function useWebSocket(url: string | null) {
 	useEffect(() => {
 		// skip
 		if (!url) {
-			console.log("No URL provided for WebSocket connection.");
+			logger.info("No URL provided for WebSocket connection.");
 			return;
 		}
 
@@ -66,7 +71,7 @@ function useWebSocket(url: string | null) {
 
 		socket.onclose = () => {
 			setFileKey(null);
-			console.log("WebSocket closed.");
+			logger.info("WebSocket closed.");
 		};
 
 		return () => {
@@ -82,11 +87,10 @@ function useWebSocket(url: string | null) {
 		setMessages((prev) => [...prev, message]);
 
 		if (socketRef.current?.readyState === WebSocket.OPEN) {
-			console.log("sending through websocket");
+			logger.info("Sending message through WebSocket");
 			socketRef.current.send(JSON.stringify(message));
 		} else {
-			//
-			console.log("websocket not currently open. adding to queue");
+			logger.info("WebSocket not currently open. Adding to queue");
 			pendingQueueRef.current.push(message);
 		}
 	};

@@ -9,6 +9,9 @@ import {
 } from "react";
 import { useAuth } from "@/context/AuthContext";
 import type { Chat } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "AllChatsContext" });
 
 const ApiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -49,12 +52,13 @@ export const AllChatsProvider: React.FC<{ children: React.ReactNode }> = ({
 			});
 
 			const data = await response.json();
-			console.log("Fetched chats:", data);
+			logger.info("Fetched chats", { chats: data.chats });
 			setChats(data.chats); // Clear chats before fetching new ones
 		} catch (err) {
-			console.error(
-				`Error fetching chats: ${err instanceof Error ? err.message : "Unknown error"}`,
-			);
+			logger.error("Error fetching chats", {
+				error: err instanceof Error ? err.message : "Unknown error",
+				userId: user?.id,
+			});
 		}
 	}, [user]);
 

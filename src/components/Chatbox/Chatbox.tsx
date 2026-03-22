@@ -11,6 +11,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import useUpload from "@/hooks/useUpload";
 import type { Message } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "Chatbox" });
 
 export const Chatbox = () => {
 	const router = useRouter();
@@ -73,7 +76,7 @@ export const Chatbox = () => {
 		// and send the message to the server
 
 		if (!text.trim()) {
-			console.log("Empty message, not sending");
+			logger.info("Empty message, not sending");
 			return; // don't send empty messages
 		}
 
@@ -83,7 +86,7 @@ export const Chatbox = () => {
 
 		// get potential chatId from the URL
 		if (!chatId) {
-			console.log("No chatId found in URL");
+			logger.info("No chatId found in URL");
 
 			const newChatId = uuidv4();
 
@@ -111,7 +114,7 @@ export const Chatbox = () => {
 			setText(""); // clear the input after sending
 			return;
 		}
-		console.log(`Sending message to chatId: ${chatId}`);
+		logger.info(`Sending message to chatId: ${chatId}`);
 
 		const newMessage: Message = {
 			id: newMessageId,
@@ -127,14 +130,14 @@ export const Chatbox = () => {
 		pushMessage(newMessage);
 		setText("");
 
-		console.log("Message sent");
+		logger.info("Message sent");
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault(); // prevent newline
 			if (text.trim().length > 0) {
-				console.log(text);
+				logger.info(`Sending message: ${text}`);
 
 				sendMessage();
 				setText(""); // clear the input after sending

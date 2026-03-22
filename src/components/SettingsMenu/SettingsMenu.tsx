@@ -12,8 +12,6 @@ export const SettingsMenu = () => {
 
 	const handleClick = () => {
 		setIsOpen((prev) => !prev);
-		console.log("Settings button clicked");
-		console.log("User:", user);
 	};
 
 	const handleClickOutside = useCallback((e: MouseEvent) => {
@@ -70,13 +68,11 @@ export const SettingsMenu = () => {
 							</li>
 						</>
 					) : (
-						<>
-							<li>
-								<Link href="/login" className={styles.menuItem}>
-									Login
-								</Link>
-							</li>
-						</>
+						<li>
+							<Link href="/login" className={styles.menuItem}>
+								Login
+							</Link>
+						</li>
 					)}
 				</ul>
 			)}
