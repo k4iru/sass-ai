@@ -2,6 +2,9 @@
 import { createContext, useContext, useState } from "react";
 import { getApiUrl } from "@/shared/constants";
 import type { AuthUser } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "AuthContext" });
 
 type authContextType = {
 	user: AuthUser | null;
@@ -26,8 +29,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 	const [user, setUser] = useState<AuthUser | null>(null);
 	const [loading, setLoading] = useState<boolean>(true);
 
-	// TODO this login function only sets access token / refresh token in cookies.
-	// should also return user object to set in context.
 	const login = async (email: string, password: string): Promise<void> => {
 		setLoading(true);
 		const response = await fetch(`${getApiUrl()}/api/auth/login`, {
@@ -50,8 +51,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			};
 			setUser(authUser);
 			setLoading(false);
-			console.log("logged in, setting access token/id");
+			logger.info("User logged in successfully", { userId: authUser.id });
 		} else {
+			logger.error("Login request failed", {
+				status: response.status,
+				statusText: response.statusText,
+			});
 			throw new Error("Error fetching user data after login");
 		}
 	};
@@ -64,11 +69,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			setLoading(true);
 			setUser(user);
 			setLoading(false);
-			console.log("Set current user in context");
-			console.log(user);
 			return true;
 		} catch (err) {
-			console.error(err instanceof Error ? err.message : "Unknown error");
+			logger.error("Failed to set current user", {
+				error: err instanceof Error ? err.message : "Unknown error",
+			});
+			setLoading(false);
 			return false;
 		}
 	};

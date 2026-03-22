@@ -9,7 +9,6 @@ const Chat = () => {
 	const router = useRouter();
 
 	useEffect(() => {
-		console.log(user);
 		if (!user) {
 			console.error("User is not authenticated. Redirecting to login.");
 			router.push("/login");
