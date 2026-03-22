@@ -6,7 +6,7 @@ import type { AuthUser } from "@/shared/lib/types";
 type authContextType = {
 	user: AuthUser | null;
 	loading: boolean;
-	login: (email: string, password: string) => void;
+	login: (email: string, password: string) => Promise<void>;
 	setCurrUser: (user: AuthUser) => Promise<boolean>;
 	logout: () => void;
 };
@@ -15,7 +15,7 @@ type authContextType = {
 const defaultAuthContextType: authContextType = {
 	user: null,
 	loading: true,
-	login: () => {},
+	login: () => Promise.resolve(),
 	setCurrUser: () => Promise.resolve(false),
 	logout: () => {},
 };
@@ -34,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, password }),
+			credentials: "include",
 		});
 
 		if (response.ok) {

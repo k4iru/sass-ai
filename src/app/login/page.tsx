@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { type FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getGoogleOAuthURL } from "@/lib/auth";
 import styles from "./login.module.scss";
@@ -43,8 +43,7 @@ function Login() {
 		window.location.href = googleUrl;
 	};
 
-	// TODO look up server actions vs restful API. leaning towards just implementing everything as restful api though.
-	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		// reset set up
 		e.preventDefault();
 		setLoading(true);
@@ -52,7 +51,7 @@ function Login() {
 
 		// handle post
 		try {
-			login(formData.email, formData.password);
+			await login(formData.email, formData.password);
 		} catch (error) {
 			setMessage(
 				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
