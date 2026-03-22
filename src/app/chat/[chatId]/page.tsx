@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { use, useEffect, useRef } from "react";
 import ChatMessage from "@/components/ChatMessage/ChatMessage";
 import { useAuth } from "@/context/AuthContext";
@@ -17,7 +17,16 @@ const ChatPage = ({ params }: Props) => {
 	const chatId = use(params).chatId;
 	const { user } = useAuth(); // Assuming user is provided by ChatContext or AuthContext
 	const { messages, initializeMessages, skipInitialize } = useChat();
+	const router = useRouter();
 
+	// redirect if not logged in
+	useEffect(() => {
+		if (!user) {
+			router.push("/login");
+		}
+	}, [user, router]);
+
+	// scroll to bottom of messages when new message added
 	// biome-ignore lint/correctness/useExhaustiveDependencies: need messages as a dependency to update run when new chat added
 	useEffect(() => {
 		if (bottom.current) {
