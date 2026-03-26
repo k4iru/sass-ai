@@ -1,7 +1,6 @@
 "use server";
 
 import bcrypt from "bcrypt";
-import { cookies } from "next/headers";
 import type { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getEdgeEnv } from "@/lib/env/env.edge";
@@ -153,18 +152,18 @@ export async function createSession(
 
 // this is used to authenticate server side requests
 // middleware has a refresh-tokens endpoint run client side which should ensure that users have both valid access and refresh tokens
-export async function authenticate(userId: string): Promise<void> {
+export async function authenticate(
+	userId: string,
+	accessToken: string,
+	refreshTokenId: string,
+): Promise<void> {
 	// 10 requests per 30 seconds
 	// this works for single server instance deployments for scaling think about using redis later
-	if (!rateLimiter(userId, 10, 30 * 1000)) {
+	if (!rateLimiter(userId, 30, 30 * 1000)) {
 		throw new Error("Too many authentication attempts. Try again later.");
 	}
 
 	const { JWT_AUD, JWT_ISS } = getJwtConfig();
-
-	const cookieStore = await cookies();
-	const accessToken = cookieStore.get("accessToken")?.value;
-	const refreshTokenId = cookieStore.get("refreshToken")?.value;
 
 	if (!accessToken || !refreshTokenId) throw new Error("malformed tokens");
 
