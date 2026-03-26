@@ -4,10 +4,13 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 vi.mock("uuid", () => ({ v4: vi.fn(() => "mock-uuid-token") }));
 vi.mock("@/lib/jwtConfig", () => ({ getJwtConfig: vi.fn(() => ({})) }));
 vi.mock("@/shared/lib/jwt", () => ({
-	getUserSubFromJWT: vi.fn(),
+	validateToken: vi.fn(),
 }));
 vi.mock("@/shared/redis", () => ({
 	getRedis: vi.fn(() => ({ set: vi.fn().mockResolvedValue("OK") })),
+}));
+vi.mock("@/lib/auth", () => ({
+	authenticate: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { POST } from "@/app/api/auth/ws-token/route";
@@ -17,10 +20,13 @@ import * as redisMock from "@/shared/redis";
 const makeReq = (accessTokenValue: string | undefined, body: object) =>
 	({
 		cookies: {
-			get: (name: string) =>
-				name === "accessToken" && accessTokenValue !== undefined
-					? { value: accessTokenValue }
-					: undefined,
+			get: (name: string) => {
+				if (name === "accessToken" && accessTokenValue !== undefined)
+					return { value: accessTokenValue };
+				if (name === "refreshToken")
+					return { value: "mock-refresh-token" };
+				return undefined;
+			},
 		},
 		json: vi.fn().mockResolvedValue(body),
 	}) as unknown as NextRequest;
@@ -37,7 +43,7 @@ describe("POST /api/auth/ws-token", () => {
 	});
 
 	test("returns 401 when no valid accessToken cookie", async () => {
-		vi.mocked(jwtMock.getUserSubFromJWT).mockReturnValue(null);
+		vi.mocked(jwtMock.validateToken).mockResolvedValue(null);
 		const req = makeReq(undefined, { chatId: "chat-123" });
 		const res = await POST(req);
 		expect(res.status).toBe(401);
@@ -46,14 +52,14 @@ describe("POST /api/auth/ws-token", () => {
 	});
 
 	test("returns 401 when JWT is invalid", async () => {
-		vi.mocked(jwtMock.getUserSubFromJWT).mockReturnValue(null);
+		vi.mocked(jwtMock.validateToken).mockResolvedValue(null);
 		const req = makeReq("bad-token", { chatId: "chat-123" });
 		const res = await POST(req);
 		expect(res.status).toBe(401);
 	});
 
 	test("returns 200 with { token } for a valid JWT", async () => {
-		vi.mocked(jwtMock.getUserSubFromJWT).mockReturnValue("user-123");
+		vi.mocked(jwtMock.validateToken).mockResolvedValue({ sub: "user-123" });
 		const req = makeReq("valid-access-token", { chatId: "chat-123" });
 		const res = await POST(req);
 		expect(res.status).toBe(200);
@@ -62,7 +68,7 @@ describe("POST /api/auth/ws-token", () => {
 	});
 
 	test("stores correct payload in Redis with 30s TTL", async () => {
-		vi.mocked(jwtMock.getUserSubFromJWT).mockReturnValue("user-123");
+		vi.mocked(jwtMock.validateToken).mockResolvedValue({ sub: "user-123" });
 		const req = makeReq("valid-access-token", { chatId: "chat-123" });
 		await POST(req);
 		expect(mockRedisSet).toHaveBeenCalledWith(
