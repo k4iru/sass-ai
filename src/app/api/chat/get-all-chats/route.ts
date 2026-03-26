@@ -2,30 +2,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { getJwtConfig } from "@/lib/jwtConfig";
 import { getAllChats } from "@/lib/nextUtils";
-import { validateToken } from "@/shared/lib/jwt";
+import { withAuth } from "@/lib/withAuth";
+import { getLogger } from "@/shared/logger";
 
-// TODO move s3client to a separate helper file
+const logger = getLogger({ module: "api chat get-all-chats" });
 
-export async function POST(req: NextRequest) {
-	// add user authentication as well.
+async function handler(_req: NextRequest, userId: string) {
 	try {
-		const body = await req.json();
-		const { userId } = body;
-
-		const token = req.cookies.get("accessToken")?.value ?? "";
-		const verified = validateToken(getJwtConfig(), token);
-		if (!verified)
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-		if (!userId) {
-			return NextResponse.json(
-				{ error: "Missing required fields" },
-				{ status: 400 },
-			);
-		}
-
 		const chatRooms = await getAllChats(userId);
 
 		return NextResponse.json(
@@ -33,10 +17,12 @@ export async function POST(req: NextRequest) {
 			{ status: 200 },
 		);
 	} catch (err) {
-		console.error(err instanceof Error ? err.message : "Unknown error");
+		logger.error(err instanceof Error ? err.message : "Unknown error");
 		return NextResponse.json(
-			{ error: "failed to create chatroom" },
+			{ error: "failed to get chats" },
 			{ status: 500 },
 		);
 	}
 }
+
+export const POST = withAuth(handler);

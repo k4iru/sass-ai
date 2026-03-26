@@ -4,12 +4,14 @@ export const dynamic = "force-dynamic";
 import { type NextRequest, NextResponse } from "next/server";
 import { renameChat } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
+import { getLogger } from "@/shared/logger";
 
-async function handler(req: NextRequest) {
-	// expect a Message object in the request body
+const logger = getLogger({ module: "api chat rename-chat" });
+
+async function handler(req: NextRequest, userId: string) {
 	try {
 		const body = await req.json();
-		const { userId, chatId, newTitle } = body;
+		const { chatId, newTitle } = body;
 
 		const success = await renameChat(userId, chatId, newTitle);
 		if (!success) {
@@ -21,9 +23,9 @@ async function handler(req: NextRequest) {
 
 		return NextResponse.json({ success: true }, { status: 200 });
 	} catch (err) {
-		console.error(err instanceof Error ? err.message : "unknown error");
+		logger.error(err instanceof Error ? err.message : "unknown error");
 		return NextResponse.json(
-			{ success: false, message: "error pushing message" },
+			{ success: false, message: "error renaming chat" },
 			{ status: 400 },
 		);
 	}

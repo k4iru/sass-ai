@@ -2,31 +2,30 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { authenticate } from "@/lib/auth";
 import {
 	deleteAccessCode,
 	emailVerified,
 	getAccessCode,
 	getUserFromSub,
 } from "@/lib/nextUtils";
+import { withAuth } from "@/lib/withAuth";
 import type { AuthUser } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "api auth verify-email" });
 
 const ACCESS_CODE_TYPE = "email";
 
-export async function POST(req: NextRequest) {
+async function handler(req: NextRequest, userId: string) {
 	try {
-		const { userId, accessCodeString } = await req.json();
+		const { accessCodeString } = await req.json();
 
-		if (!userId || !accessCodeString)
+		if (!accessCodeString)
 			return NextResponse.json({
 				success: false,
 				message: "Invalid request data",
 			});
 
-		// authenticate that logged in user is the one trying to verify email
-		authenticate(userId);
-
-		// authentication successful, proceed with email verification logic
 		const accessCode = await getAccessCode(userId, ACCESS_CODE_TYPE);
 		if (!accessCode) {
 			return NextResponse.json({
@@ -42,40 +41,32 @@ export async function POST(req: NextRequest) {
 			});
 		}
 
-		if (accessCodeString === accessCode.accessCode) {
-			// update in db
-			await emailVerified(userId);
+		await emailVerified(userId);
+		await deleteAccessCode(userId, ACCESS_CODE_TYPE);
 
-			// delete access code
-			await deleteAccessCode(userId, ACCESS_CODE_TYPE);
-			const user = await getUserFromSub(userId);
-
-			if (!user)
-				return NextResponse.json({
-					success: false,
-					message: "User not found",
-				});
-
-			const authUser: AuthUser = {
-				id: user.id,
-				emailVerified: user.emailVerified,
-			};
-
+		const user = await getUserFromSub(userId);
+		if (!user)
 			return NextResponse.json({
-				success: true,
-				user: authUser,
+				success: false,
+				message: "User not found",
 			});
-		}
 
-		return NextResponse.json(
-			{ success: false, message: "Not implemented" },
-			{ status: 501 },
-		);
+		const authUser: AuthUser = {
+			id: user.id,
+			emailVerified: user.emailVerified,
+		};
+
+		return NextResponse.json({
+			success: true,
+			user: authUser,
+		});
 	} catch (error) {
-		console.error(error instanceof Error ? error.message : "Unknown Error");
+		logger.error(error instanceof Error ? error.message : "Unknown Error");
 		return NextResponse.json(
 			{ error: "Internal Server Error" },
 			{ status: 500 },
 		);
 	}
 }
+
+export const POST = withAuth(handler);

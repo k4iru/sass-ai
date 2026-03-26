@@ -2,29 +2,18 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { getJwtConfig } from "@/lib/jwtConfig";
 import { deleteChat } from "@/lib/nextUtils";
-import { validateToken } from "@/shared/lib/jwt";
+import { withAuth } from "@/lib/withAuth";
+import { getLogger } from "@/shared/logger";
 
-// TODO move s3client to a separate helper file
+const logger = getLogger({ module: "api chat delete-chat" });
 
-export async function POST(req: NextRequest) {
-	// add user authentication as well.
+async function handler(req: NextRequest, userId: string) {
 	try {
 		const body = await req.json();
-		const { userId, pendingDeleteId } = body;
+		const { pendingDeleteId } = body;
 
-		console.log(userId);
-		console.log(pendingDeleteId);
-
-		const verified = validateToken(
-			getJwtConfig(),
-			req.cookies.get("accessToken")?.value ?? "",
-		);
-		if (!verified)
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-		if (!userId) {
+		if (!pendingDeleteId) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
 				{ status: 400 },
@@ -39,10 +28,12 @@ export async function POST(req: NextRequest) {
 
 		return NextResponse.json({ success: success }, { status: 400 });
 	} catch (err) {
-		console.error(err instanceof Error ? err.message : "Unknown error");
+		logger.error(err instanceof Error ? err.message : "Unknown error");
 		return NextResponse.json(
-			{ error: "failed to create chatroom" },
+			{ error: "failed to delete chat" },
 			{ status: 500 },
 		);
 	}
 }
+
+export const POST = withAuth(handler);

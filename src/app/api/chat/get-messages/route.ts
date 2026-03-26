@@ -2,36 +2,34 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { getJwtConfig } from "@/lib/jwtConfig";
 import { getMessages } from "@/lib/nextUtils";
-import { validateToken } from "@/shared/lib/jwt";
+import { withAuth } from "@/lib/withAuth";
+import { getLogger } from "@/shared/logger";
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+const logger = getLogger({ module: "api chat get-messages" });
+
+async function handler(req: NextRequest, userId: string) {
 	try {
 		const body = await req.json();
-		const { userId, chatId } = body;
-		const token = req.cookies.get("accessToken")?.value ?? "";
+		const { chatId } = body;
 
-		const verified = validateToken(getJwtConfig(), token);
-		if (!verified)
-			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-		if (!userId || !chatId) {
+		if (!chatId) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
 				{ status: 400 },
 			);
 		}
 
-		// returns an array of Messages
 		const messages = await getMessages(userId, chatId);
 
 		return NextResponse.json(messages, { status: 200 });
 	} catch (err) {
-		console.error(err instanceof Error ? err.message : "Unknown error");
+		logger.error(err instanceof Error ? err.message : "Unknown error");
 		return NextResponse.json(
 			{ error: "failed to get messages" },
 			{ status: 500 },
 		);
 	}
 }
+
+export const POST = withAuth(handler);
