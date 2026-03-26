@@ -2,6 +2,9 @@ import type { BaseChatModel } from "@langchain/core/language_models/chat_models"
 import { LRUCache } from "lru-cache";
 import { summarizeMessages } from "@/shared/lib/langchain/llmHelper";
 import type { ChatContext } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "ChatContextManager" });
 
 // singleton class to manage chat contexts in memory with LRU caching
 class ChatContextManager {
@@ -46,7 +49,7 @@ class ChatContextManager {
 		const chatKey = `${userId}-${chatId}`;
 
 		if (this.pendingSummarizations.has(chatKey)) {
-			console.log(`summarization in progress for chat: ${chatKey}`);
+			logger.info(`summarization in progress for chat: ${chatKey}`);
 			return;
 		}
 
@@ -55,7 +58,7 @@ class ChatContextManager {
 			const chatContext = this.cache.get(chatKey);
 
 			if (!chatContext) {
-				console.warn(`Chat context not found in cache for ${chatId}`);
+				logger.warn(`Chat context not found in cache for ${chatId}`);
 				return;
 			}
 
@@ -67,14 +70,14 @@ class ChatContextManager {
 			// Update the cached object directly
 			chatContext.summary = summary;
 			chatContext.lastSummaryIndex = lastSummaryIndex;
-			console.log(`Background summary completed for chat ${chatId}`);
+			logger.info(`Background summary completed for chat ${chatId}`);
 		} catch (error) {
-			console.error(
+			logger.error(
 				`Background summarization failed for chat ${chatId}:`,
 				error,
 			);
 		} finally {
-			this.pendingSummarizations.delete(chatId);
+			this.pendingSummarizations.delete(chatKey);
 		}
 		return;
 	}
