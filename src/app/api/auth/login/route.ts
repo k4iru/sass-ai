@@ -3,11 +3,19 @@ export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession, verifyPassword } from "@/lib/auth";
-import { getUserFromEmail } from "@/lib/nextUtils";
+import { getClientIP, getUserFromEmail, rateLimiter } from "@/lib/nextUtils";
 import type { AuthUser } from "@/shared/lib/types";
 
 // sets cookies + adds session id into session db.
 export async function POST(req: NextRequest) {
+	const ip = getClientIP(req);
+	if (!rateLimiter(`login:${ip}`, 5, 60_000)) {
+		return NextResponse.json(
+			{ success: false, message: "Too many requests" },
+			{ status: 429 },
+		);
+	}
+
 	const { email, password } = await req.json();
 	const user = await getUserFromEmail(email);
 

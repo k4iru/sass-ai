@@ -5,8 +5,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createSession, hashPassword, sendValidationEmail } from "@/lib/auth";
 import {
 	generateRandomAccessCode,
+	getClientIP,
 	insertUser,
 	isExistingUser,
+	rateLimiter,
 } from "@/lib/nextUtils";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import type { AuthUser, SignupRequestBody } from "@/shared/lib/types";
@@ -15,6 +17,14 @@ import { getLogger } from "@/shared/logger";
 const logger = getLogger({ module: "api auth signup" });
 
 export async function POST(req: NextRequest) {
+	const ip = getClientIP(req);
+	if (!rateLimiter(`signup:${ip}`, 3, 60_000)) {
+		return NextResponse.json(
+			{ success: false, message: "Too many requests" },
+			{ status: 429 },
+		);
+	}
+
 	try {
 		const body: SignupRequestBody = await req.json();
 

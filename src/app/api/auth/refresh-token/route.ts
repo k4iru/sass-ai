@@ -9,6 +9,7 @@ import {
 	getClientIP,
 	getRefreshToken,
 	insertRefreshToken,
+	rateLimiter,
 } from "@/lib/nextUtils";
 import { generateAccessToken, getUserSubFromJWT } from "@/shared/lib/jwt";
 import { logger } from "@/shared/logger";
@@ -20,6 +21,14 @@ const REFRESH_TOKEN_EXPIRY = parseInt(
 
 // TODO move session management to redis for speed
 export async function POST(req: NextRequest) {
+	const ip = getClientIP(req);
+	if (!rateLimiter(`refresh:${ip}`, 10, 60_000)) {
+		return NextResponse.json(
+			{ success: false, message: "Too many requests" },
+			{ status: 429 },
+		);
+	}
+
 	try {
 		if (Number.isNaN(JWT_EXPIRY) || Number.isNaN(REFRESH_TOKEN_EXPIRY))
 			throw new Error("Invalid token expiration configuration");
