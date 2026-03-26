@@ -13,6 +13,7 @@ const fakeRefreshToken: RefreshToken = {
 
 vi.mock("@/lib/nextUtils", () => ({
 	getClientIP: vi.fn().mockReturnValue("client-ip-string"),
+	rateLimiter: vi.fn().mockReturnValue(true),
 	getRefreshToken: vi.fn().mockResolvedValue(null),
 	deleteRefreshToken: vi.fn().mockResolvedValue(true),
 	generateRefreshToken: vi.fn().mockResolvedValue("new-refresh-token"),
