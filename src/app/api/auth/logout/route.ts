@@ -3,6 +3,9 @@ export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { deleteRefreshToken } from "@/lib/nextUtils";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "api auth logout" });
 
 export async function POST(req: NextRequest) {
 	try {
@@ -35,9 +38,8 @@ export async function POST(req: NextRequest) {
 
 		return response;
 	} catch (err) {
-		console.error(
-			"failed to logout properly",
-			err instanceof Error ? err.message : "unknown error",
-		);
+		logger.error("failed to logout properly", {
+			error: err instanceof Error ? err.message : "unknown error",
+		});
 	}
 }

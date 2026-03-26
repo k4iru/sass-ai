@@ -5,6 +5,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/auth";
 import { getUserFromEmail } from "@/lib/nextUtils";
 import { db, schema } from "@/shared/db";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "api auth google-callback" });
 
 // sets cookies + adds session id into session db.
 export async function GET(req: NextRequest) {
@@ -39,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 	const tokenData = await tokenRes.json();
 	if (!tokenRes.ok) {
-		console.error("Token error:", tokenData);
+		logger.error("Token error:", tokenData);
 		return NextResponse.json(
 			{ error: "Failed to exchange token" },
 			{ status: 500 },
@@ -66,7 +69,7 @@ export async function GET(req: NextRequest) {
 
 	const profile = await peopleRes.json();
 
-	console.log(profile);
+	logger.debug("Google profile received", { profile });
 
 	// ensure email is verified
 	if (!profile.emailAddresses?.[0]?.metadata?.verified) {
@@ -86,7 +89,7 @@ export async function GET(req: NextRequest) {
 	let userObj = await getUserFromEmail(user.email);
 	if (userObj == null) {
 		// create new user
-		console.log("Creating new user");
+		logger.info("Creating new Google OAuth user");
 
 		// random string for password
 
@@ -123,6 +126,6 @@ export async function GET(req: NextRequest) {
 
 	const res = NextResponse.redirect(new URL("/chat", req.url));
 	await createSession(res, req, userObj.id);
-	console.log("cookies for user set");
+	logger.info("Session created for Google OAuth user");
 	return res;
 }

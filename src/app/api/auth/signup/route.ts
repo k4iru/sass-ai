@@ -10,6 +10,9 @@ import {
 } from "@/lib/nextUtils";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import type { AuthUser, SignupRequestBody } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "api auth signup" });
 
 export async function POST(req: NextRequest) {
 	try {
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
 		};
 
 		await sendValidationEmail(user.id, body.email, accessCode);
-		console.log("sent validation email to user", body.email);
+		logger.info(`Sent validation email to user ${body.email}`);
 
 		const res = NextResponse.json({ success: true, user: authUser });
 		await createSession(res, req, user.id);
@@ -65,9 +68,7 @@ export async function POST(req: NextRequest) {
 		// set access token / refresh token in cookies. redirect to dashboard.
 	} catch (err) {
 		// gracefully exit;
-		console.error(
-			`Error: ${err instanceof Error ? err.message : "unknown error"}`,
-		);
+		logger.error(err instanceof Error ? err.message : "unknown error");
 		return NextResponse.json({ success: false, message: "Can't sign up" });
 	}
 }

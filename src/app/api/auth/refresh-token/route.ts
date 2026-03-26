@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
 
 		return res;
 	} catch (err) {
-		console.error("token refresh failed", err);
+		logger.error("token refresh failed", { error: err });
 		const response = NextResponse.redirect(new URL("/login", req.url));
 		response.cookies.delete("accessToken");
 		response.cookies.delete("refreshToken");
