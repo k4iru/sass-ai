@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { authenticate } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption/apiKeyEncryption";
 import { deleteApiKey, insertApiKey } from "@/lib/nextUtils";
@@ -15,7 +16,11 @@ export async function addApiKey(
 		if (!userId || !provider || !apiKey) {
 			throw new Error("Invalid parameters for adding API key");
 		}
-		await authenticate(userId);
+
+		const cookieStore = await cookies();
+		const accessToken = cookieStore.get("accessToken")?.value ?? "";
+		const refreshTokenId = cookieStore.get("refreshToken")?.value ?? "";
+		await authenticate(userId, accessToken, refreshTokenId);
 
 		// delete existing key if exists
 		await deleteApiKey(userId, provider);
