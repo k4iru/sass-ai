@@ -19,8 +19,8 @@ const VerifyEmail = () => {
 			headers: {
 				"Content-Type": "application/json",
 			},
+			credentials: "include",
 			body: JSON.stringify({
-				userId: user?.id,
 				accessCodeString: accessCodeString,
 			}),
 		});

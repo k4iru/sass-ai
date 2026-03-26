@@ -53,6 +53,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 		fetch("/api/auth/ws-token", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
+			credentials: "include",
 			body: JSON.stringify({ chatId }),
 		})
 			.then((res) => res.json())
