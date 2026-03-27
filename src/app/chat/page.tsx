@@ -2,7 +2,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { getLogger } from "@/shared/logger.browser";
 import styles from "./chat.module.scss";
+
+const logger = getLogger({ module: "Chat" });
 
 const Chat = () => {
 	const { user } = useAuth();
@@ -10,7 +13,7 @@ const Chat = () => {
 
 	useEffect(() => {
 		if (!user) {
-			console.error("User is not authenticated. Redirecting to login.");
+			logger.error("User is not authenticated. Redirecting to login.");
 			router.push("/login");
 		}
 

@@ -4,6 +4,9 @@ import { useParams } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import useWebSocket from "@/hooks/useWebSocket";
 import type { Message } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "ChatContext" });
 
 type ChatContextType = {
 	messages: Message[];
@@ -46,7 +49,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 
 	useEffect(() => {
 		if (!chatId) {
-			console.warn("ChatProvider initialized without a chatId.");
+			logger.warn("ChatProvider initialized without a chatId.");
 			setWsUrl(null);
 			return;
 		}
@@ -61,7 +64,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
 				setWsUrl(`${WS_URL}?chatroomId=${chatId}&token=${token}`);
 			})
 			.catch((err) => {
-				console.error("Failed to fetch WS token", err);
+				logger.error("Failed to fetch WS token", err);
 			});
 	}, [chatId, WS_URL]);
 

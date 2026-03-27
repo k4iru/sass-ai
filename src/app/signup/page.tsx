@@ -6,7 +6,10 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { signupSchema } from "@/lib/validation/signupSchema";
 import { getApiUrl } from "@/shared/constants";
+import { getLogger } from "@/shared/logger.browser";
 import styles from "./signup.module.scss";
+
+const logger = getLogger({ module: "Signup" });
 
 const API_URL = getApiUrl();
 
@@ -79,7 +82,7 @@ const Signup = () => {
 			}
 
 			if (data.success && data.user) {
-				console.log("User signed up successfully:", data.user);
+				logger.log("User signed up successfully:", data.user);
 				setCurrUser(data.user);
 				setLoading(false);
 				router.push("/verify-email");

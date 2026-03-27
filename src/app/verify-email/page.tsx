@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getApiUrl } from "@/shared/constants";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "VerifyEmail" });
 
 const VerifyEmail = () => {
 	const [accessCodeString, setAccessCodeString] = useState("");
@@ -27,12 +30,12 @@ const VerifyEmail = () => {
 
 		const data = await response.json();
 		if (!data.success) {
-			console.error("Error verifying email:", data.message);
+			logger.error("Error verifying email:", data.message);
 			return;
 		}
 
 		if (data.success && data.user) {
-			console.log("Email verified successfully:", data.user);
+			logger.log("Email verified successfully:", data.user);
 			// Set the current user in context
 			setCurrUser(data.user);
 			router.push("/chat");
@@ -45,7 +48,7 @@ const VerifyEmail = () => {
 			return;
 		}
 		if (user?.emailVerified) {
-			console.log("Email already verified");
+			logger.log("Email already verified");
 			router.push("/chat");
 			return;
 		}

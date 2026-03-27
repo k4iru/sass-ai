@@ -4,7 +4,6 @@ import { getJwtConfig } from "@/lib/jwtConfig";
 import { validateToken } from "@/shared/lib/jwt";
 
 export async function middleware(req: NextRequest) {
-	console.log("in middleware");
 	// get cookies
 	try {
 		const refreshToken = req.cookies.get("refreshToken")?.value;

@@ -4,6 +4,9 @@ import { cookies } from "next/headers";
 import { authenticate } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption/apiKeyEncryption";
 import { deleteApiKey, insertApiKey } from "@/lib/nextUtils";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "addApiKey" });
 
 // this server action is implemented as a showcase. Generally I prefer using regular http routes for flexibility,
 // but react server actions are a nice clean way to add simple form submits
@@ -27,12 +30,12 @@ export async function addApiKey(
 
 		const encryptedKey = encrypt(apiKey);
 		await insertApiKey(userId, provider, encryptedKey);
-		console.log(
+		logger.info(
 			`API key for ${provider} added successfully for user ${userId}`,
 		);
 		return { success: true };
 	} catch (error) {
-		console.error(
+		logger.error(
 			`Error adding API key: ${error instanceof Error ? error.message : "Unknown error"}`,
 		);
 

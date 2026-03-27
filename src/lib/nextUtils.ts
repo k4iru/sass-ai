@@ -16,6 +16,9 @@ import type {
 	RefreshToken,
 	User,
 } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "nextUtils" });
 
 const rateCalls = new Map<string, { count: number; lastReset: number }>();
 
@@ -56,7 +59,7 @@ export async function getRecentMessages(
 
 		return formattedMessages.join("\n");
 	} catch (error) {
-		console.log(error);
+		logger.error("Error getting recent messages", { error });
 		return "";
 	}
 }
@@ -102,7 +105,7 @@ export async function updateTokenUsage(
 			});
 		}
 	} catch (error) {
-		console.log(error);
+		logger.error("Error updating token usage", { error });
 	}
 }
 
@@ -133,9 +136,7 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 			}
 		});
 	} catch (err) {
-		console.log(
-			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error inserting message", { error: err });
 		return false;
 	}
 	return true;
@@ -170,9 +171,7 @@ export async function deleteAccessCode(
 
 		return true;
 	} catch (error) {
-		console.log(
-			`Error getting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error deleting access code", { error });
 		return false;
 	}
 }
@@ -209,9 +208,7 @@ export async function getAccessCode(
 
 		return accessCode;
 	} catch (error) {
-		console.log(
-			`Error getting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error getting access code", { error });
 		return null;
 	}
 }
@@ -229,9 +226,7 @@ export async function emailVerified(userId: string): Promise<boolean> {
 
 		return true;
 	} catch (error) {
-		console.log(
-			`Error checking email verification: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error checking email verification", { error });
 		return false;
 	}
 }
@@ -264,9 +259,7 @@ export async function insertUser(
 
 		return result[0];
 	} catch (error) {
-		console.log(
-			`Error inserting user: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error inserting user", { error });
 		return null;
 	}
 }
@@ -298,9 +291,7 @@ export async function insertAccessCode(
 
 		return true;
 	} catch (error) {
-		console.log(
-			`Error inserting access code: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error inserting access code", { error });
 		return false;
 	}
 }
@@ -326,7 +317,7 @@ export async function getApiKey(
 
 		return apiKeys[0].encryptedKey;
 	} catch (error) {
-		console.log(error);
+		logger.error("Error getting API key", { error });
 		return null;
 	}
 }
@@ -350,13 +341,13 @@ export async function renameChat(
 			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
 
 		if (!existingChat.length) {
-			console.warn("Chat not found or does not belong to the user.");
+			logger.warn("Chat not found or does not belong to the user.");
 			return false;
 		}
 
 		// Only rename if the title is different
 		if (existingChat[0].title === trimmedTitle) {
-			console.log("New title is the same as the current one.");
+			logger.info("New title is the same as the current one.");
 			return true; // No-op but successful
 		}
 
@@ -371,9 +362,7 @@ export async function renameChat(
 
 		return true;
 	} catch (err) {
-		console.error(
-			`Error renaming chat: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error renaming chat", { error: err });
 		return false;
 	}
 }
@@ -390,7 +379,7 @@ export async function deleteChat(
 			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
 
 		if (!chat.length) {
-			console.warn("Chat not found or does not belong to the user.");
+			logger.warn("Chat not found or does not belong to the user.");
 			return false;
 		}
 
@@ -405,9 +394,7 @@ export async function deleteChat(
 
 		return true;
 	} catch (err) {
-		console.error(
-			`Error deleting chat: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error deleting chat", { error: err });
 		return false;
 	}
 }
@@ -432,7 +419,7 @@ export async function getSummary(
 			lastIndex: summaryObj[0].lastIndex,
 		};
 	} catch (error) {
-		console.log(error);
+		logger.error("Error getting summary", { error });
 		return { summary: "", lastIndex: -1 };
 	}
 }
@@ -491,7 +478,7 @@ export async function createChatContext(
 			lastSummaryIndex: lastIndex,
 		};
 	} catch (error) {
-		console.log("error creating context", error);
+		logger.error("Error creating context", { error });
 		return {
 			userId: message.userId,
 			chatId: message.chatId,
@@ -531,9 +518,7 @@ export async function getMessages(
 			messageOrder: row.messageOrder,
 		}));
 	} catch (err) {
-		console.error(
-			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error getting messages", { error: err });
 		return [];
 	}
 }
@@ -559,7 +544,7 @@ export async function createSummary(
 			lastIndex: 0,
 		});
 	} catch (error) {
-		console.log(error);
+		logger.error("Error creating summary", { error });
 		return false;
 	}
 	return true;
@@ -589,7 +574,7 @@ export async function createChatRoom(
 		.where(eq(schema.chats.id, roomName));
 
 	if (existingChatRoom.length) {
-		console.log("Chat room already exists.");
+		logger.info("Chat room already exists.");
 		return false;
 	}
 
@@ -611,7 +596,7 @@ export async function createChatRoom(
 
 		return true;
 	} catch (err) {
-		console.log(err instanceof Error ? err.message : "Unknown error");
+		logger.error("Error creating chat room", { error: err });
 		return false;
 	}
 }
@@ -693,9 +678,7 @@ export async function deleteRefreshToken(
 			throw new Error("failed to delete from database");
 		}
 	} catch (err) {
-		console.log(
-			`error deleting refresh token: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error deleting refresh token", { error: err });
 		return false;
 	}
 
@@ -723,9 +706,7 @@ export async function deleteApiKey(
 		if (result.rowCount === 0) throw new Error("No api key found to delete");
 		return true;
 	} catch (error) {
-		console.log(
-			`Error deleting API key: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error deleting API key", { error });
 		return false;
 	}
 }
@@ -750,9 +731,7 @@ export async function insertApiKey(
 		if (!result) throw new Error("Error inserting API key into table");
 		return true;
 	} catch (error) {
-		console.error(
-			`Error adding API key: ${error instanceof Error ? error.message : "Unknown error"}`,
-		);
+		logger.error("Error adding API key", { error });
 		return false;
 	}
 }
@@ -782,9 +761,7 @@ export async function insertRefreshToken(
 			throw new Error("Error inserting new refresh token into table");
 		return true;
 	} catch (err) {
-		console.log(
-			`database error: ${err instanceof Error ? err.message : "Unknown error"}`,
-		);
+		logger.error("Error inserting refresh token", { error: err });
 		return false;
 	}
 }

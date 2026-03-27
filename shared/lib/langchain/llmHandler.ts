@@ -102,7 +102,7 @@ const askQuestion = async function* (
 	}
 
 	// if stream is done try and get metadata
-	console.log("Stream done, fetching metadata...");
+	logger.info("Stream done, fetching metadata...");
 
 	// get final state for approximating and updating context and also updating db. split this into more parts
 

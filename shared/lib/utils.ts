@@ -7,6 +7,7 @@ import {
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/shared/db";
 import type { MessageHistory } from "@/shared/lib/types";
+import { logger } from "@/shared/logger";
 
 export function convertToBaseMessageArray(
 	messages: MessageHistory[],
@@ -41,7 +42,7 @@ export async function updateSummary(
 				),
 			);
 	} catch (error) {
-		console.log(error);
+		logger.error("Failed to update summary", { error });
 		return false;
 	}
 	return true;

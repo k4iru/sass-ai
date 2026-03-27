@@ -61,7 +61,7 @@ const ChatPage = ({ params }: Props) => {
 				const data = await response.json();
 				initializeMessages(data);
 			} catch (error) {
-				console.error("Error fetching messages:", error);
+				logger.error("Error fetching messages:", error);
 				logger.error("Error fetching messages", {
 					error: error instanceof Error ? error.message : "Unknown error",
 					chatId,

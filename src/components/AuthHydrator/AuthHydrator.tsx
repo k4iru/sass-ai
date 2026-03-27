@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { getLogger } from "@/shared/logger.browser";
+
+const logger = getLogger({ module: "AuthHydrator" });
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -22,7 +25,7 @@ export const AuthHydrator = ({ children }: { children: React.ReactNode }) => {
 					await setCurrUser(data.user);
 				}
 			} catch (err) {
-				console.error("Authentication check failed:", err);
+				logger.error("Authentication check failed:", err);
 			} finally {
 				setLoading(false);
 			}

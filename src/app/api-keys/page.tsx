@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { addApiKey } from "@/actions/addApikey";
 import { useAuth } from "@/context/AuthContext";
 import { AVAILABLE_LLM_PROVIDERS } from "@/shared/constants";
+import { getLogger } from "@/shared/logger.browser";
 import styles from "./apikeys.module.scss";
+
+const logger = getLogger({ module: "ApiKeys" });
 
 type Provider = (typeof AVAILABLE_LLM_PROVIDERS)[number];
 
@@ -36,16 +39,16 @@ const ApiKeys = () => {
 	};
 
 	const handleClick = async (provider: keyof typeof apiKeys) => {
-		console.log("Name:", provider);
-		console.log("Value:", apiKeys[provider]);
+		logger.log("Name:", provider);
+		logger.log("Value:", apiKeys[provider]);
 
 		if (!user) throw new Error("Invalid user");
 		const { success } = await addApiKey(user.id, provider, apiKeys[provider]);
 
 		if (success) {
-			console.log("good");
+			logger.log("good");
 		} else {
-			console.log("bad");
+			logger.log("bad");
 		}
 	};
 	return (

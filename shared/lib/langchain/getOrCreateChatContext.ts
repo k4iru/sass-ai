@@ -3,6 +3,7 @@ import type {
 	ChatContextManager,
 	Message,
 } from "@/shared/lib/types";
+import { logger } from "@/shared/logger";
 
 export interface ChatContextDeps {
 	createChatContext(message: Message): Promise<ChatContext>;
@@ -24,7 +25,7 @@ export async function getOrCreateChatContext(
 		chatContext = await createChatContext(message);
 		manager.setChatContext(userId, chatId, chatContext);
 	} else {
-		console.log(`Using cached chat context for ${userId}-${chatId}`);
+		logger.info(`Using cached chat context for ${userId}-${chatId}`);
 
 		if (chatContext.messages.length > 0 && chatContext.lastSummaryIndex > 0) {
 			while (
