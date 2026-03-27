@@ -635,11 +635,11 @@ export async function getUserFromEmail(email: string): Promise<User | null> {
 	return user[0];
 }
 
-export async function getUserFromSub(sub: string): Promise<User | null> {
+export async function getUserFromId(id: string): Promise<User | null> {
 	const user = await db
 		.select()
 		.from(schema.usersTable)
-		.where(eq(schema.usersTable.id, sub));
+		.where(eq(schema.usersTable.id, id));
 
 	if (!user.length) return null;
 

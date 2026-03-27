@@ -6,7 +6,7 @@ import {
 	deleteAccessCode,
 	emailVerified,
 	getAccessCode,
-	getUserFromSub,
+	getUserFromId,
 } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
 import type { AuthUser } from "@/shared/lib/types";
@@ -44,7 +44,7 @@ async function handler(req: NextRequest, userId: string) {
 		await emailVerified(userId);
 		await deleteAccessCode(userId, ACCESS_CODE_TYPE);
 
-		const user = await getUserFromSub(userId);
+		const user = await getUserFromId(userId);
 		if (!user)
 			return NextResponse.json({
 				success: false,
