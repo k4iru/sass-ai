@@ -13,6 +13,25 @@
   top: 2rem;
   right: 0;
   background-color: var(--color-black);
+  width: max-content;
+
+  button {
+    width: 100%;
+  }
+
+  li {
+    display: flex;
+    width: 100%;
+  }
+
+  .menuItem {
+    padding: 0 0.5rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-gray);
+    }
+  }
 }
 
 .settingsButton {

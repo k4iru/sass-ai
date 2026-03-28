@@ -42,5 +42,7 @@ export const config = {
 		"/chat/:path*", // matches /chat and anything after
 		"/dashboard/:path*", // matches /dashboard and anything after
 		"/api-keys/:path*",
+		"/settings/:path*",
+		"/profile/:path*",
 	],
 };
