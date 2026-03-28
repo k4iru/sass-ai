@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 // Content-Security-Policy: controls which resources the browser is allowed to load
 const ContentSecurityPolicy = `
   default-src 'self';
-  script-src 'self';
+  script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com;
   style-src 'self' 'unsafe-inline';
   img-src 'self' https://i.imgur.com data:;
   font-src 'self';
