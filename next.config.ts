@@ -7,7 +7,7 @@ const ContentSecurityPolicy = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' https://i.imgur.com data:;
   font-src 'self';
-  connect-src 'self' wss://*.keppel.app https://*.keppel.app https://accounts.google.com https://oauth2.googleapis.com https://people.googleapis.com;
+  connect-src 'self' ws://localhost:* wss://*.keppel.app https://*.keppel.app https://accounts.google.com https://oauth2.googleapis.com https://people.googleapis.com;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self';

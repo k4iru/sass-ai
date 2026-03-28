@@ -10,6 +10,11 @@ import styles from "@/components/Chatbox/Chatbox.module.scss";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import useUpload from "@/hooks/useUpload";
+import {
+	MODEL_REGISTRY,
+	PROVIDER_KEYS,
+	getDefaultProviderString,
+} from "@/shared/lib/models";
 import type { Message } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger.browser";
 
@@ -24,7 +29,9 @@ export const Chatbox = () => {
 	const [text, setText] = useState<string>("");
 	const [fileName, setFileName] = useState<string | null>(null);
 	const [fileData, setFileData] = useState<null | File>(null);
-	const [currModel, setCurrModel] = useState<string>("gpt-3.5-turbo");
+	const [currModel, setCurrModel] = useState<string>(
+		getDefaultProviderString(),
+	);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const { handleUpload, fileId } = useUpload();
 
@@ -190,22 +197,28 @@ export const Chatbox = () => {
 				</button>
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
-					<label htmlFor="model" className={styles.modelLabel}>
-						{currModel}
-					</label>
 					<div className={styles.selectWrapper}>
 						<select
 							name="model"
 							className={styles.modelSelect}
+							value={currModel}
 							onChange={handleModelChange}
 						>
-							<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-							<option value="gpt-4">GPT-4</option>
-							<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
-							<option value="gpt-4o">GPT-4o</option>
-							<option value="gpt-4o-mini">GPT-4o Mini</option>
-							<option value="gpt-4-turbo">GPT-4 Turbo</option>
-							<option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
+							{PROVIDER_KEYS.map((provider) => {
+								const config = MODEL_REGISTRY[provider];
+								return (
+									<optgroup key={provider} label={config.displayName}>
+										{config.models.map((model) => (
+											<option
+												key={model.id}
+												value={`${provider}:${model.id}`}
+											>
+												{model.displayName}
+											</option>
+										))}
+									</optgroup>
+								);
+							})}
 						</select>
 						<ChevronDown className={styles.selectIcon} />
 					</div>

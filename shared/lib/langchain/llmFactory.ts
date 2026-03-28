@@ -1,17 +1,15 @@
 import { ChatAnthropic } from "@langchain/anthropic";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ChatGroq } from "@langchain/groq";
 import { ChatOpenAI } from "@langchain/openai";
 import { LRUCache } from "lru-cache";
 import { decrypt } from "@/lib/encryption/apiKeyEncryption";
 import { getApiKey } from "@/lib/nextUtils";
+import { MODEL_REGISTRY } from "@/shared/lib/models";
 import type { LLMProvider } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger";
 
 const logger = getLogger({ module: "llmFactory" });
-// TODO - split get model and model creation into separate functions
-// lrucache is not shared between servers. Maybe move to redis or memcache
-// but for now since only running on one server should be okay.
+
 export const chatModelCache = new LRUCache<
 	string,
 	[BaseChatModel, BaseChatModel]
@@ -24,55 +22,48 @@ export const chatModelCache = new LRUCache<
 export async function getChatModel(
 	userId: string,
 	provider: LLMProvider,
+	modelId: string,
 ): Promise<[BaseChatModel, BaseChatModel] | null> {
-	const cacheKey = `${userId}-${provider}`;
+	const cacheKey = `${userId}-${provider}-${modelId}`;
 
 	const cached = chatModelCache.get(cacheKey);
 	if (cached) {
-		logger.info(`cache hit for ${userId}-${provider}`);
+		logger.info(`cache hit for ${cacheKey}`);
 		return cached;
 	}
 
-	logger.info("not in cache, fetching API key for", { provider: provider });
+	logger.info("not in cache, fetching API key for", {
+		provider,
+		model: modelId,
+	});
 	const apiKey = await getApiKey(userId, provider);
 
-	// invalid api key
 	if (apiKey === null) return null;
 	const decryptedKey = decrypt(apiKey);
 
+	const registry = MODEL_REGISTRY[provider];
 	let model: BaseChatModel;
 	let summaryProvider: BaseChatModel;
 
 	switch (provider) {
 		case "openai":
 			model = new ChatOpenAI({
-				model: "o4-mini-2025-04-16",
+				model: modelId,
 				apiKey: decryptedKey,
 			});
 			summaryProvider = new ChatOpenAI({
-				model: "o4-mini-2025-04-16",
-				apiKey: decryptedKey,
-				streaming: false,
-			});
-			break;
-		case "groq":
-			model = new ChatGroq({
-				model: "mixtral-8x7b-32768",
-				apiKey: decryptedKey,
-			});
-			summaryProvider = new ChatGroq({
-				model: "mixtral-8x7b-32768",
+				model: registry.summaryModel,
 				apiKey: decryptedKey,
 				streaming: false,
 			});
 			break;
 		case "anthropic":
 			model = new ChatAnthropic({
-				model: "anthropic",
+				model: modelId,
 				apiKey: decryptedKey,
 			});
 			summaryProvider = new ChatAnthropic({
-				model: "anthropic",
+				model: registry.summaryModel,
 				apiKey: decryptedKey,
 				streaming: false,
 			});
@@ -80,6 +71,7 @@ export async function getChatModel(
 		default:
 			return null;
 	}
+
 	chatModelCache.set(cacheKey, [model, summaryProvider]);
 	return [model, summaryProvider];
 }

@@ -7,12 +7,7 @@ export const IV_LENGTH = 16;
  * Database Constants
  */
 export const AVAILABLE_LOGIN_PROVIDERS = ["email", "google"] as const;
-export const AVAILABLE_LLM_PROVIDERS = [
-	"openai",
-	"anthropic",
-	"deepseek",
-	"google",
-] as const;
+export const AVAILABLE_LLM_PROVIDERS = ["openai", "anthropic"] as const;
 
 export const VERIFICATION_TYPES = ["email", "password"] as const;
 

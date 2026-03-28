@@ -3,6 +3,7 @@ import { WebSocket } from "ws";
 import { type AgentDeps, container } from "@/shared/lib/container";
 import { getChatModel } from "@/shared/lib/langchain/llmFactory";
 import { askQuestion } from "@/shared/lib/langchain/llmHandler";
+import { parseProviderString } from "@/shared/lib/models";
 import { getLogger } from "@/shared/logger";
 
 export const parseCookies = (
@@ -45,9 +46,11 @@ export const handleMessage = async (
 		const text = data.toString();
 		const msg = JSON.parse(text);
 
-		// get the cached chat model set for user and provider
-		// if not in cache, fetch API key and create new model instance
-		const cache = await getChatModel(userId, "openai");
+		// parse "provider:model" from the message to select the right LLM
+		const { provider, modelId } = parseProviderString(
+			msg.provider || "openai",
+		);
+		const cache = await getChatModel(userId, provider, modelId);
 
 		if (cache === null) {
 			logger.warn("Chat model not found");
