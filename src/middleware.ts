@@ -1,10 +1,20 @@
 import { JWTExpired } from "jose/errors";
 import { type NextRequest, NextResponse } from "next/server";
+import { validateOrigin } from "@/lib/csrf";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import { validateToken } from "@/shared/lib/jwt";
 
 export async function middleware(req: NextRequest) {
-	// get cookies
+	const pathname = req.nextUrl.pathname;
+
+	// CSRF protection: validate Origin header on all API routes
+	if (pathname.startsWith("/api/")) {
+		const csrfError = validateOrigin(req);
+		if (csrfError) return csrfError;
+		return NextResponse.next();
+	}
+
+	// Auth protection for page routes
 	try {
 		const refreshToken = req.cookies.get("refreshToken")?.value;
 		const accessToken = req.cookies.get("accessToken")?.value;
@@ -39,6 +49,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
 	matcher: [
+		"/api/:path*", // CSRF protection for all API routes
 		"/chat/:path*", // matches /chat and anything after
 		"/dashboard/:path*", // matches /dashboard and anything after
 		"/api-keys/:path*",
