@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { getMessages } from "@/lib/nextUtils";
+import { getMessages, verifyChatOwnership } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
 import { getLogger } from "@/shared/logger";
 
@@ -14,7 +14,6 @@ async function handler(req: NextRequest, userId: string) {
 
 		// allowing client do pass back chatid is not good for ownership checks
 		const { chatId } = body;
-
 		if (!chatId) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
@@ -22,6 +21,16 @@ async function handler(req: NextRequest, userId: string) {
 			);
 		}
 
+		// send 404 to prevent data leak
+		const isOwner = await verifyChatOwnership(userId, chatId);
+		if (!isOwner) {
+			return NextResponse.json(
+				{ error: "Chat not found or unauthorized" },
+				{ status: 404 },
+			);
+		}
+
+		// grab messages
 		const messages = await getMessages(userId, chatId);
 
 		return NextResponse.json(messages, { status: 200 });

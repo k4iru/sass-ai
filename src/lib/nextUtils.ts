@@ -732,6 +732,25 @@ export async function deleteApiKey(
 	}
 }
 
+export async function verifyChatOwnership(
+	userId: string,
+	chatId: string,
+): Promise<boolean> {
+	const logger = getLogger({ module: "chatOwnershipVerified" });
+	try {
+		const chat = await db
+			.select({ id: schema.chats.id })
+			.from(schema.chats)
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)))
+			.limit(1);
+
+		return chat.length > 0;
+	} catch (error) {
+		logger.error("Error verifying chat ownership", { error });
+		return false;
+	}
+}
+
 export async function insertApiKey(
 	userId: string,
 	provider: string,
