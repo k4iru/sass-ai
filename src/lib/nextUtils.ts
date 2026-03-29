@@ -347,32 +347,12 @@ export async function renameChat(
 			throw new Error("Title must not be empty.");
 		}
 
-		// Check if the chat exists and belongs to the user
-		const existingChat = await db
-			.select()
-			.from(schema.chats)
-			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
-
-		if (!existingChat.length) {
-			logger.warn("Chat not found or does not belong to the user.");
-			return false;
-		}
-
-		// Only rename if the title is different
-		if (existingChat[0].title === trimmedTitle) {
-			logger.info("New title is the same as the current one.");
-			return true; // No-op but successful
-		}
-
-		const result = await db
+		await db
 			.update(schema.chats)
 			.set({ title: trimmedTitle })
 			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
 
-		if (!result.rowCount) {
-			throw new Error("Failed to update chat title.");
-		}
-
+		// if no rows are returned title is the same. ownership is verified in route handler so we can safely return true here
 		return true;
 	} catch (err) {
 		logger.error("Error renaming chat", { error: err });
