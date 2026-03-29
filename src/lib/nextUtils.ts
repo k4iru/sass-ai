@@ -366,17 +366,6 @@ export async function deleteChat(
 ): Promise<boolean> {
 	const logger = getLogger({ module: "deleteChat" });
 	try {
-		// Ensure the chat belongs to the user
-		const chat = await db
-			.select()
-			.from(schema.chats)
-			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)));
-
-		if (!chat.length) {
-			logger.warn("Chat not found or does not belong to the user.");
-			return false;
-		}
-
 		// Only delete the chat — messages will be deleted via cascade
 		const result = await db
 			.delete(schema.chats)

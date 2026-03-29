@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
-import { deleteChat } from "@/lib/nextUtils";
+import { deleteChat, verifyChatOwnership } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
 import { getLogger } from "@/shared/logger";
 
@@ -13,10 +13,19 @@ async function handler(req: NextRequest, userId: string) {
 		const body = await req.json();
 		const { pendingDeleteId } = body;
 
+		// where pendingDeleteId is rthe chatId
 		if (!pendingDeleteId) {
 			return NextResponse.json(
 				{ error: "Missing required fields" },
 				{ status: 400 },
+			);
+		}
+
+		const isOwner = await verifyChatOwnership(userId, pendingDeleteId);
+		if (!isOwner) {
+			return NextResponse.json(
+				{ error: "Chat not found or unauthorized" },
+				{ status: 404 },
 			);
 		}
 
