@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
 			new Date(query.expiryDate) < new Date()
 		) {
 			logger.error("Refresh token validation failed", {
-				refreshToken,
-				accessToken,
+				refreshToken: `${refreshToken.slice(0, 6)}...`,
+				accessToken: `${accessToken.slice(0, 6)}...`,
 				clientIP,
 			});
 			throw new Error("invalid token");

@@ -68,7 +68,10 @@ async function startWebSocketServer(): Promise<void> {
 		const authResult = await authenticateViaHttpToken(token, apiUrl);
 		if (!authResult) {
 			ws.close(1008, "Unauthorized");
-			logger.warn("Unauthorized connection attempt with token: %s", token);
+			logger.warn(
+				"Unauthorized connection attempt with token: %s",
+				`${token.slice(0, 6)}...`,
+			);
 			return;
 		}
 
