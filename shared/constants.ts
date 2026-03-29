@@ -2,6 +2,8 @@
  * Encryption Constants
  */
 export const IV_LENGTH = 16;
+export const GCM_IV_LENGTH = 12;
+export const GCM_AUTH_TAG_LENGTH = 16;
 
 /*
  * Database Constants
