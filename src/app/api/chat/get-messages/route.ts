@@ -11,6 +11,8 @@ const logger = getLogger({ module: "api chat get-messages" });
 async function handler(req: NextRequest, userId: string) {
 	try {
 		const body = await req.json();
+
+		// allowing client do pass back chatid is not good for ownership checks
 		const { chatId } = body;
 
 		if (!chatId) {

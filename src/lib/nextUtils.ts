@@ -18,8 +18,6 @@ import type {
 } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger";
 
-const logger = getLogger({ module: "nextUtils" });
-
 const rateCalls = new Map<string, { count: number; lastReset: number }>();
 
 // TODO split this helper file into separate files and group functions
@@ -38,6 +36,8 @@ export async function getRecentMessages(
 	lastSummaryIndex: number,
 	lastMessageIndex: number,
 ): Promise<string> {
+	const logger = getLogger({ module: "getRecentMessages" });
+
 	try {
 		const rows = await db
 			.select()
@@ -69,6 +69,8 @@ export async function updateTokenUsage(
 	chatId: string,
 	tokensUsed: number,
 ): Promise<void> {
+	const logger = getLogger({ module: "updateTokenUsage" });
+
 	try {
 		// Check if record exists
 		const existing = await db
@@ -110,6 +112,8 @@ export async function updateTokenUsage(
 }
 
 export async function insertMessage(messages: Message[]): Promise<boolean> {
+	const logger = getLogger({ module: "insertMessage" });
+
 	if (messages.length === 0) return true;
 	try {
 		// check if chatroom exists first
@@ -153,6 +157,8 @@ export async function deleteAccessCode(
 	userId: string,
 	type: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "deleteAccessCode" });
+
 	try {
 		if (!isValidEnum(type, VERIFICATION_TYPES)) {
 			throw new Error("Invalid verification type");
@@ -180,6 +186,8 @@ export async function getAccessCode(
 	userId: string,
 	type: string,
 ): Promise<AccessCode | null> {
+	const logger = getLogger({ module: "getAccessCode" });
+
 	try {
 		if (!isValidEnum(type, VERIFICATION_TYPES)) {
 			throw new Error("Invalid verification type");
@@ -214,6 +222,7 @@ export async function getAccessCode(
 }
 
 export async function emailVerified(userId: string): Promise<boolean> {
+	const logger = getLogger({ module: "emailVerified" });
 	try {
 		const result = await db
 			.update(schema.usersTable)
@@ -238,6 +247,7 @@ export async function insertUser(
 	password: string,
 	loginProvider: string,
 ): Promise<User | null> {
+	const logger = getLogger({ module: "insertUser" });
 	try {
 		if (!isValidEnum(loginProvider, AVAILABLE_LOGIN_PROVIDERS)) {
 			throw new Error("Invalid verification type");
@@ -269,6 +279,7 @@ export async function insertAccessCode(
 	accessCode: string,
 	type: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "insertAccessCode" });
 	try {
 		// ensure valid type
 		if (!isValidEnum(type, VERIFICATION_TYPES)) {
@@ -300,6 +311,7 @@ export async function getApiKey(
 	userId: string,
 	provider: string,
 ): Promise<string | null> {
+	const logger = getLogger({ module: "getApiKey" });
 	if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS))
 		throw new Error("Invalid provider");
 	try {
@@ -327,6 +339,7 @@ export async function renameChat(
 	chatId: string,
 	newTitle: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "renameChat" });
 	try {
 		// Optional: sanitize or validate title
 		const trimmedTitle = newTitle.trim();
@@ -371,6 +384,7 @@ export async function deleteChat(
 	userId: string,
 	chatId: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "deleteChat" });
 	try {
 		// Ensure the chat belongs to the user
 		const chat = await db
@@ -403,6 +417,7 @@ export async function getSummary(
 	userId: string,
 	chatId: string,
 ): Promise<{ summary: string; lastIndex: number }> {
+	const logger = getLogger({ module: "getSummary" });
 	try {
 		const summaryObj = await db
 			.select()
@@ -427,6 +442,7 @@ export async function getSummary(
 export async function createChatContext(
 	message: Message,
 ): Promise<ChatContext> {
+	const logger = getLogger({ module: "createChatContext" });
 	try {
 		// create chatroom if doesnt exist
 		await createChatRoom(
@@ -494,6 +510,7 @@ export async function getMessages(
 	userId: string,
 	chatId: string,
 ): Promise<Message[]> {
+	const logger = getLogger({ module: "getMessages" });
 	try {
 		const messages = await db
 			.select()
@@ -537,6 +554,7 @@ export async function createSummary(
 	userId: string,
 	chatId: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "createSummary" });
 	try {
 		await db.insert(schema.summaries).values({
 			userId: userId,
@@ -567,6 +585,7 @@ export async function createChatRoom(
 	model: string,
 	title: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "createChatRoom" });
 	// check if chat room already exists
 	const existingChatRoom = await db
 		.select()
@@ -668,6 +687,7 @@ export async function getRefreshToken(
 export async function deleteRefreshToken(
 	refreshToken: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "deleteRefreshToken" });
 	try {
 		const result = await db
 			.delete(schema.refreshTokensTable)
@@ -689,6 +709,7 @@ export async function deleteApiKey(
 	userId: string,
 	provider: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "deleteApiKey" });
 	try {
 		if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS)) {
 			throw new Error("Invalid provider");
@@ -716,6 +737,7 @@ export async function insertApiKey(
 	provider: string,
 	encryptedKey: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "insertApiKey" });
 	try {
 		if (!isValidEnum(provider, AVAILABLE_LLM_PROVIDERS)) {
 			throw new Error("Invalid provider");
@@ -742,6 +764,7 @@ export async function insertRefreshToken(
 	accessToken: string,
 	ip: string,
 ): Promise<boolean> {
+	const logger = getLogger({ module: "insertRefreshToken" });
 	try {
 		const ms = Date.now() + Number.parseInt(REFRESH_TOKEN_EXPIRY) * 1000; // 7 days
 		const expiryDate = new Date(ms);
