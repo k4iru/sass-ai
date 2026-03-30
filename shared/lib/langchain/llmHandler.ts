@@ -3,10 +3,7 @@ import type {
 	BaseChatModel,
 	BaseChatModelCallOptions,
 } from "@langchain/core/language_models/chat_models";
-import {
-	type AIMessageChunk,
-	isAIMessageChunk,
-} from "@langchain/core/messages";
+import { AIMessageChunk } from "@langchain/core/messages";
 import type { Runnable } from "@langchain/core/runnables";
 import { v4 as uuidv4 } from "uuid";
 import type { AgentDeps } from "@/shared/lib/container";
@@ -17,7 +14,7 @@ import type { Message, MessageHistory } from "@/shared/lib/types";
 import { convertToBaseMessageArray } from "@/shared/lib/utils";
 import { logger } from "@/shared/logger";
 
-// not currently binding tools. future TODO when more are added
+// not currently binding tools. future TODO when more are added specifically search
 const bindToolsToChatProvider = (
 	chatProvider: BaseChatModel,
 ): Runnable<
@@ -95,7 +92,7 @@ const askQuestion = async function* (
 	//let finalMetaData = null;
 
 	for await (const [chunk, _metadata] of stream) {
-		if (isAIMessageChunk(chunk as AIMessageChunk) && chunk.content.length > 0) {
+		if (AIMessageChunk.isInstance(chunk) && chunk.content.length > 0) {
 			chunks.push(chunk);
 			yield chunk as AIMessageChunk;
 		}
@@ -151,8 +148,6 @@ const askQuestion = async function* (
 			insertMessage,
 			updateTokenUsage,
 		);
-
-		// TODO implement blocker to prevent user from immediately sending another message until db is updated
 	} catch (error) {
 		logger.error("Error in post-stream processing:", error);
 	}
