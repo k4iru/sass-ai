@@ -157,9 +157,8 @@ export async function authenticate(
 	accessToken: string,
 	refreshTokenId: string,
 ): Promise<void> {
-	// 10 requests per 30 seconds
 	// this works for single server instance deployments for scaling think about using redis later
-	if (!rateLimiter(userId, 30, 30 * 1000)) {
+	if (!rateLimiter(userId, 200, 30 * 1000)) {
 		throw new Error("Too many authentication attempts. Try again later.");
 	}
 
