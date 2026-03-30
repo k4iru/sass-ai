@@ -107,7 +107,7 @@ export interface ChatContextManager {
 		summaryProvider: BaseChatModel,
 	): Promise<void>;
 	isPendingSummarization(chatId: string): boolean;
-	deleteChatContext(chatId: string): boolean;
+	deleteChatContext(chatKey: string): boolean;
 	getCacheStats(): {
 		size: number;
 		max: number;

@@ -58,7 +58,7 @@ class ChatContextManager {
 			const chatContext = this.cache.get(chatKey);
 
 			if (!chatContext) {
-				logger.warn(`Chat context not found in cache for ${chatId}`);
+				logger.warn(`Chat context not found in cache for ${chatKey}`);
 				return;
 			}
 
@@ -70,10 +70,10 @@ class ChatContextManager {
 			// Update the cached object directly
 			chatContext.summary = summary;
 			chatContext.lastSummaryIndex = lastSummaryIndex;
-			logger.info(`Background summary completed for chat ${chatId}`);
+			logger.info(`Background summary completed for chat ${chatKey}`);
 		} catch (error) {
 			logger.error(
-				`Background summarization failed for chat ${chatId}:`,
+				`Background summarization failed for chat ${chatKey}:`,
 				error,
 			);
 		} finally {
@@ -82,12 +82,14 @@ class ChatContextManager {
 		return;
 	}
 
-	isPendingSummarization(chatId: string): boolean {
-		return this.pendingSummarizations.has(chatId);
+	// where chatKey is `${userId}-${chatId}`
+	isPendingSummarization(chatKey: string): boolean {
+		return this.pendingSummarizations.has(chatKey);
 	}
 
-	deleteChatContext(chatId: string): boolean {
-		return this.cache.delete(chatId);
+	// where chatKey is `${userId}-${chatId}`
+	deleteChatContext(chatKey: string): boolean {
+		return this.cache.delete(chatKey);
 	}
 
 	getCacheStats() {
