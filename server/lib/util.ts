@@ -34,6 +34,7 @@ export const authenticateViaHttpToken = async (
 	return res.json();
 };
 
+// moved to helper so that we can buffer messages
 export const handleMessage = async (
 	ws: WebSocket,
 	data: Buffer,
@@ -47,9 +48,7 @@ export const handleMessage = async (
 		const msg = JSON.parse(text);
 
 		// parse "provider:model" from the message to select the right LLM
-		const { provider, modelId } = parseProviderString(
-			msg.provider || "openai",
-		);
+		const { provider, modelId } = parseProviderString(msg.provider || "openai");
 		const cache = await getChatModel(userId, provider, modelId);
 
 		if (cache === null) {
@@ -82,7 +81,7 @@ export const handleMessage = async (
 					JSON.stringify({
 						id: AiMessageId,
 						role: "ai",
-						chatId: msg.chatId,
+						chatId: chatroomId,
 						userId,
 						content: tokenText,
 						type: "token",
@@ -97,7 +96,7 @@ export const handleMessage = async (
 				JSON.stringify({
 					id: AiMessageId,
 					role: "ai",
-					chatId: msg.chatId,
+					chatId: chatroomId,
 					userId,
 					content: streamedText,
 					type: "done",
