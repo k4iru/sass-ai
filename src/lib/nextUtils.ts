@@ -701,6 +701,25 @@ export async function deleteApiKey(
 	}
 }
 
+export async function chatExists(
+	userId: string,
+	chatId: string,
+): Promise<boolean> {
+	const logger = getLogger({ module: "chatExists" });
+	try {
+		const chat = await db
+			.select({ id: schema.chats.id })
+			.from(schema.chats)
+			.where(and(eq(schema.chats.id, chatId), eq(schema.chats.userId, userId)))
+			.limit(1);
+
+		return chat.length > 0;
+	} catch (error) {
+		logger.error("Error checking if chat exists", { error });
+		return false;
+	}
+}
+
 export async function verifyChatOwnership(
 	userId: string,
 	chatId: string,
