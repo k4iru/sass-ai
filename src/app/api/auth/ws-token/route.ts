@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { verifyChatOwnership } from "@/lib/nextUtils";
+import { chatExists, verifyChatOwnership } from "@/lib/nextUtils";
 import { withAuth } from "@/lib/withAuth";
 import { getRedis } from "@/shared/redis";
 
@@ -18,11 +18,17 @@ async function handler(req: NextRequest, userId: string) {
 
 	const isOwner = await verifyChatOwnership(userId, chatId);
 	if (!isOwner) {
-		return NextResponse.json(
-			{ error: "Chat not found or unauthorized" },
-			{ status: 404 },
-		);
+		// check if chat exists first
+		// only need to return error if exists since it belongs to someone else in this case.
+		const exists = await chatExists(userId, chatId);
+		if (exists)
+			return NextResponse.json(
+				{ error: "Chat not found or unauthorized" },
+				{ status: 404 },
+			);
 	}
+
+	// if doesn't exist then can bypass since the chat isn't in database yet.
 
 	const wsToken = uuidv4();
 	const redis = getRedis();
