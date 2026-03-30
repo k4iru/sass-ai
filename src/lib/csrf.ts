@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getLogger } from "@/shared/logger";
+import { getLogger } from "@/shared/logger.browser";
 
 const logger = getLogger({ module: "csrf" });
 
@@ -13,7 +13,11 @@ const logger = getLogger({ module: "csrf" });
  */
 export function validateOrigin(req: NextRequest): NextResponse | null {
 	// Only validate state-changing methods
-	if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+	if (
+		req.method === "GET" ||
+		req.method === "HEAD" ||
+		req.method === "OPTIONS"
+	) {
 		return null;
 	}
 
