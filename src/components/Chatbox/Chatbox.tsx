@@ -11,9 +11,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import useUpload from "@/hooks/useUpload";
 import {
+	getDefaultProviderString,
 	MODEL_REGISTRY,
 	PROVIDER_KEYS,
-	getDefaultProviderString,
 } from "@/shared/lib/models";
 import type { Message } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger.browser";
@@ -191,34 +191,28 @@ export const Chatbox = () => {
 			)}
 
 			<div className={styles.bottom}>
-				<button type="button" className={styles.fileButton} onClick={open}>
+				{/*<button type="button" className={styles.fileButton} onClick={open}>
 					<FilePlus className={styles.fileIcon} />
 					<input {...getInputProps()} />
-				</button>
+				</button> */}
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
+					<label htmlFor="model" className={styles.modelLabel}>
+						{currModel}
+					</label>
 					<div className={styles.selectWrapper}>
 						<select
 							name="model"
 							className={styles.modelSelect}
-							value={currModel}
 							onChange={handleModelChange}
 						>
-							{PROVIDER_KEYS.map((provider) => {
-								const config = MODEL_REGISTRY[provider];
-								return (
-									<optgroup key={provider} label={config.displayName}>
-										{config.models.map((model) => (
-											<option
-												key={model.id}
-												value={`${provider}:${model.id}`}
-											>
-												{model.displayName}
-											</option>
-										))}
-									</optgroup>
-								);
-							})}
+							<option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+							<option value="gpt-4">GPT-4</option>
+							<option value="gpt-4-vision-preview">GPT-4 Vision Preview</option>
+							<option value="gpt-4o">GPT-4o</option>
+							<option value="gpt-4o-mini">GPT-4o Mini</option>
+							<option value="gpt-4-turbo">GPT-4 Turbo</option>
+							<option value="gpt-4-turbo-preview">GPT-4 Turbo Preview</option>
 						</select>
 						<ChevronDown className={styles.selectIcon} />
 					</div>
