@@ -35,9 +35,16 @@ export type ModelId = AllModelIds;
 
 export const PROVIDER_KEYS = Object.keys(MODEL_REGISTRY) as LLMProvider[];
 
+const LEGACY_MODEL_PREFIX_MAP: Record<string, LLMProvider> = {
+	gpt: "openai",
+	o1: "openai",
+	claude: "anthropic",
+};
+
 /**
  * Parse a "provider:modelId" string into its parts.
  * Falls back to the provider's default model if no model is specified.
+ * Handles legacy model strings (e.g. "gpt-4") by mapping to the correct provider.
  */
 export function parseProviderString(str: string): {
 	provider: LLMProvider;
@@ -45,15 +52,27 @@ export function parseProviderString(str: string): {
 } {
 	const [provider, modelId] = str.split(":") as [string, string | undefined];
 
-	if (!(provider in MODEL_REGISTRY)) {
-		throw new Error(`Unknown provider: ${provider}`);
+	if (provider in MODEL_REGISTRY) {
+		const typedProvider = provider as LLMProvider;
+		return {
+			provider: typedProvider,
+			modelId: modelId || MODEL_REGISTRY[typedProvider].defaultModel,
+		};
 	}
 
-	const typedProvider = provider as LLMProvider;
-	return {
-		provider: typedProvider,
-		modelId: modelId || MODEL_REGISTRY[typedProvider].defaultModel,
-	};
+	// Legacy fallback: match old model names like "gpt-4" or "claude-3-sonnet"
+	for (const [prefix, mappedProvider] of Object.entries(
+		LEGACY_MODEL_PREFIX_MAP,
+	)) {
+		if (str.startsWith(prefix)) {
+			return {
+				provider: mappedProvider,
+				modelId: MODEL_REGISTRY[mappedProvider].defaultModel,
+			};
+		}
+	}
+
+	throw new Error(`Unknown provider: ${provider}`);
 }
 
 /**
