@@ -8,6 +8,10 @@
   z-index: 10000;
 }
 
+.message {
+  color: var(--color-black);
+}
+
 .modal {
   background: var(--color-white);
   padding: 1.5rem;

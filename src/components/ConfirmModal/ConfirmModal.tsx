@@ -1,7 +1,7 @@
 "use client";
 
-import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./ConfirmModal.module.scss";
 
 type ConfirmModalProps = {
@@ -24,7 +24,7 @@ export const ConfirmModal = ({
 	return createPortal(
 		<div className={styles.overlay}>
 			<div className={styles.modal}>
-				<p>{message}</p>
+				<p className={styles.message}>{message}</p>
 				<div className={styles.actions}>
 					<button className={styles.cancel} type="button" onClick={onCancel}>
 						Cancel
