@@ -16,8 +16,12 @@ export async function POST(req: NextRequest) {
 		// deletes session id from database
 		const success = await deleteRefreshToken(refreshToken);
 
-		if (!success)
-			NextResponse.json({ error: "Failed to delete session" }, { status: 500 });
+		if (!success) {
+			return NextResponse.json(
+				{ error: "Failed to delete session" },
+				{ status: 500 },
+			);
+		}
 
 		const response = NextResponse.json(
 			{ message: "Logged out" },
@@ -41,5 +45,9 @@ export async function POST(req: NextRequest) {
 		logger.error("failed to logout properly", {
 			error: err instanceof Error ? err.message : "unknown error",
 		});
+		return NextResponse.json(
+			{ error: "Failed to delete session" },
+			{ status: 500 },
+		);
 	}
 }
