@@ -5,6 +5,9 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createSession, verifyPassword } from "@/lib/auth";
 import { getClientIP, getUserFromEmail, rateLimiter } from "@/lib/nextUtils";
 import type { AuthUser } from "@/shared/lib/types";
+import { getLogger } from "@/shared/logger";
+
+const logger = getLogger({ module: "api auth login" });
 
 // sets cookies + adds session id into session db.
 export async function POST(req: NextRequest) {
@@ -31,8 +34,8 @@ export async function POST(req: NextRequest) {
 		id: user.id,
 		emailVerified: user.emailVerified,
 	};
-	// check password matches
-	const valid = verifyPassword(password, user.password);
+
+	const valid = await verifyPassword(password, user.password);
 	if (!valid)
 		return NextResponse.json(
 			{ success: false, message: "Invalid email or password" },
