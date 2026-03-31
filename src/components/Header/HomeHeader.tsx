@@ -1,12 +1,12 @@
 "use client";
-import Link from "next/link";
 import clsx from "clsx";
+import { ArrowLeftToLine, Menu, UserRound } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
 import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./Header.module.scss";
-import Image from "next/image";
-import { useState } from "react";
-import { UserRound, Menu, ArrowLeftToLine } from "lucide-react";
-import { SettingsMenu } from "@/components/SettingsMenu/SettingsMenu";
 
 export const HomeHeader = () => {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
