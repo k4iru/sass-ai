@@ -11,9 +11,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import useUpload from "@/hooks/useUpload";
 import {
+	getDefaultProviderString,
 	MODEL_REGISTRY,
 	PROVIDER_KEYS,
-	getDefaultProviderString,
 } from "@/shared/lib/models";
 import type { Message } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger.browser";
@@ -191,10 +191,10 @@ export const Chatbox = () => {
 			)}
 
 			<div className={styles.bottom}>
-				<button type="button" className={styles.fileButton} onClick={open}>
+				{/*<button type="button" className={styles.fileButton} onClick={open}>
 					<FilePlus className={styles.fileIcon} />
 					<input {...getInputProps()} />
-				</button>
+				</button>*/}
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
 					<div className={styles.selectWrapper}>
@@ -209,10 +209,7 @@ export const Chatbox = () => {
 								return (
 									<optgroup key={provider} label={config.displayName}>
 										{config.models.map((model) => (
-											<option
-												key={model.id}
-												value={`${provider}:${model.id}`}
-											>
+											<option key={model.id} value={`${provider}:${model.id}`}>
 												{model.displayName}
 											</option>
 										))}
