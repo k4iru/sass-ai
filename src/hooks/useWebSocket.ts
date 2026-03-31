@@ -9,6 +9,7 @@ const logger = getLogger({ module: "useWebSocket" });
 function useWebSocket(url: string | null) {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [fileKey, setFileKey] = useState<null | string>(null);
+	const [isStreaming, setIsStreaming] = useState(false);
 	const socketRef = useRef<WebSocket | null>(null);
 	const pendingQueueRef = useRef<Message[]>([]);
 
@@ -34,12 +35,18 @@ function useWebSocket(url: string | null) {
 		socket.onmessage = (event) => {
 			const data = JSON.parse(event.data);
 
+			if (data.type === "done") {
+				setIsStreaming(false);
+				return;
+			}
+
 			// stream aware
 			setMessages((prev) => {
 				const updatedMessages = [...prev];
 
 				// pushes to react client side message list
 				if (data.type === "token") {
+					setIsStreaming(true);
 					// copy previous messages
 					const lastMessage = updatedMessages[updatedMessages.length - 1];
 
@@ -71,6 +78,7 @@ function useWebSocket(url: string | null) {
 
 		socket.onclose = () => {
 			setFileKey(null);
+			setIsStreaming(false);
 			logger.info("WebSocket closed.");
 		};
 
@@ -118,6 +126,7 @@ function useWebSocket(url: string | null) {
 		popMessage,
 		initializeMessages,
 		removePlaceholderMessages,
+		isStreaming,
 	};
 }
 

@@ -22,7 +22,7 @@ const logger = getLogger({ module: "Chatbox" });
 
 export const Chatbox = () => {
 	const router = useRouter();
-	const { pushMessage, pushInitialMessage, messages } = useChat();
+	const { pushMessage, pushInitialMessage, messages, isStreaming } = useChat();
 	const params = useParams();
 	const chatId = params?.chatId;
 	const { user } = useAuth();
@@ -81,6 +81,8 @@ export const Chatbox = () => {
 	const sendMessage = async () => {
 		// on send. if not on specific chatId in url. then create a new chat
 		// and send the message to the server
+
+		if (isStreaming) return;
 
 		if (!text.trim()) {
 			logger.info("Empty message, not sending");
@@ -224,6 +226,7 @@ export const Chatbox = () => {
 					type="button"
 					className={styles.sendButton}
 					onClick={sendMessage}
+				disabled={isStreaming}
 				>
 					<ArrowBigRight className={styles.sendIcon} />
 				</button>
