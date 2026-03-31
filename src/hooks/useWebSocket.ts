@@ -40,6 +40,24 @@ function useWebSocket(url: string | null) {
 				return;
 			}
 
+			if (data.type === "error") {
+				setIsStreaming(false);
+				setMessages((prev) => [
+					...prev,
+					{
+						id: data.id,
+						role: "error",
+						chatId: data.chatId,
+						userId: data.userId,
+						content: data.content,
+						provider: "",
+						createdAt: new Date(),
+						messageOrder: 0,
+					},
+				]);
+				return;
+			}
+
 			// stream aware
 			setMessages((prev) => {
 				const updatedMessages = [...prev];

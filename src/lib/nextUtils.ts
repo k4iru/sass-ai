@@ -128,7 +128,7 @@ export async function insertMessage(messages: Message[]): Promise<boolean> {
 			for (const msg of messages) {
 				await tx.insert(schema.messages).values({
 					id: msg.id,
-					role: msg.role,
+					role: msg.role as "human" | "ai" | "placeholder",
 					chatId: msg.chatId,
 					userId: msg.userId,
 					content: msg.content,

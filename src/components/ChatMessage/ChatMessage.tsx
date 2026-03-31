@@ -5,7 +5,7 @@ import styles from "./ChatMessage.module.scss";
 import "highlight.js/styles/atom-one-dark.css"; // or atom-one-light.css
 
 interface ChatMessageProps {
-	role: "human" | "ai" | "placeholder";
+	role: "human" | "ai" | "placeholder" | "error";
 	content: string;
 	type?: string;
 }
@@ -16,7 +16,9 @@ const ChatMessage = ({ role, content, type }: ChatMessageProps) => {
 			? styles.human
 			: role === "ai"
 				? styles.ai
-				: styles.placeholder;
+				: role === "error"
+					? styles.error
+					: styles.placeholder;
 
 	const renderContent = () => {
 		if (type === "token") {

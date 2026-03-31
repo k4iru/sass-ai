@@ -53,7 +53,17 @@ export const handleMessage = async (
 
 		if (cache === null) {
 			logger.warn("Chat model not found");
-			ws.send(JSON.stringify({ error: "chat model not found" }));
+			ws.send(
+				JSON.stringify({
+					id: uuidv4(),
+					role: "error",
+					chatId: chatroomId,
+					userId,
+					content:
+						"Unable to connect to the AI model. Please check that your API key is valid in your API Keys settings.",
+					type: "error",
+				}),
+			);
 			return;
 		}
 		const [model, summaryProvider] = cache;
@@ -105,6 +115,16 @@ export const handleMessage = async (
 		}
 	} catch (err) {
 		logger.error("Error processing message: %o", err);
-		ws.send(JSON.stringify({ error: "Invalid message format" }));
+		ws.send(
+			JSON.stringify({
+				id: uuidv4(),
+				role: "error",
+				chatId: chatroomId,
+				userId,
+				content:
+					"Something went wrong while generating a response. Please check your API key and try again.",
+				type: "error",
+			}),
+		);
 	}
 };

@@ -17,7 +17,7 @@ export interface AuthUser {
 
 export type Message = {
 	id: string;
-	role: "human" | "ai" | "placeholder";
+	role: "human" | "ai" | "placeholder" | "error";
 	chatId: string;
 	userId: string;
 	content: string;
