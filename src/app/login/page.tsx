@@ -6,7 +6,10 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { getGoogleOAuthURL } from "@/lib/auth";
+import { getLogger } from "@/shared/logger.browser";
 import styles from "./login.module.scss";
+
+const logger = getLogger({ module: "login page" });
 
 function Login() {
 	const router = useRouter();
@@ -16,7 +19,7 @@ function Login() {
 		password: "",
 	});
 	const [loading, setLoading] = useState(false);
-	const [message, setMessage] = useState<string | null>(null);
+	const [error, setError] = useState<boolean>(false);
 	const [googleUrl, setGoogleUrl] = useState<string>("");
 
 	useEffect(() => {
@@ -47,15 +50,15 @@ function Login() {
 		// reset set up
 		e.preventDefault();
 		setLoading(true);
-		setMessage(null);
-
+		setError(false);
 		// handle post
 		try {
 			await login(formData.email, formData.password);
-		} catch (error) {
-			setMessage(
-				`Error submitting form: ${error instanceof Error ? error.message : "Unknown error"}`,
-			);
+		} catch (err) {
+			logger.error("Login failed", {
+				error: err instanceof Error ? err.message : "Unknown error",
+			});
+			setError(true);
 			setLoading(false);
 			return;
 		}
@@ -91,7 +94,7 @@ function Login() {
 					/>
 				</div>
 
-				{message && <p className="">{message}</p>}
+				{error && <p className="">The username or password is incorrect.</p>}
 				<div className={styles.loginWrapper}>
 					<button
 						disabled={loading}
