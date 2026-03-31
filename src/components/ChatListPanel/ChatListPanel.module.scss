@@ -1,0 +1,31 @@
+.newChatWrapper {
+  margin: 1rem 0;
+
+  .newChatIconWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .newChatIcon {
+      fill: var(--color-white);
+      height: 1.5rem;
+      margin-right: 0.5rem;
+    }
+
+    &:hover {
+      cursor: pointer;
+
+      .newChatText {
+        color: var(--color-brand);
+      }
+
+      .newChatIcon {
+        fill: var(--color-brand);
+      }
+    }
+  }
+
+  .newChatText {
+    font-size: 1.125rem;
+  }
+}

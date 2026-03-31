@@ -74,6 +74,9 @@
 
   // benefit
   --benefit-header-color: var(--color-black);
+
+  // fonts
+  --font-color: var(--color-black);
 }
 
 :root.dark {
@@ -121,6 +124,9 @@
 
   // benefit
   --benefit-header-color: var(--color-white);
+
+  // fonts
+  --font-color: var(--color-white);
 }
 
 html {
