@@ -1,2 +1,20 @@
 .wrapper {
+  .apiKeyContainer {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: max-content 1fr auto;
+    gap: 10px; /* Optional spacing between rows/cols */
+    align-items: center;
+    max-width: 500px;
+
+    .apiKeyRow {
+      display: contents;
+
+      .provider {
+        min-width: 100px;
+        display: block;
+        text-transform: capitalize;
+      }
+    }
+  }
 }

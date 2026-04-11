@@ -701,6 +701,32 @@ export async function deleteApiKey(
 	}
 }
 
+export async function apiKeysExist(
+	userId: string,
+): Promise<Record<string, boolean>> {
+	const logger = getLogger({ module: "apiKeysExist" });
+	try {
+		const apiKeys = await db
+			.select()
+			.from(schema.apiKeys)
+			.where(eq(schema.apiKeys.userId, userId));
+
+		const providersDict: Record<string, boolean> = {};
+		AVAILABLE_LLM_PROVIDERS.forEach((provider) => {
+			providersDict[provider] = false;
+		});
+
+		apiKeys.forEach((key) => {
+			providersDict[key.llmProvider] = true;
+		});
+
+		return providersDict;
+	} catch (error) {
+		logger.error("Error checking if API keys exist", { error });
+		return {};
+	}
+}
+
 export async function chatExists(
 	userId: string,
 	chatId: string,
