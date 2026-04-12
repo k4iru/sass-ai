@@ -1,15 +1,32 @@
 .wrapper {
   .apiKeyContainer {
     margin-top: 1rem;
-    display: grid;
-    grid-template-columns: max-content 1fr auto;
-    gap: 10px; /* Optional spacing between rows/cols */
-    align-items: center;
-    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
 
     .apiKeyRow {
-      display: contents;
+      label {
+        padding-bottom: 0.25rem;
+      }
 
+      input {
+        margin-right: 0.5rem;
+      }
+
+      button {
+        color: var(--color-brand);
+        background-color: var(--color-primary);
+        inset: none;
+        border: 1px solid var(--color-brand);
+        padding: 0 4px;
+        border-radius: 0.25rem;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--color-secondary);
+        }
+      }
       .provider {
         min-width: 100px;
         display: block;

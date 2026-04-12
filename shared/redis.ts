@@ -27,7 +27,10 @@ export const getRedis = (): Redis => {
 	}
 
 	logger.info("Creating new Redis connection");
-	const redis = new Redis(redisUrl);
+	const redis = new Redis(redisUrl, {
+		commandTimeout: 500,
+		maxRetriesPerRequest: 2,
+	});
 	cachedRedis = redis;
 	return cachedRedis;
 };

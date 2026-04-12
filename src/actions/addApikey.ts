@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 import { authenticate } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption/apiKeyEncryption";
 import { deleteApiKey, insertApiKey } from "@/lib/nextUtils";
+import { invalidateApiKeyCache } from "@/shared/lib/langchain/llmFactory";
+import type { LLMProvider } from "@/shared/lib/types";
 import { getLogger } from "@/shared/logger";
 
 const logger = getLogger({ module: "addApiKey" });
@@ -30,9 +32,11 @@ export async function addApiKey(
 
 		const encryptedKey = encrypt(apiKey);
 		await insertApiKey(userId, provider, encryptedKey);
+		await invalidateApiKeyCache(userId, provider as LLMProvider);
 		logger.info(
 			`API key for ${provider} added successfully for user ${userId}`,
 		);
+
 		return { success: true };
 	} catch (error) {
 		logger.error(

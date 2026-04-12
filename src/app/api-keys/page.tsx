@@ -110,32 +110,30 @@ const ApiKeys = () => {
 			<div className={styles.apiKeyContainer}>
 				{Object.keys(apiKeys).map((provider) => (
 					<div key={provider} className={styles.apiKeyRow}>
-						<div className={styles.providerInputWrap}>
-							<label className={styles.provider} htmlFor={provider}>
-								{provider}
-							</label>
-							<input
-								name={provider}
-								type="text"
-								placeholder={`Enter your ${provider} API key`}
-								className={styles.apiKeyInput}
-								value={apiKeys[provider as keyof typeof apiKeys]}
-								onChange={handleChange}
-								onFocus={() => {
-									if (apiKeys[provider as Provider] === MASK) {
-										setApiKeys((prev) => ({ ...prev, [provider]: "" }));
-									}
-								}}
-								disabled={loading}
-							/>
-							<button
-								type="button"
-								className={styles.addButton}
-								onClick={() => handleClick(provider as keyof typeof apiKeys)}
-							>
-								Add
-							</button>
-						</div>
+						<label className={styles.provider} htmlFor={provider}>
+							{provider}
+						</label>
+						<input
+							name={provider}
+							type="text"
+							placeholder={`Enter your ${provider} API key`}
+							className={styles.apiKeyInput}
+							value={apiKeys[provider as keyof typeof apiKeys]}
+							onChange={handleChange}
+							onFocus={() => {
+								if (apiKeys[provider as Provider] === MASK) {
+									setApiKeys((prev) => ({ ...prev, [provider]: "" }));
+								}
+							}}
+							disabled={loading}
+						/>
+						<button
+							type="button"
+							className={styles.addButton}
+							onClick={() => handleClick(provider as keyof typeof apiKeys)}
+						>
+							Add
+						</button>
 						{message[provider] && (
 							<div className={styles.messageWrap}>
 								<p className={styles.message}>{message[provider]}</p>

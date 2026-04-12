@@ -2,7 +2,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
+import { getJwtConfig } from "@/lib/jwtConfig";
 import { deleteRefreshToken } from "@/lib/nextUtils";
+import { getUserSubFromJWT } from "@/shared/lib/jwt";
+import { invalidateApiKeyCache } from "@/shared/lib/langchain/llmFactory";
 import { getLogger } from "@/shared/logger";
 
 const logger = getLogger({ module: "api auth logout" });
@@ -21,6 +24,18 @@ export async function POST(req: NextRequest) {
 				{ error: "Failed to delete session" },
 				{ status: 500 },
 			);
+		}
+
+		const accessToken = req.cookies.get("accessToken")?.value;
+		if (accessToken) {
+			const userId = getUserSubFromJWT(accessToken, getJwtConfig());
+			if (userId) {
+				try {
+					await invalidateApiKeyCache(userId);
+				} catch (err) {
+					logger.warn("failed to invalidate apikey cache on logout", { err });
+				}
+			}
 		}
 
 		const response = NextResponse.json(
