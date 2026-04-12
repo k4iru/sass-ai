@@ -78,6 +78,14 @@
     .modelSelector {
       display: flex;
       flex-direction: row;
+
+      .modelLabel {
+        color: var(--chatbox-text-color);
+        font-size: 0.875rem;
+        align-self: center;
+        margin-right: var(--spacing-xs);
+      }
+
       .selectWrapper {
         display: flex;
         flex-direction: row;

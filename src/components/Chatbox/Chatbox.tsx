@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { ArrowBigRight, ChevronDown, FilePlus, X } from "lucide-react";
 import { useParams, useRouter } from "next/navigation"; // App Router
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useDropzone } from "react-dropzone";
 import { v4 as uuidv4 } from "uuid";
 import styles from "@/components/Chatbox/Chatbox.module.scss";
@@ -13,6 +14,7 @@ import useUpload from "@/hooks/useUpload";
 import {
 	getDefaultProviderString,
 	MODEL_REGISTRY,
+	parseProviderString,
 	PROVIDER_KEYS,
 } from "@/shared/lib/models";
 import type { Message } from "@/shared/lib/types";
@@ -33,6 +35,7 @@ export const Chatbox = () => {
 		getDefaultProviderString(),
 	);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const initializedChatIdRef = useRef<string | null>(null);
 	const { handleUpload, fileId } = useUpload();
 
 	const onDrop = (acceptedFiles: File[]) => {
@@ -158,6 +161,38 @@ export const Chatbox = () => {
 		resizeTextarea();
 	}, [resizeTextarea]);
 
+	useEffect(() => {
+		if (typeof chatId !== "string") {
+			initializedChatIdRef.current = null;
+			return;
+		}
+		if (initializedChatIdRef.current === chatId) return;
+		if (messages.length === 0) return;
+
+		for (let i = messages.length - 1; i >= 0; i--) {
+			const msg = messages[i];
+			if (msg.role !== "human" || !msg.provider) continue;
+			try {
+				const { provider, modelId } = parseProviderString(msg.provider);
+				const exists = MODEL_REGISTRY[provider].models.some(
+					(m) => m.id === modelId,
+				);
+				if (exists) {
+					setCurrModel(msg.provider);
+					break;
+				}
+			} catch {
+				// keep looking for an earlier valid provider
+			}
+		}
+		initializedChatIdRef.current = chatId;
+	}, [chatId, messages]);
+
+	const { provider, modelId } = parseProviderString(currModel);
+	const currModelDisplayName =
+		MODEL_REGISTRY[provider].models.find((m) => m.id === modelId)
+			?.displayName ?? modelId;
+
 	return (
 		<div
 			{...getRootProps()}
@@ -193,12 +228,9 @@ export const Chatbox = () => {
 			)}
 
 			<div className={styles.bottom}>
-				{/*<button type="button" className={styles.fileButton} onClick={open}>
-					<FilePlus className={styles.fileIcon} />
-					<input {...getInputProps()} />
-				</button>*/}
 				<span className={styles.spacer} />
 				<div className={styles.modelSelector}>
+					<span className={styles.modelLabel}>{currModelDisplayName}</span>
 					<div className={styles.selectWrapper}>
 						<select
 							name="model"
@@ -226,7 +258,7 @@ export const Chatbox = () => {
 					type="button"
 					className={styles.sendButton}
 					onClick={sendMessage}
-				disabled={isStreaming}
+					disabled={isStreaming}
 				>
 					<ArrowBigRight className={styles.sendIcon} />
 				</button>
