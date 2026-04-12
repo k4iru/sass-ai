@@ -37,6 +37,8 @@ export async function addApiKey(
 			`API key for ${provider} added successfully for user ${userId}`,
 		);
 
+		logger.info("test");
+
 		return { success: true };
 	} catch (error) {
 		logger.error(
