@@ -12,6 +12,10 @@ vi.mock("@/shared/redis", () => ({
 vi.mock("@/lib/auth", () => ({
 	authenticate: vi.fn().mockResolvedValue(undefined),
 }));
+vi.mock("@/lib/nextUtils", () => ({
+	verifyChatOwnership: vi.fn().mockResolvedValue(true),
+	chatExists: vi.fn().mockResolvedValue(false),
+}));
 
 import { POST } from "@/app/api/auth/ws-token/route";
 import * as jwtMock from "@/shared/lib/jwt";
