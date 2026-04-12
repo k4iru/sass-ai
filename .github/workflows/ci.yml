@@ -55,6 +55,22 @@ jobs:
       - run: npm ci
       # --run flag makes vitest run once and exit (instead of watch mode)
       - run: npm test -- --run
+    env:
+      JWT_SECRET: 9vxOCLrzypwrhm84IK8K4Z3HvJelNXj8nM1N5b/FkzY=
+      JWT_EXPIRY: "3600"
+      JWT_AUD: https://Keppel.App
+      JWT_ISS: Keppel
+      REFRESH_TOKEN_EXPIRY: "2592000"
+      DATABASE_URL: postgresql://user:pass@localhost:5432/testdb
+      WS_PORT: "3002"
+      ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      GOOGLE_CLIENT_ID: dummy-client-id
+      GOOGLE_CLIENT_SECRET: dummy-client-secret
+      GOOGLE_REDIRECT_URI: http://localhost:3000/api/auth/google/callback
+      RESEND_API_KEY: re_dummy_key
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_WS_URL: ws://localhost:3002/ws
+      REDIS_URL: redis://127.0.0.1:6379
 
   build:
     name: Build
