@@ -11,6 +11,7 @@
 		"start:ws": "node --import tsx/esm server/server.ts",
 		"start": "next start",
 		"lint": "next lint",
+		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"test:redis": "node --env-file=.env.local --import tsx/esm shared/test-redis.ts"
 	},

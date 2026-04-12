@@ -1,0 +1,77 @@
+# CI Pipeline — runs on every PR and push to main
+# Learn more: https://docs.github.com/en/actions/writing-workflows
+
+name: CI
+
+# TRIGGERS: When should this workflow run?
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# JOBS: Independent units of work that run in parallel
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Check out the code so the runner has access to it
+      - uses: actions/checkout@v4
+
+      # 2. Set up Node.js with caching to speed up installs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # 3. Install dependencies (ci = clean install, respects lockfile exactly)
+      - run: npm ci
+
+      # 4. Run the lint check
+      - run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # --run flag makes vitest run once and exit (instead of watch mode)
+      - run: npm test -- --run
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    # This job waits for lint, typecheck, and test to pass first.
+    # Why: no point building if basic checks fail — saves CI minutes.
+    needs: [lint, typecheck, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+    # Make dummy env vars available so Next.js build doesn't fail
+    # on missing NEXT_PUBLIC_* variables (it inlines them at build time)
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      NEXT_PUBLIC_WS_URL: ws://localhost:3002
