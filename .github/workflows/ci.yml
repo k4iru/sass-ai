@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # 1. Check out the code so the runner has access to it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # 2. Set up Node.js with caching to speed up installs
       - uses: actions/setup-node@v4
@@ -39,7 +39,7 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -51,7 +51,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -83,7 +83,7 @@ jobs:
     # Why: no point building if basic checks fail — saves CI minutes.
     needs: [lint, typecheck, test]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: 24
