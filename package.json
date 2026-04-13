@@ -37,7 +37,7 @@
 		"pg": "^8.13.1",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"react-dropzone": "^14.3.5",
+		"react-dropzone": "^15.0.0",
 		"react-markdown": "^10.1.0",
 		"redis-cli": "^2.1.2",
 		"rehype-highlight": "^7.0.2",
