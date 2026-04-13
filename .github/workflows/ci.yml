@@ -2,13 +2,17 @@
 # Learn more: https://docs.github.com/en/actions/writing-workflows
 
 name: CI
-
 # TRIGGERS: When should this workflow run?
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
+# Cancel redundant runs when new commits are pushed to the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # JOBS: Independent units of work that run in parallel
 jobs:
@@ -22,7 +26,7 @@ jobs:
       # 2. Set up Node.js with caching to speed up installs
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       # 3. Install dependencies (ci = clean install, respects lockfile exactly)
@@ -38,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm run typecheck
@@ -50,7 +54,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
       # --run flag makes vitest run once and exit (instead of watch mode)
@@ -82,9 +86,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
       - run: npm ci
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - run: npm run build
     # Make dummy env vars available so Next.js build doesn't fail
     # on missing NEXT_PUBLIC_* variables (it inlines them at build time)
