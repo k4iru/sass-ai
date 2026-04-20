@@ -26,7 +26,7 @@
 		"bcrypt": "^6.0.0",
 		"clsx": "^2.1.1",
 		"dotenv": "^16.4.7",
-		"drizzle-orm": "^1.0.0-beta.20",
+		"drizzle-orm": "^1.0.0-beta.22-41a7d21",
 		"highlight.js": "^11.11.1",
 		"ioredis": "^5.10.0",
 		"jose": "^5.9.6",
