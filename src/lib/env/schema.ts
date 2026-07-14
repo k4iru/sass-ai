@@ -9,7 +9,7 @@ export const serverSchema = z.object({
 	WS_PORT: z.string().min(1),
 	GOOGLE_CLIENT_ID: z.string().min(1),
 	GOOGLE_CLIENT_SECRET: z.string().min(1),
-	GOOGLE_REDIRECT_URI: z.string().min(1),
+	GOOGLE_REDIRECT_URI: z.string().url(),
 	RESEND_API_KEY: z.string().min(1),
 });
 

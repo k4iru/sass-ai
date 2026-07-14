@@ -2,6 +2,7 @@
 import { JWTExpired } from "jose/errors";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateOrigin } from "@/lib/csrf";
+import { getClientEnv } from "@/lib/env/env.client";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import { validateToken } from "@/shared/lib/jwt";
 
@@ -22,7 +23,9 @@ export async function proxy(req: NextRequest) {
 
 		// neither cookie is set log in. if protected route.
 		if (!refreshToken || !accessToken) {
-			const response = NextResponse.redirect(new URL("/login", req.url));
+			const response = NextResponse.redirect(
+				new URL("/login", getClientEnv().NEXT_PUBLIC_API_URL),
+			);
 			response.cookies.delete("accessToken");
 			response.cookies.delete("refreshToken");
 			return response;
@@ -40,11 +43,16 @@ export async function proxy(req: NextRequest) {
 	} catch (err) {
 		if (err instanceof JWTExpired) {
 			const path = req.nextUrl.pathname;
-			const redirectURL = new URL("/api/auth/refresh-token", req.url);
+			const redirectURL = new URL(
+				"/api/auth/refresh-token",
+				getClientEnv().NEXT_PUBLIC_API_URL,
+			);
 			redirectURL.searchParams.set("redirect", path);
 			return NextResponse.redirect(redirectURL);
 		}
-		return NextResponse.redirect(new URL("/login", req.url));
+		return NextResponse.redirect(
+			new URL("/login", getClientEnv().NEXT_PUBLIC_API_URL),
+		);
 	}
 }
 
