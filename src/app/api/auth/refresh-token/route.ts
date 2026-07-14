@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
+import { getClientEnv } from "@/lib/env/env.client";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import {
 	deleteRefreshToken,
@@ -81,7 +82,9 @@ export async function POST(req: NextRequest) {
 			throw new Error("database error");
 		}
 
-		const res = NextResponse.redirect(new URL(redirectPath, req.url));
+		const res = NextResponse.redirect(
+			new URL(redirectPath, getClientEnv().NEXT_PUBLIC_API_URL),
+		);
 		// Access token cookie
 		res.cookies.set({
 			name: "accessToken",
@@ -107,7 +110,9 @@ export async function POST(req: NextRequest) {
 		return res;
 	} catch (err) {
 		logger.error("token refresh failed", { error: err });
-		const response = NextResponse.redirect(new URL("/login", req.url));
+		const response = NextResponse.redirect(
+			new URL("/login", getClientEnv().NEXT_PUBLIC_API_URL),
+		);
 		response.cookies.delete("accessToken");
 		response.cookies.delete("refreshToken");
 

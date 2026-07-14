@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { type NextRequest, NextResponse } from "next/server";
 import { createSession } from "@/lib/auth";
+import { getClientEnv } from "@/lib/env/env.client";
 import { getUserFromEmail } from "@/lib/nextUtils";
 import { db, schema } from "@/shared/db";
 import { getLogger } from "@/shared/logger";
@@ -124,7 +125,9 @@ export async function GET(req: NextRequest) {
 
 	// TODO: Save to DB, create session, etc.
 
-	const res = NextResponse.redirect(new URL("/chat", req.url));
+	const res = NextResponse.redirect(
+		new URL("/chat", getClientEnv().NEXT_PUBLIC_API_URL),
+	);
 	await createSession(res, req, userObj.id);
 	logger.info("Session created for Google OAuth user");
 	return res;

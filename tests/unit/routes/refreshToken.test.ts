@@ -78,6 +78,8 @@ describe("api/auth/refresh-token", () => {
 		const cookies = res.cookies;
 		expect(cookies.get("accessToken")?.value).toBe("new-access-token");
 		expect(cookies.get("refreshToken")?.value).toBe("new-refresh-token");
-		expect(res.headers.get("Location")).toBe("http://localhost/dashboard");
+		expect(res.headers.get("Location")).toBe(
+			"http://localhost:3000/dashboard",
+		);
 	});
 });
