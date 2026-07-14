@@ -42,11 +42,11 @@ Environment variables are loaded from `.env.local`. Validated via Zod schemas in
 
 ## Architecture
 
-This is a **SaaS AI chat app** (Next.js 15 + a standalone WebSocket server) that lets users bring their own LLM API keys. Currently supports **OpenAI** and **Anthropic** providers.
+This is a **SaaS AI chat app** (Next.js 16 + a standalone WebSocket server) that lets users bring their own LLM API keys. Currently supports **OpenAI** and **Anthropic** providers.
 
 ### Two-Server Model
 
-- **Next.js app** (`src/`) — UI, REST API routes (`src/app/api/`), auth, and middleware
+- **Next.js app** (`src/`) — UI, REST API routes (`src/app/api/`), auth, and proxy
 - **WebSocket server** (`server/server.ts`) — real-time chat streaming; runs as a separate process on `WS_PORT` (default 3002 locally, 8080 in production)
 
 ### Production (Railway)
@@ -73,7 +73,7 @@ Code used by both the Next.js app and the WebSocket server:
 - `shared/lib/types.ts` — Core types (`Message`, `ChatContext`, `LLMProvider`, `StateAnnotation` for LangGraph)
 - `shared/lib/models.ts` — Model metadata (name, provider, max tokens)
 - `shared/lib/container.ts` — Dependency injection container (`AgentDeps`) wiring DB utils and chat context services
-- `shared/lib/jwt.ts` — JWT validation (shared between middleware and WebSocket auth)
+- `shared/lib/jwt.ts` — JWT validation (shared between the proxy and WebSocket auth)
 - `shared/lib/langchain/` — LLM integration:
   - `llmFactory.ts` — Creates LangChain chat models from user's encrypted API keys; Redis-cached (15 min TTL)
   - `llmHandler.ts` — `askQuestion()` async generator that streams LangGraph agent responses
@@ -92,7 +92,7 @@ Code used by both the Next.js app and the WebSocket server:
 ### Authentication
 
 - JWT-based (jose): short-lived `accessToken` + longer-lived `refreshToken` stored as HttpOnly cookies
-- `src/middleware.ts` protects `/chat/*`, `/dashboard/*`, `/api-keys/*`, `/settings/*`, `/profile/*` — on `JWTExpired`, redirects to `/api/auth/refresh-token`
+- `src/proxy.ts` protects `/chat/*`, `/dashboard/*`, `/api-keys/*`, `/settings/*`, `/profile/*` — on `JWTExpired`, redirects to `/api/auth/refresh-token`
 - CSRF protection via Origin header validation on all `/api/*` routes
 - WebSocket auth uses ephemeral tokens (30s expiry via Redis) generated at `/api/auth/ws-token`
 - Google OAuth supported as an alternative login method

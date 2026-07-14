@@ -1,10 +1,11 @@
+// as of nextjs 16, this is renamed to proxy.ts as a requirement
 import { JWTExpired } from "jose/errors";
 import { type NextRequest, NextResponse } from "next/server";
 import { validateOrigin } from "@/lib/csrf";
 import { getJwtConfig } from "@/lib/jwtConfig";
 import { validateToken } from "@/shared/lib/jwt";
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
 	const pathname = req.nextUrl.pathname;
 
 	// CSRF protection: validate Origin header on all API routes
